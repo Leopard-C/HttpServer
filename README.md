@@ -1,11 +1,11 @@
 # Http Server
 
-基于 `Boost.Beast` 实现的跨平台、高性能、开箱即用的HTTP服务器。
+基于 `Boost.Beast` 实现的跨平台、高性能的HTTP服务器。
 
 ## 1. 依赖
 
 + C++11
-+ Boost 1.70.0
++ Boost >= 1.70.0
 + [Boost.Asio](https://github.com/boostorg/asio), [Boost.Beast](https://github.com/boostorg/beast), [Boost.Regex](https://github.com/boostorg/regex)（可选，性能比 std::regex 性能高些）
 + [Leopard-C/jsoncpp](https://github.com/Leopard-C/jsoncpp) （修改自[open-source-parsers/jsoncpp](https://github.com/open-source-parsers/jsoncpp)）
 + [gabime/spdlog](https://github.com/gabime/spdlog)
@@ -31,7 +31,8 @@
 
 ## 2. 编译静态库、示例程序
 
-> 编译安装 `Boost` (如果已安装请跳过)
+### 2.1 编译安装`Boost` (如果已安装请跳过)
+
 ```shell
 # 安装依赖项 (Ubuntu)
 sudo apt install build-essential g++ autotools-dev libicu-dev build-essential python-dev libbz2-dev
@@ -39,10 +40,9 @@ sudo apt install build-essential g++ autotools-dev libicu-dev build-essential py
 sudo yum install bzip2 bzip2-devel bzip2-libs python-devel gcc-c++
 
 # 下载 Boost 1.70.0 源码，也可以下载更高版本的
-mkdir -p ~/dev/compile/boost & cd ~/dev/compile/boost
+mkdir -p ~/dev/compile/boost && cd ~/dev/compile/boost
 wget https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz
-tar -xzf boost_1_70_0.tar.gz
-cd boost_1_70_0
+tar -xzf boost_1_70_0.tar.gz && cd boost_1_70_0
 
 # 编译安装
 ./bootstrap.sh --prefix=/usr/local
@@ -51,12 +51,26 @@ sudo ./b2 install
 sudo ldconfig
 
 # 卸载
-# sudo rm -rf /usr/local/lib/libboost_*
+# sudo rm -rf /usr/local/lib/libboost*
 # sudo rm -rf /usr/local/include/boost
 ```
->
 
-### 2.1 `Linux`
+### 2.2 编译子模块
+
+```shell
+# 克隆项目，并拉取子模块
+git clone https://github.com/Leopard-C/HttpServer
+git submodule update --init --recursive
+```
+
++ `third_party/jsoncpp`
++ `third_party/spdlog-wrapper`
+
+按照子模块的 `README.md` 文档中的方法，编译两个子模块。
+
+### 2.3 编译`HttpServer`
+
+#### 2.3.1 `Linux`
 
 ```shell
 # 方式1：使用xmake构建
@@ -81,7 +95,7 @@ bin/example2
 浏览器地址栏输入 [`http://127.0.0.1:8099/`](http://127.0.0.1:8099/) 访问。关于示例程序，请参考说明文档 [`example/README.md`](example/README.md)
 
 
-## 2.2 `Windows`
+#### 2.3.2 `Windows`
 
 使用 `Visual Studio 2019` 软件打开`http_server.sln`工程文件。
 
