@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{f285bc60-485f-44f0-a4a0-3191f027ec2a}</ProjectGuid>
+    <RootNamespace>lib_http_server</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\lib\windows\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>..\build\windows\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>http_server</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\lib\windows\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>..\build\windows\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>http_server</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\lib\windows\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>..\build\windows\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>http_server</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\lib\windows\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>..\build\windows\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>http_server</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions> _WIN32_WINNT=0x0601;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <ObjectFileName>$(IntDir)\$(RelativeDir)</ObjectFileName>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\include\server;..\third_party\jsoncpp\include;..\third_party\jsoncpp\include\jsoncpp;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.77.0\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalLibraryDirectories>.\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions> _WIN32_WINNT=0x0601;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <ObjectFileName>$(IntDir)\$(RelativeDir)</ObjectFileName>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\include\server;..\third_party\jsoncpp\include;..\third_party\jsoncpp\include\jsoncpp;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.77.0\include</AdditionalIncludeDirectories>
+      <DebugInformationFormat>None</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalLibraryDirectories>.\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions> _WIN32_WINNT=0x0601;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <ObjectFileName>$(IntDir)\$(RelativeDir)</ObjectFileName>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\include\server;..\third_party\jsoncpp\include;..\third_party\jsoncpp\include\jsoncpp;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.77.0\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>.\lib\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions> _WIN32_WINNT=0x0601;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <ObjectFileName>$(IntDir)\$(RelativeDir)</ObjectFileName>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>..\include\server;..\third_party\jsoncpp\include;..\third_party\jsoncpp\include\jsoncpp;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.77.0\include</AdditionalIncludeDirectories>
+      <DebugInformationFormat>None</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="..\README.md" />
+    <None Include=".editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\server\config.h" />
+    <ClInclude Include="..\include\server\content_type.h" />
+    <ClInclude Include="..\include\server\form_item.h" />
+    <ClInclude Include="..\include\server\helper\helper.h" />
+    <ClInclude Include="..\include\server\helper\param_check.h" />
+    <ClInclude Include="..\include\server\helper\param_get.h" />
+    <ClInclude Include="..\include\server\helper\_narg.h" />
+    <ClInclude Include="..\include\server\http_cookie.h" />
+    <ClInclude Include="..\include\server\http_method.h" />
+    <ClInclude Include="..\include\server\http_server.h" />
+    <ClInclude Include="..\include\server\request.h" />
+    <ClInclude Include="..\include\server\request_raw.h" />
+    <ClInclude Include="..\include\server\response.h" />
+    <ClInclude Include="..\include\server\router.h" />
+    <ClInclude Include="..\include\server\status\base.h" />
+    <ClInclude Include="..\include\server\string_view.h" />
+    <ClInclude Include="..\include\server\util\convert\convert_case.h" />
+    <ClInclude Include="..\include\server\util\convert\convert_number.h" />
+    <ClInclude Include="..\include\server\util\format_time.h" />
+    <ClInclude Include="..\include\server\util\gmt_time.h" />
+    <ClInclude Include="..\include\server\util\hash\md5.h" />
+    <ClInclude Include="..\include\server\util\hash\xxh64.h" />
+    <ClInclude Include="..\include\server\util\io.h" />
+    <ClInclude Include="..\include\server\util\mime.h" />
+    <ClInclude Include="..\include\server\util\path.h" />
+    <ClInclude Include="..\include\server\util\string\isprint.h" />
+    <ClInclude Include="..\include\server\util\string\memmem.h" />
+    <ClInclude Include="..\include\server\util\string\split.h" />
+    <ClInclude Include="..\include\server\util\string\split_key_value.h" />
+    <ClInclude Include="..\include\server\util\string\trim.h" />
+    <ClInclude Include="..\include\server\util\thread.h" />
+    <ClInclude Include="..\include\server\util\url_code.h" />
+    <ClInclude Include="server\listener.h" />
+    <ClInclude Include="server\multipart_parser.h" />
+    <ClInclude Include="server\session.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="server\config.cpp" />
+    <ClCompile Include="server\content_type.cpp" />
+    <ClCompile Include="server\helper\helper.cpp" />
+    <ClCompile Include="server\helper\param_check.cpp" />
+    <ClCompile Include="server\helper\param_get.cpp" />
+    <ClCompile Include="server\http_cookie.cpp" />
+    <ClCompile Include="server\http_method.cpp" />
+    <ClCompile Include="server\http_server.cpp" />
+    <ClCompile Include="server\listener.cpp" />
+    <ClCompile Include="server\multipart_parser.cpp" />
+    <ClCompile Include="server\request.cpp" />
+    <ClCompile Include="server\response.cpp" />
+    <ClCompile Include="server\router.cpp" />
+    <ClCompile Include="server\session.cpp" />
+    <ClCompile Include="server\status\base.cpp" />
+    <ClCompile Include="server\string_view.cpp" />
+    <ClCompile Include="server\util\convert\convert_case.cpp" />
+    <ClCompile Include="server\util\convert\convert_number.cpp" />
+    <ClCompile Include="server\util\format_time.cpp" />
+    <ClCompile Include="server\util\gmt_time.cpp" />
+    <ClCompile Include="server\util\hash\md5.cpp" />
+    <ClCompile Include="server\util\hash\xxh64.cpp" />
+    <ClCompile Include="server\util\io.cpp" />
+    <ClCompile Include="server\util\mime.cpp" />
+    <ClCompile Include="server\util\path.cpp" />
+    <ClCompile Include="server\util\string\isprint.cpp" />
+    <ClCompile Include="server\util\string\memmem.cpp" />
+    <ClCompile Include="server\util\string\trim.cpp" />
+    <ClCompile Include="server\util\thread.cpp" />
+    <ClCompile Include="server\util\url_code.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

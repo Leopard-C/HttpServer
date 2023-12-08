@@ -1,0 +1,256 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include=".editorconfig" />
+    <None Include="..\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{670d91f8-7d76-4a7f-a68f-a5a176825d0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\server">
+      <UniqueIdentifier>{b602ad95-65f2-4e17-9cb9-0cd98157d9ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{918d586f-03d9-44da-b525-5f57dc109533}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\server">
+      <UniqueIdentifier>{d9900242-5edf-4c56-a916-3882c59ce49d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\server\util">
+      <UniqueIdentifier>{37d86387-20f9-49b4-9954-97b2990207e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\server\util\convert">
+      <UniqueIdentifier>{798c63cf-8588-4b5e-9dfc-6a71778ae6df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\server\util\hash">
+      <UniqueIdentifier>{133b81cf-b2fc-4eca-bcbb-8cb0a9d2dee1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\server\util\string">
+      <UniqueIdentifier>{24d4c802-0043-4df2-9023-8dd707001a81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\server\helper">
+      <UniqueIdentifier>{a9b9d562-e641-4a7d-9487-01d4347de16a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\server\status">
+      <UniqueIdentifier>{d065fb09-8cdb-4d81-b40d-92a60edec388}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\server\helper">
+      <UniqueIdentifier>{ab9162f8-bdf4-416a-a76b-fa7cca55c9e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\server\util">
+      <UniqueIdentifier>{0d7ae2b8-3672-4c3a-89ea-0a13c7cec8ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\server\status">
+      <UniqueIdentifier>{87ad52e1-cfa7-47d2-8268-873780b49b0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\server\util\string">
+      <UniqueIdentifier>{a3dfb29f-9cfb-45d5-9b71-57cc4237a32e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\server\util\hash">
+      <UniqueIdentifier>{083a88ec-fad3-4ae8-a734-4da11cbee420}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\server\util\convert">
+      <UniqueIdentifier>{c97503e9-8682-48cd-ac4f-7ca3ed5dbd97}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\server\config.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\content_type.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\form_item.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\http_cookie.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\http_method.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\http_server.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\request.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\request_raw.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\response.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\router.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\string_view.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\gmt_time.h">
+      <Filter>include\server\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\io.h">
+      <Filter>include\server\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\mime.h">
+      <Filter>include\server\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\path.h">
+      <Filter>include\server\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\thread.h">
+      <Filter>include\server\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\url_code.h">
+      <Filter>include\server\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\convert\convert_case.h">
+      <Filter>include\server\util\convert</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\convert\convert_number.h">
+      <Filter>include\server\util\convert</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\hash\md5.h">
+      <Filter>include\server\util\hash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\hash\xxh64.h">
+      <Filter>include\server\util\hash</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\string\isprint.h">
+      <Filter>include\server\util\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\string\memmem.h">
+      <Filter>include\server\util\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\string\split.h">
+      <Filter>include\server\util\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\string\split_key_value.h">
+      <Filter>include\server\util\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\string\trim.h">
+      <Filter>include\server\util\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\helper\_narg.h">
+      <Filter>include\server\helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\helper\helper.h">
+      <Filter>include\server\helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\helper\param_check.h">
+      <Filter>include\server\helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\helper\param_get.h">
+      <Filter>include\server\helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\status\base.h">
+      <Filter>include\server\status</Filter>
+    </ClInclude>
+    <ClInclude Include="server\listener.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="server\multipart_parser.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="server\session.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\util\format_time.h">
+      <Filter>include\server\util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="server\config.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\content_type.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\http_cookie.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\http_method.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\http_server.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\listener.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\multipart_parser.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\request.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\response.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\router.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\session.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\string_view.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server\helper\param_check.cpp">
+      <Filter>src\server\helper</Filter>
+    </ClCompile>
+    <ClCompile Include="server\helper\param_get.cpp">
+      <Filter>src\server\helper</Filter>
+    </ClCompile>
+    <ClCompile Include="server\status\base.cpp">
+      <Filter>src\server\status</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\gmt_time.cpp">
+      <Filter>src\server\util</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\io.cpp">
+      <Filter>src\server\util</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\mime.cpp">
+      <Filter>src\server\util</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\path.cpp">
+      <Filter>src\server\util</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\thread.cpp">
+      <Filter>src\server\util</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\url_code.cpp">
+      <Filter>src\server\util</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\string\isprint.cpp">
+      <Filter>src\server\util\string</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\string\memmem.cpp">
+      <Filter>src\server\util\string</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\string\trim.cpp">
+      <Filter>src\server\util\string</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\hash\md5.cpp">
+      <Filter>src\server\util\hash</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\hash\xxh64.cpp">
+      <Filter>src\server\util\hash</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\convert\convert_case.cpp">
+      <Filter>src\server\util\convert</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\convert\convert_number.cpp">
+      <Filter>src\server\util\convert</Filter>
+    </ClCompile>
+    <ClCompile Include="server\util\format_time.cpp">
+      <Filter>src\server\util</Filter>
+    </ClCompile>
+    <ClCompile Include="server\helper\helper.cpp">
+      <Filter>src\server\helper</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

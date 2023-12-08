@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{a74e1da5-1b9a-4b1e-b92b-f69fafec73d9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
+    <None Include="apifox\http_server_example.apifox.json" />
+    <None Include="README.md" />
+    <None Include="script\route_collector.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\app\app.cpp" />
+    <ClCompile Include="src\controller\server\server_controller.cpp" />
+    <ClCompile Include="src\controller\test\test_controller.cpp" />
+    <ClCompile Include="src\controller\user\user_controller.cpp" />
+    <ClCompile Include="src\controller\web\web_controller.cpp" />
+    <ClCompile Include="src\manager\user_manager.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\routes.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\app\app.h" />
+    <ClInclude Include="src\controller\server\server_controller.h" />
+    <ClInclude Include="src\controller\test\test_controller.h" />
+    <ClInclude Include="src\controller\user\user_controller.h" />
+    <ClInclude Include="src\controller\web\web_controller.h" />
+    <ClInclude Include="src\manager\user_manager.h" />
+    <ClInclude Include="src\singleton\singleton.h" />
+    <ClInclude Include="src\routes.h" />
+  </ItemGroup>
+</Project>

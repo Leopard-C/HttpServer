@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>个人信息编辑</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Access-Control-Allow-Origin" content="*" />
+  <link rel="shortcut icon" href="img/favicon.ico">
+  <link rel="stylesheet" href="css/index.css" type="text/css" />
+</head>
+
+<body>
+
+  <div id="main">
+
+    <div class="page-settings">
+      <div class="top">
+        <div class="top_title">
+          <p>个人信息编辑</p>
+        </div>
+      </div>
+      <div class="setting">
+        <div class="nav-tabs pa">
+          <h class="tab-title baseinfo fl active">基本信息</h>
+          <a href="#" class="tab-title countinfo fl">帐户信息</a>
+          <a href="#" class="tab-title notification fl">通知管理</a>
+        </div>
+        <div class="contentBox">
+          <div class="formBox">
+            <div id="setting-profile" class="setting-wrap setting-profile">
+
+              <div class="wlfg-wrap clearfix ">
+                <label class="label-name" for="job">头像：</label>
+                <div class="rlf-group">
+                  <img class="fl avatar-img" id="avatar-img" src="../../img/default_avatar.png" width="180" height="180">
+                  <div class="fl ml20 pr">
+                    <div id="avatar-btns" class="avatar-btn-inner">
+                      <div class="avatar-btn-wrap">
+                        <a href="javascript:void(0)" hidefocus="true" class="avatar-btn-fake" onclick="onSelectAvatarFile()">上传头像</a>
+                        <input class="hide" type="file" title="上传头像" name="avatar-file-field" id="upload" accept="image/*" onchange="onUploadAvatarFile(event)">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <form id="profile">
+
+                <div class="wlfg-wrap clearfix">
+                  <label class="label-name" for="nick">昵称：</label>
+                  <div class="rlf-group">
+                    <input type="text" name="nickname" id="nick" autocomplete="off" data-validate="require-nick"
+                      class="moco-form-control" value="Sequin_YF" placeholder="请输入昵称." />
+                  </div>
+                </div>
+
+                <div class="wlfg-wrap clearfix">
+                  <label class="label-name" for="job">职位：</label>
+                  <div class="rlf-group">
+                    <select class="moco-form-control rlf-select" name="job" hidefocus="true" id="job" data-validate="require-select">
+                      <option value="0">请选择职位</option>
+                      <option value="1">学生</option>
+                      <option value="2">Web前端工程师</option>
+                      <option value="3">C++开发工程师</option>
+                      <option value="4">JAVA开发工程师</option>
+                      <option value="5">移动开发工程师</option>
+                      <option value="6">软件测试工程师</option>
+                      <option value="7">Linux系统工程师</option>
+                      <option value="8">交互设计师</option>
+                      <option value="9">产品经理</option>
+                      <option value="10">数据库工程师</option>
+                      <option value="11">UI设计师</option>
+                      <option value="99">其他</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="wlfg-wrap clearfix">
+                  <label class="label-name" for="province">地址：</label>
+                  <div class="rlf-group profile-address">
+                    <select id="province" class='moco-form-control' hidefocus="true">
+                      <option value="0">选择省份</option>
+                      <option value="1">北京</option>
+                      <option value="2">天津</option>
+                      <option value="3">河北</option>
+                      <option value="4">山西</option>
+                      <option value="5">内蒙古</option>
+                      <option value="6">辽宁</option>
+                      <option value="7">吉林</option>
+                      <option value="8">黑龙江</option>
+                      <option value="9">上海</option>
+                      <option value="10">江苏</option>
+                      <option value="11">浙江</option>
+                      <option value="12">安徽</option>
+                      <option value="13">福建</option>
+                      <option value="14">江西</option>
+                      <option value="15">山东</option>
+                      <option value="16">河南</option>
+                      <option value="17">湖北</option>
+                      <option value="18">湖南</option>
+                      <option value="19">广东</option>
+                      <option value="20">海南</option>
+                      <option value="21">广西</option>
+                      <option value="22">甘肃</option>
+                      <option value="23">陕西</option>
+                      <option value="24">新疆</option>
+                      <option value="25">青海</option>
+                      <option value="26">宁夏</option>
+                      <option value="27">重庆</option>
+                      <option value="28">四川</option>
+                      <option value="29">贵州</option>
+                      <option value="30">云南</option>
+                      <option value="31">西藏</option>
+                      <option value="32">台湾</option>
+                      <option value="33">澳门</option>
+                      <option value="34">香港</option>
+                      <option value="99">其他</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="wlfg-wrap clearfix">
+                  <label class="label-name h16" style="padding-top:5px;">性别：</label>
+                  <div class="rlf-group rlf-radio-group">
+                    <label><input type="radio" hidefocus="true" value="0" name="gender">保密</label>
+                    <label><input type="radio" hidefocus="true" value="1" name="gender">男</label>
+                    <label><input type="radio" hidefocus="true" value="2" name="gender">女</label>
+                  </div>
+                </div>
+                <div class="wlfg-wrap clearfix">
+                  <label class="label-name" for="sign">个性签名：</label>
+                  <div class="rlf-group">
+                    <div class="pr">
+                      <textarea name="sign" id="sign" rows="5" class="noresize js-sign moco-form-control"></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="wlfg-wrap clearfix">
+                  <label class="label-name" for="profile-submit"></label>
+                  <div class="rlf-group">
+                    <span id="profile-submit" hidefocus="true" aria-role="button" class="rlf-btn-green btn-block profile-btn" onclick="onSave()">保存</span>
+                  </div>
+                </div>
+              </form>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script type="text/javascript" src="js/jquery-1.9.1/jquery.min.js"></script>
+  <script type="text/javascript" src="js/layer-3.5.1/layer.js"></script>
+  <script type="text/javascript" src="js/layer-wrapper.js"></script>
+  <script type="text/javascript" src="js/md5.min.js"></script>
+  <script type="text/javascript" src="api/api.js"></script>
+  <script type="text/javascript" src="api/user/user.js"></script>
+
+<script>
+
+$(function(){
+  API_GetUserInfo(function(data){
+    FillForm(data);
+  }, function(code, msg, data){
+    LayerAlertError('获取用户信息失败！');
+  });
+});
+
+function GetAvatarImgUrl(filename) {
+  return '/api/User/avatar/' + filename.substring(0, 2) + '/' + filename;
+}
+
+function GetAvatarFileName() {
+  try {
+    let url = $('#avatar-img').attr('src');
+    let filename = url.substring(url.lastIndexOf('/') + 1).toLocaleLowerCase();
+    if (/^[a-f0-9]{32}\.(jpg|jpeg|png|gif)$/.test(filename)) {
+      return filename
+    }
+    return '';
+  }
+  catch {
+    return '';
+  }
+}
+
+function FillForm(data) {
+  $('#avatar-img').attr('src', GetAvatarImgUrl(data.avatar));
+  $('#nick').val(data.nickname);
+  $('#job').val(data.job);
+  $('#province').val(data.province);
+  $('input[name=gender]').eq(data.gender).prop('checked', true);
+  $('#sign').val(data.sign);
+}
+
+function GetFormData() {
+  let data = {};
+  data.avatar = GetAvatarFileName();
+  data.nickname = $('#nick').val().trim();
+  data.job = parseInt($('#job').val());
+  data.province = parseInt($('#province').val());
+  data.gender = parseInt($('input[name=gender]:checked').val() || '-1');
+  data.sign = $('#sign').val();
+  return data;
+}
+
+// 选择头像
+function onSelectAvatarFile() {
+  $('input[name=avatar-file-field]').click();
+}
+
+// 上传
+function onUploadAvatarFile(event) {
+  let file = event.target.files[0];
+  API_UploadUserAvatar(file, function(data){
+    LayerAlertInfo('上传成功！');
+    $('#avatar-img').attr('src', GetAvatarImgUrl(data.avatar));
+  }, function(code, msg, data){
+    LayerAlertError('上传失败！');
+  });
+  $('input[name=avatar-file-field]').val('');
+}
+
+// 保存用户信息
+function onSave() {
+  let data = GetFormData();
+  console.log(data);
+  if (data.avatar == '') { return LayerAlertError('无效的头像！'); }
+  if (data.nickname == '') { return LayerAlertError('请输入昵称！'); }
+  if (data.job == 0) { return LayerAlertError('请选择职位！'); }
+  if (data.province == 0) { return LayerAlertError('请选择省份！'); }
+  if (data.sex < 0) { return LayerAlertError('请选择性别！')};
+  API_UpdateUserInfo(data, function(){
+    LayerAlertInfo('保存成功！');
+  }, function(code, msg, data){
+    LayerAlertInfo('保存失败！');
+  });
+}
+
+</script>
+
+</body>
+
+</html>
