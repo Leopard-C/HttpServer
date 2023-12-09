@@ -10,7 +10,7 @@ public:
     int job = 3;
     int province = 19;
     std::string uid;
-    std::string password;  /* sha256 hash */
+    std::string password;  /* md5 hash */
     std::string nickname;
     std::string avatar;
     std::string sign;
@@ -26,8 +26,6 @@ public:
 
     /**
      * @brief 初始化.
-     * 
-     * @details 读取公私钥.
      */
     bool Init();
 
@@ -35,11 +33,11 @@ public:
      * @brief 用户登录.
      * 
      * @param[in]  uid 用户ID
-     * @param[in]  password_sha256 密码，经过SHA256哈希计算
+     * @param[in]  password_md5 密码，经过MD5哈希计算
      * @param[in]  max_age 生成的token有效期，单位:秒
-     * @param[out] token 生成的Json Web Token
+     * @param[out] token 生成的token
      */
-    bool Login(const std::string& uid, const std::string& password_sha256, unsigned int max_age, std::string* token);
+    bool Login(const std::string& uid, const std::string& password_md5, unsigned int max_age, std::string* token);
 
     /**
      * @brief 认证用户的token.

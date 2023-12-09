@@ -45,7 +45,7 @@ UserManager::~UserManager() {
 }
 
 /**
- * @brief 初始化，读取私钥和公钥
+ * @brief 初始化
  */
 bool UserManager::Init() {
     if (!LoadUserInfoFromFile()) {
@@ -125,24 +125,20 @@ bool UserManager::WriteUserInfoToFile() {
  * @brief 用户登录.
  * 
  * @param[in]  uid 用户ID
- * @param[in]  password_sha256 密码，经过SHA256哈希计算
+ * @param[in]  password_md5 密码，经过MD5哈希计算
  * @param[in]  max_age 生成的token有效期，单位:秒
- * @param[out] token 生成的Json Web Token
- * 
- * @retval -1 内部错误
- * @retval  0 成功
- * @retval  1 登录失败
+ * @param[out] token 生成的token
  */
 bool UserManager::Login(
     const std::string& uid,
-    const std::string& password_sha256,
+    const std::string& password_md5,
     unsigned int max_age,
     std::string* token)
 {
     std::lock_guard<std::mutex> lck(mutex_);
     ValidateTokens();
     auto iter = users_.find(uid);
-    if (iter == users_.end() || iter->second->password != password_sha256) {
+    if (iter == users_.end() || iter->second->password != password_md5) {
         return false;
     }
     *token = CreateToken();
