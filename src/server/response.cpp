@@ -1,6 +1,7 @@
 #include "response.h"
 #include "http_cookie.h"
 #include "util/mime.h"
+#include "util/path.h"
 #include <jsoncpp/json/json.h>
 #include <log/logger.h>
 
@@ -70,22 +71,15 @@ bool Response::SetFileBody(const std::string& filename, const std::string& conte
 
 bool Response::SetFileBody(unsigned int status_code, const std::string& filename, const std::string& content_type/* = "text/plain"*/) {
     /* 查看文件是否存在 */
-    FILE* fp = fopen(filename.c_str(), "rb");
-    if (!fp) {
-        LError("Open file '{}' failed", filename);
+    if (!util::path::is_path_exist(filename)) {
+        LError("File '{}' is not exist", filename);
         SetStringBody(404U, "Not Found!", "text/plain");
         return false;
     }
-    fclose(fp);
-    fp = nullptr;
 
     /* MIME类型 */
     if (content_type.empty()) {
-        std::string ext;
-        auto pos = filename.rfind('.');
-        if (pos != std::string::npos) {
-            ext = filename.substr(pos);
-        }
+        std::string ext = util::path::get_ext(filename);
         SetContentType(util::get_mimetype(ext));
     }
     else {

@@ -20,18 +20,6 @@ namespace util {
 namespace path {
 
 /**
- * @brief 字符串转为小写
- */
-static inline std::string& to_lower(std::string& str) {
-    for (char& c : str) {
-        if (c >= 'A' && c <= 'Z') {
-            c += 32;
-        }
-    }
-    return str;
-}
-
-/**
  * @brief 获取可执行文件(完整)路径.
  */
 std::string get_bin_filepath() {
@@ -61,7 +49,7 @@ std::string get_bin_filename() {
     std::string bin_filepath = get_bin_filepath();
     auto pos = bin_filepath.rfind('/');
     if (pos == std::string::npos) {
-        printf("Won't get here. get_bin_dir error.\n");
+        printf("Won't get here. get_bin_filename() error.\n");
         exit(999);
         return {};
     }
@@ -77,7 +65,7 @@ std::string get_bin_dir() {
     std::string bin_filepath = get_bin_filepath();
     auto pos = bin_filepath.rfind('/');
     if (pos == std::string::npos) {
-        printf("Won't get here. get_bin_dir error.\n");
+        printf("Won't get here. get_bin_dir() error.\n");
         exit(999);
         return {};
     }
@@ -87,39 +75,94 @@ std::string get_bin_dir() {
 }
 
 /**
- * @brief 格式化目录路径.
+ * @brief 格式化目录路径为UNIX格式（正斜杠）.
  * 
- * @details 以'/'结尾.
+ * @details 分隔符全部替换为'/'，且以'/'结尾.
  */
 std::string format_dir(const std::string& dir) {
-    size_t len = dir.length();
-    std::string _dir = dir;
-#ifdef _WIN32
-    for (size_t i = 0; i < len; ++i) {
-        if (_dir[i] == '\\') {
-            _dir[i] = '/';
-        }
-    }
-#endif
-    if (!_dir.empty() && _dir[len - 1] != '/') {
+    std::string _dir = format_path(dir);
+    if (!_dir.empty() && _dir.back() != '/') {
         _dir += '/';
     }
     return _dir;
 }
 
-static bool _create_dir(const std::string& dir) {
+/**
+ * @brief 格式化目录路径为Windows格式（反斜杠）.
+ * 
+ * @details 分隔符全部替换为'\'，且以'\'结尾.
+ */
+std::string format_dir_windows(const std::string& dir) {
+#ifdef _WIN32
+    std::string _dir = format_path(dir);
+    if (!_dir.empty() && _dir.back() != '\\') {
+        _dir += '\\';
+    }
+    return _dir;
+#else
+    return dir;
+#endif
+}
+
+/**
+ * @brief 格式化路径为UNIX格式（正斜杠）.
+ */
+std::string format_path(const std::string& dir) {
+#ifdef _WIN32
+    std::string _dir = dir;
+    for (char& c : _dir) {
+        if (c == '\\') {
+            c = '/';
+        }
+    }
+    return _dir;
+#else
+    return dir;
+#endif
+}
+
+/**
+ * @brief 格式化路径为Windows格式（反斜杠）.
+ */
+std::string format_path_windows(const std::string& dir) {
+#ifdef _WIN32
+    std::string _dir = dir;
+    for (char& c : _dir) {
+        if (c == '/') {
+            c = '\\';
+        }
+    }
+    return _dir;
+#else
+    return dir;
+#endif
+}
+
+static inline bool __create_dir(const std::string& dir) {
     if (access(dir.c_str(), 0) != 0) {
 #ifdef _WIN32
-        if (_mkdir(dir.c_str()) != 0) {
-            return false;
-        }
+        return _mkdir(dir.c_str()) == 0;
 #else
-        if (mkdir(dir.c_str(), 0777) != 0) {
-            return false;
-        }
+        return mkdir(dir.c_str(), 0777) == 0;
 #endif
     }
     return true;
+}
+
+static bool _create_dir(const std::string& dir, bool parent) {
+    if (parent) {
+        auto pos = dir.find('/', 1);
+        while (pos != std::string::npos) {
+            if (!__create_dir(dir.substr(0, pos))) {
+                return false;
+            }
+            pos = dir.find('/', pos + 1);
+        }
+        return true;
+    }
+    else {
+        return __create_dir(dir);
+    }
 }
 
 /**
@@ -129,20 +172,7 @@ static bool _create_dir(const std::string& dir) {
  * @param parent 如果父级目录不存在，是否创建
  */
 bool create_dir(const std::string& dir, bool parent/* = false*/) {
-    std::string _dir = format_dir(dir);
-    auto pos = _dir.find('/', 1);
-    if (parent) {
-        while (pos != std::string::npos) {
-            if (!_create_dir(_dir.substr(0, pos))) {
-                return false;
-            }
-            pos = _dir.find('/', pos + 1);
-        }
-        return true;
-    }
-    else {
-        return _create_dir(dir);
-    }
+    return _create_dir(format_dir(dir), parent);
 }
 
 /**
@@ -333,50 +363,35 @@ bool is_dir_empty(const std::string& dir) {
  */
 bool copy_file(const std::string& filename_src, const std::string& filename_dst, bool parent/* = false*/) {
     if (parent) {
-        auto pos = filename_dst.rfind('/');
+        std::string _filename_dst = format_path(filename_dst);
+        auto pos = _filename_dst.rfind('/');
         if (pos != std::string::npos) {
-            std::string dir = filename_dst.substr(0, pos + 1);
-            if (!create_dir(dir, true)) {
+            if (!_create_dir(_filename_dst.substr(0, pos + 1), true)) {
                 return false;
             }
         }
     }
 
-    FILE* fp_src = nullptr;
-    FILE* fp_dst = nullptr;
-
-    bool success = false;
-    do {
-        fp_src = fopen(filename_src.c_str(), "rb");
-        if (!fp_src) {
-            break;
-        }
-        fp_dst = fopen(filename_dst.c_str(), "wb+");
-        if (!fp_dst) {
-            break;
-        }
-
-        const size_t BUFF_SIZE = 4096;
-        char buff[BUFF_SIZE];
-        while (!feof(fp_src)) {
-            memset(buff, 0, BUFF_SIZE);
-            size_t n = fread(buff, 1, BUFF_SIZE, fp_src);
-            if (n == 0) {
-                break;
-            }
-            fwrite(buff, 1, n, fp_dst);
-        }
-
-        success = true;
-    } while (false);
-
-    if (fp_src) {
+    FILE* fp_src = fopen(filename_src.c_str(), "rb");
+    if (!fp_src) {
+        return false;
+    }
+    FILE* fp_dst = fopen(filename_dst.c_str(), "wb+");
+    if (!fp_dst) {
         fclose(fp_src);
+        return false;
     }
-    if (fp_dst) {
-        fclose(fp_dst);
-    }
-    return success;
+
+    const size_t BUFF_SIZE = 4096;
+    char buff[BUFF_SIZE];
+    do {
+        size_t n = fread(buff, 1, BUFF_SIZE, fp_src);
+        fwrite(buff, 1, n, fp_dst);
+    } while (!feof(fp_src));
+
+    fclose(fp_src);
+    fclose(fp_dst);
+    return true;
 }
 
 /**
@@ -390,13 +405,22 @@ bool remove_file(const std::string& filename) {
  * @brief 获取文件的后缀名称.
  */
 std::string get_ext(const std::string& filename) {
-    std::string ext;
-    auto pos = filename.rfind('.');
-    if (pos != std::string::npos) {
-        ext = filename.substr(pos);
-        to_lower(ext);
+    int len = static_cast<int>(filename.length());
+    for (int i = len - 1; i > -1; --i) {
+        if (filename[i] == '.') {
+            return filename.substr(i);
+        }
+#ifdef _WIN32
+        else if (filename[i] == '/' || filename[i] == '\\') {
+            break;
+        }
+#else
+        else if (filename[i] == '/') {
+            break;
+        }
+#endif
     }
-    return ext;
+    return {};
 }
 
 /**

@@ -42,8 +42,17 @@ private:
     };
 
     struct EqualFunc {
+        // case insensitive
         bool operator()(const char* key1, const char* key2) const {
-            return strcmp(key1, key2) == 0;
+            const char* p1 = key1;
+            const char* p2 = key2;
+            int result;
+            while ((result = tolower(*p1) - tolower(*p2++)) == 0) {
+                if (*p1++ == '\0') {
+                    break;
+                }
+            }
+            return result == 0;
         }
     };
 

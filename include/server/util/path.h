@@ -32,11 +32,28 @@ std::string get_bin_filename();
 std::string get_bin_dir();
 
 /**
- * @brief 格式化目录路径.
+ * @brief 格式化目录路径为UNIX格式（正斜杠）.
  * 
- * @details 以'/'结尾.
+ * @details 分隔符全部替换为'/'，且以'/'结尾.
  */
 std::string format_dir(const std::string& dir);
+
+/**
+ * @brief 格式化目录路径为Windows格式（反斜杠）.
+ * 
+ * @details 分隔符全部替换为'\'，且以'\'结尾.
+ */
+std::string format_dir_windows(const std::string& dir);
+
+/**
+ * @brief 格式化路径为UNIX格式（正斜杠）.
+ */
+std::string format_path(const std::string& dir);
+
+/**
+ * @brief 格式化路径为Windows格式（反斜杠）.
+ */
+std::string format_path_windows(const std::string& dir);
 
 /**
  * @brief 创建目录.
