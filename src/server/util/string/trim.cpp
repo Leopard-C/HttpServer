@@ -1,4 +1,4 @@
-#include "util/string/trim.h"
+#include "server/util/string/trim.h"
 
 namespace ic {
 namespace server {

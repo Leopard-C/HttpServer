@@ -2,8 +2,8 @@
 #define IC_SERVER_SESSION_H_
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include "request.h"
-#include "response.h"
+#include "server/request.h"
+#include "server/response.h"
 
 namespace ic {
 namespace server {

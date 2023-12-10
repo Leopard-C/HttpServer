@@ -2,8 +2,8 @@
 #define IC_SERVER_MULTIPART_PARSER_H_
 #include <map>
 #include <vector>
-#include "form_item.h"
-#include "string_view.h"
+#include "server/form_item.h"
+#include "server/string_view.h"
 
 namespace ic {
 namespace server {

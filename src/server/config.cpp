@@ -1,4 +1,4 @@
-#include "config.h"
+#include "server/config.h"
 #include <fstream>
 #include <jsoncpp/json/json.h>
 #include <log/logger.h>

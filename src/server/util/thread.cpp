@@ -1,4 +1,4 @@
-#include "util/thread.h"
+#include "server/util/thread.h"
 #ifdef _WIN32
 #  include <Windows.h>
 #elif defined(__linux__)

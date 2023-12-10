@@ -1,5 +1,5 @@
-#include "content_type.h"
-#include "util/convert/convert_case.h"
+#include "server/content_type.h"
+#include "server/util/convert/convert_case.h"
 #include <vector>
 
 namespace ic {

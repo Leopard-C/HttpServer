@@ -1,4 +1,4 @@
-#include "util/hash/xxh64.h"
+#include "server/util/hash/xxh64.h"
 
 namespace ic {
 namespace server {

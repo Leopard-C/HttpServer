@@ -1,7 +1,7 @@
-#include "response.h"
-#include "http_cookie.h"
-#include "util/mime.h"
-#include "util/path.h"
+#include "server/response.h"
+#include "server/http_cookie.h"
+#include "server/util/mime.h"
+#include "server/util/path.h"
 #include <jsoncpp/json/json.h>
 #include <log/logger.h>
 

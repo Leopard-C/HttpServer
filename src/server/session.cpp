@@ -1,7 +1,7 @@
 #include "session.h"
-#include "http_server.h"
-#include "request_raw.h"
-#include "router.h"
+#include "server/http_server.h"
+#include "server/request_raw.h"
+#include "server/router.h"
 #include <chrono>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>

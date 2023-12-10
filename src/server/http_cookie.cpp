@@ -1,5 +1,5 @@
-#include "http_cookie.h"
-#include "util/gmt_time.h"
+#include "server/http_cookie.h"
+#include "server/util/gmt_time.h"
 
 namespace ic {
 namespace server {

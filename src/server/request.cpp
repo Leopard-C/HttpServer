@@ -1,9 +1,9 @@
-#include "request.h"
-#include "request_raw.h"
-#include "http_server.h"
+#include "server/request.h"
+#include "server/request_raw.h"
+#include "server/http_server.h"
+#include "server/util/string/isprint.h"
+#include "server/util/url_code.h"
 #include "multipart_parser.h"
-#include "util/string/isprint.h"
-#include "util/url_code.h"
 #include <boost/asio/dispatch.hpp>
 #include <jsoncpp/json/json.h>
 #include <log/logger.h>

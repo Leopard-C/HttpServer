@@ -1,4 +1,4 @@
-#include "util/hash/md5.h"
+#include "server/util/hash/md5.h"
 #include <cstring>
 
 /* Parameters of MD5. */

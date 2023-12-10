@@ -1,8 +1,8 @@
-#include "helper/param_get.h"
-#include "helper/helper.h"
-#include "util/convert/convert_case.h"
-#include "util/convert/convert_number.h"
-#include "util/string/trim.h"
+#include "server/helper/param_get.h"
+#include "server/helper/helper.h"
+#include "server/util/convert/convert_case.h"
+#include "server/util/convert/convert_number.h"
+#include "server/util/string/trim.h"
 
 #define DEF_FUNC_GET_PARAM_STR(func, func_get_param) \
     bool func(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value) {\

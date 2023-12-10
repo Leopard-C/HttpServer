@@ -8,7 +8,6 @@
                 "${workspaceFolder}/third_party/spdlog-wrapper/spdlog/include",
                 "${workspaceFolder}/third_party/spdlog-wrapper/spdlog-wrapper/include",
                 "${workspaceFolder}/include",
-                "${workspaceFolder}/include/server",
                 "${workspaceFolder}/example/src",
                 "${default}"
             ],
