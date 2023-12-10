@@ -17,6 +17,10 @@ namespace server {
 
 const static std::string s_empty_string;
 
+static inline std::string to_string(const boost::string_view& sv) {
+    return { sv.data(), sv.size() };
+}
+
 static HttpMethod from_beast_http_method(boost::beast::http::verb method) {
     using verb = boost::beast::http::verb;
     switch (method) {
@@ -96,20 +100,20 @@ bool Request::HasHeader(const std::string& name) const {
 }
 
 std::string Request::GetHeader(const std::string& name) const {
-    return raw_->operator[](name).to_string();
+    return to_string(raw_->operator[](name));
 }
 
 std::vector<std::string> Request::GetHeaders(const std::string& name) const {
     std::vector<std::string> headers;
     auto range = raw_->equal_range(name);
     for (auto iter = range.first; iter != range.second; ++iter) {
-        headers.push_back(iter->value().to_string());
+        headers.push_back(to_string(iter->value()));
     }
     return headers;
 }
 
 std::string Request::GetUserAgent() const {
-    return raw_->operator[](http::field::user_agent).to_string();
+    return to_string(raw_->operator[](http::field::user_agent));
 }
 
 /**
@@ -205,7 +209,7 @@ void Request::LogAccessVerbose() {
     );
     msg += "  headers:\n";
     for (auto iter = raw_->begin(); iter != raw_->end(); ++iter) {
-        msg += "    " + iter->name_string().to_string() + ": " + iter->value().to_string() + '\n';
+        msg += "    " + to_string(iter->name_string()) + ": " + to_string(iter->value()) + '\n';
     }
     msg += fmt::format(
         "  cookies:\n{}"
@@ -246,10 +250,10 @@ void Request::ParseBasic() {
     auto tgt = raw_->target();
     size_t pos = tgt.find('?');
     if (pos == boost::string_view::npos) {
-        path_ = tgt.to_string();
+        path_ = to_string(tgt);
     }
     else {
-        path_ = tgt.substr(0, pos).to_string();
+        path_ = to_string(tgt.substr(0, pos));
         auto url_params = tgt.substr(pos + 1);
         ParseUrlParams(url_params.data(), url_params.size());
     }
@@ -274,13 +278,13 @@ void Request::ParseClientRealIp() {
     net::ip::address forwarded_ip;
     auto pos = forwarded.find(',');
     if (pos == boost::string_view::npos) {
-        forwarded_ip = net::ip::address::from_string(forwarded.to_string(), ec);
+        forwarded_ip = net::ip::address::from_string(to_string(forwarded), ec);
     }
     else {
-        forwarded_ip = net::ip::address::from_string(forwarded.substr(0, pos).to_string(), ec);
+        forwarded_ip = net::ip::address::from_string(to_string(forwarded.substr(0, pos)), ec);
     }
     if (ec) {
-        LWarn("Invalid forwarded ip address: {}", forwarded.to_string());
+        LWarn("Invalid forwarded ip address: {}", to_string(forwarded));
         return;
     }
     client_real_ip_ = forwarded_ip.to_string();
