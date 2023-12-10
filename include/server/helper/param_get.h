@@ -142,7 +142,7 @@ bool __get_body_param_double_ex(Request& req, Response& res, Json::Value& root, 
 
 #define __GET_PARAM_TYPE_4(func, type, _default, _param) \
     type _param;\
-    if (!helper::func(req, res, root, #_param, _param, _default)) {\
+    if (!ic::server::helper::func(req, res, root, #_param, _param, _default)) {\
         return;\
     }
 #define __GET_PARAM_TYPE_5(func, type, _default, _1, _2) \

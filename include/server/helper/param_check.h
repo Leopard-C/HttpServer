@@ -151,7 +151,7 @@ bool __check_body_param_double_ex(Request& req, Response& res, Json::Value& root
 
 #define __CHECK_PARAM_TYPE_3(func, type, _param) \
     type _param;\
-    if (!helper::func(req, res, root, #_param, _param)) {\
+    if (!ic::server::helper::func(req, res, root, #_param, _param)) {\
         return;\
     }
 #define __CHECK_PARAM_TYPE_4(func, type, _1, _2) \
