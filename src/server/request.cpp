@@ -338,7 +338,7 @@ bool Request::ParseBody() {
  * @brief 解析application/x-www-form-urlencoded
  */
 bool Request::ParseBody_XWwwFormUrlEncoded(const std::string& body) {
-    split_key_value(body.data(), body.length(), "&", 1, ";", 1, false, false, &body_params_);
+    split_key_value(body.data(), body.length(), "&", 1, "=", 1, false, false, &body_params_);
     return true;
 }
 
