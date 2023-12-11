@@ -22,9 +22,10 @@
  *       + ...
  * 
  *       + CHECK_JSON_PARAM_STR(...)        // (2)application/json
+ *       + CHECK_JSON_PARAM_STR_ARRAY(...)
  *       + ...
  * 
- *       + CHECK_BODY_PARAM_STR_EX(...)     // 自动选择(1)或(2)
+ *       + CHECK_BODY_PARAM_STR_EX(...)     // 自动选择(1)或(2)，即接口同时支持这两种类型的请求
  *       + ...
  * 
  *    使用示例1:
@@ -51,49 +52,58 @@
  *
 ***************************************************************************************************/
 
-#define CHECK_URL_PARAM_STR(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_str, std::string, __VA_ARGS__)
-#define CHECK_BODY_PARAM_STR(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str, std::string, __VA_ARGS__)
-#define CHECK_JSON_PARAM_STR(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_str, std::string, __VA_ARGS__)
-#define CHECK_BODY_PARAM_STR_EX(...) __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str_ex, std::string, __VA_ARGS__)
+#define CHECK_URL_PARAM_STR(...)         __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_str, std::string, __VA_ARGS__)
+#define CHECK_BODY_PARAM_STR(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str, std::string, __VA_ARGS__)
+#define CHECK_JSON_PARAM_STR(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_str, std::string, __VA_ARGS__)
+#define CHECK_JSON_PARAM_STR_ARRAY(...)  __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_str_array, std::vector<std::string>, __VA_ARGS__)
+#define CHECK_BODY_PARAM_STR_EX(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str_ex, std::string, __VA_ARGS__)
 
-#define CHECK_URL_PARAM_STR_LOWER(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_str_lower, std::string, __VA_ARGS__)
-#define CHECK_URL_PARAM_STR_UPPER(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_str_upper, std::string, __VA_ARGS__)
-#define CHECK_BODY_PARAM_STR_LOWER(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str_lower, std::string, __VA_ARGS__)
-#define CHECK_BODY_PARAM_STR_UPPER(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str_upper, std::string, __VA_ARGS__)
-#define CHECK_JSON_PARAM_STR_LOWER(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_str_lower, std::string, __VA_ARGS__)
-#define CHECK_JSON_PARAM_STR_UPPER(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_str_upper, std::string, __VA_ARGS__)
-#define CHECK_BODY_PARAM_STR_LOWER_EX(...) __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str_lower_ex, std::string, __VA_ARGS__)
-#define CHECK_BODY_PARAM_STR_UPPER_EX(...) __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str_upper_ex, std::string, __VA_ARGS__)
+#define CHECK_URL_PARAM_STR_LOWER(...)         __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_str_lower, std::string, __VA_ARGS__)
+#define CHECK_URL_PARAM_STR_UPPER(...)         __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_str_upper, std::string, __VA_ARGS__)
+#define CHECK_BODY_PARAM_STR_LOWER(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str_lower, std::string, __VA_ARGS__)
+#define CHECK_BODY_PARAM_STR_UPPER(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str_upper, std::string, __VA_ARGS__)
+#define CHECK_JSON_PARAM_STR_LOWER(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_str_lower, std::string, __VA_ARGS__)
+#define CHECK_JSON_PARAM_STR_UPPER(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_str_upper, std::string, __VA_ARGS__)
+#define CHECK_JSON_PARAM_STR_LOWER_ARRAY(...)  __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_str_lower_array, std::vector<std::string>, __VA_ARGS__)
+#define CHECK_JSON_PARAM_STR_UPPER_ARRAY(...)  __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_str_upper_array, std::vector<std::string>, __VA_ARGS__)
+#define CHECK_BODY_PARAM_STR_LOWER_EX(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str_lower_ex, std::string, __VA_ARGS__)
+#define CHECK_BODY_PARAM_STR_UPPER_EX(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_str_upper_ex, std::string, __VA_ARGS__)
 
-#define CHECK_URL_PARAM_BOOL(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_bool, bool, __VA_ARGS__)
-#define CHECK_BODY_PARAM_BOOL(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_bool, bool, __VA_ARGS__)
-#define CHECK_JSON_PARAM_BOOL(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_bool, bool, __VA_ARGS__)
-#define CHECK_BODY_PARAM_BOOL_EX(...) __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_bool_ex, bool, __VA_ARGS__)
+#define CHECK_URL_PARAM_BOOL(...)         __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_bool, bool, __VA_ARGS__)
+#define CHECK_BODY_PARAM_BOOL(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_bool, bool, __VA_ARGS__)
+#define CHECK_JSON_PARAM_BOOL(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_bool, bool, __VA_ARGS__)
+#define CHECK_JSON_PARAM_BOOL_ARRAY(...)  __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_bool_array, std::vector<int32_t>, __VA_ARGS__)
+#define CHECK_BODY_PARAM_BOOL_EX(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_bool_ex, bool, __VA_ARGS__)
 
-#define CHECK_URL_PARAM_INT(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_int, int32_t, __VA_ARGS__)
-#define CHECK_BODY_PARAM_INT(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_int, int32_t, __VA_ARGS__)
-#define CHECK_JSON_PARAM_INT(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_int, int32_t, __VA_ARGS__)
-#define CHECK_BODY_PARAM_INT_EX(...) __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_int_ex, int32_t, __VA_ARGS__)
+#define CHECK_URL_PARAM_INT(...)         __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_int, int32_t, __VA_ARGS__)
+#define CHECK_BODY_PARAM_INT(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_int, int32_t, __VA_ARGS__)
+#define CHECK_JSON_PARAM_INT(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_int, int32_t, __VA_ARGS__)
+#define CHECK_JSON_PARAM_INT_ARRAY(...)  __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_int_array, std::vector<int32_t>, __VA_ARGS__)
+#define CHECK_BODY_PARAM_INT_EX(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_int_ex, int32_t, __VA_ARGS__)
 
-#define CHECK_URL_PARAM_UINT(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_uint, uint32_t, __VA_ARGS__)
-#define CHECK_BODY_PARAM_UINT(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_uint, uint32_t, __VA_ARGS__)
-#define CHECK_JSON_PARAM_UINT(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_uint, uint32_t, __VA_ARGS__)
-#define CHECK_BODY_PARAM_UINT_EX(...) __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_uint_ex, uint32_t, __VA_ARGS__)
+#define CHECK_URL_PARAM_UINT(...)         __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_uint, uint32_t, __VA_ARGS__)
+#define CHECK_BODY_PARAM_UINT(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_uint, uint32_t, __VA_ARGS__)
+#define CHECK_JSON_PARAM_UINT(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_uint, uint32_t, __VA_ARGS__)
+#define CHECK_JSON_PARAM_UINT_ARRAY(...)  __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_uint_array, std::vector<uint32_t>, __VA_ARGS__)
+#define CHECK_BODY_PARAM_UINT_EX(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_uint_ex, uint32_t, __VA_ARGS__)
 
-#define CHECK_URL_PARAM_INT64(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_int64, int64_t, __VA_ARGS__)
-#define CHECK_BODY_PARAM_INT64(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_int64, int64_t, __VA_ARGS__)
-#define CHECK_JSON_PARAM_INT64(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_int64, int64_t, __VA_ARGS__)
-#define CHECK_BODY_PARAM_INT64_EX(...) __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_int64_ex, int64_t, __VA_ARGS__)
+#define CHECK_URL_PARAM_INT64(...)         __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_int64, int64_t, __VA_ARGS__)
+#define CHECK_BODY_PARAM_INT64(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_int64, int64_t, __VA_ARGS__)
+#define CHECK_JSON_PARAM_INT64(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_int64, int64_t, __VA_ARGS__)
+#define CHECK_JSON_PARAM_INT64_ARRAY(...)  __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_int64_array, std::vector<int64_t>, __VA_ARGS__)
+#define CHECK_BODY_PARAM_INT64_EX(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_int64_ex, int64_t, __VA_ARGS__)
 
-#define CHECK_URL_PARAM_UINT64(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_uint64, uint64_t, __VA_ARGS__)
-#define CHECK_BODY_PARAM_UINT64(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_uint64, uint64_t, __VA_ARGS__)
-#define CHECK_JSON_PARAM_UINT64(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_uint64, uint64_t, __VA_ARGS__)
-#define CHECK_BODY_PARAM_UINT64_EX(...) __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_uint64_ex, uint64_t, __VA_ARGS__)
+#define CHECK_URL_PARAM_UINT64(...)         __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_uint64, uint64_t, __VA_ARGS__)
+#define CHECK_BODY_PARAM_UINT64(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_uint64, uint64_t, __VA_ARGS__)
+#define CHECK_JSON_PARAM_UINT64(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_uint64, uint64_t, __VA_ARGS__)
+#define CHECK_JSON_PARAM_UINT64_ARRAY(...)  __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_uint64_array, std::vector<uint64_t>, __VA_ARGS__)
+#define CHECK_BODY_PARAM_UINT64_EX(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_uint64_ex, uint64_t, __VA_ARGS__)
 
-#define CHECK_URL_PARAM_DOUBLE(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_double, double, __VA_ARGS__)
-#define CHECK_BODY_PARAM_DOUBLE(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_double, double, __VA_ARGS__)
-#define CHECK_JSON_PARAM_DOUBLE(...)    __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_double, double, __VA_ARGS__)
-#define CHECK_BODY_PARAM_DOUBLE_EX(...) __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_double_ex, double, __VA_ARGS__)
+#define CHECK_URL_PARAM_DOUBLE(...)         __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_url_param_double, double, __VA_ARGS__)
+#define CHECK_BODY_PARAM_DOUBLE(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_double, double, __VA_ARGS__)
+#define CHECK_JSON_PARAM_DOUBLE(...)        __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_double, double, __VA_ARGS__)
+#define CHECK_JSON_PARAM_DOUBLE_ARRAY(...)  __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_json_param_double_array, std::vector<double>, __VA_ARGS__)
+#define CHECK_BODY_PARAM_DOUBLE_EX(...)     __IC_MACRO_VFUNC(__CHECK_PARAM_TYPE, __check_body_param_double_ex, double, __VA_ARGS__)
 
 
 namespace ic {
@@ -103,6 +113,7 @@ namespace helper {
 bool __check_url_param_str(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value);
 bool __check_body_param_str(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value);
 bool __check_json_param_str(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value);
+bool __check_json_param_str_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<std::string>& value);
 bool __check_body_param_str_ex(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value);
 
 bool __check_url_param_str_lower(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value);
@@ -111,37 +122,46 @@ bool __check_body_param_str_lower(Request& req, Response& res, Json::Value& root
 bool __check_body_param_str_upper(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value);
 bool __check_json_param_str_lower(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value);
 bool __check_json_param_str_upper(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value);
+bool __check_json_param_str_lower_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<std::string>& value);
+bool __check_json_param_str_upper_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<std::string>& value);
 bool __check_body_param_str_lower_ex(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value);
 bool __check_body_param_str_upper_ex(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value);
 
 bool __check_url_param_bool(Request& req, Response& res, Json::Value& root, const std::string& name, bool& value);
 bool __check_body_param_bool(Request& req, Response& res, Json::Value& root, const std::string& name, bool& value);
 bool __check_json_param_bool(Request& req, Response& res, Json::Value& root, const std::string& name, bool& value);
+// use std::vector<int32_t> instead of std::vector<bool>
+bool __check_json_param_bool_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<int32_t>& value);
 bool __check_body_param_bool_ex(Request& req, Response& res, Json::Value& root, const std::string& name, bool& value);
 
 bool __check_url_param_int(Request& req, Response& res, Json::Value& root, const std::string& name, int32_t& value);
 bool __check_body_param_int(Request& req, Response& res, Json::Value& root, const std::string& name, int32_t& value);
 bool __check_json_param_int(Request& req, Response& res, Json::Value& root, const std::string& name, int32_t& value);
+bool __check_json_param_int_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<int32_t>& value);
 bool __check_body_param_int_ex(Request& req, Response& res, Json::Value& root, const std::string& name, int32_t& value);
 
 bool __check_url_param_uint(Request& req, Response& res, Json::Value& root, const std::string& name, uint32_t& value);
 bool __check_body_param_uint(Request& req, Response& res, Json::Value& root, const std::string& name, uint32_t& value);
 bool __check_json_param_uint(Request& req, Response& res, Json::Value& root, const std::string& name, uint32_t& value);
+bool __check_json_param_uint_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<uint32_t>& value);
 bool __check_body_param_uint_ex(Request& req, Response& res, Json::Value& root, const std::string& name, uint32_t& value);
 
 bool __check_url_param_int64(Request& req, Response& res, Json::Value& root, const std::string& name, int64_t& value);
 bool __check_body_param_int64(Request& req, Response& res, Json::Value& root, const std::string& name, int64_t& value);
 bool __check_json_param_int64(Request& req, Response& res, Json::Value& root, const std::string& name, int64_t& value);
+bool __check_json_param_int64_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<int64_t>& value);
 bool __check_body_param_int64_ex(Request& req, Response& res, Json::Value& root, const std::string& name, int64_t& value);
 
 bool __check_url_param_uint64(Request& req, Response& res, Json::Value& root, const std::string& name, uint64_t& value);
 bool __check_body_param_uint64(Request& req, Response& res, Json::Value& root, const std::string& name, uint64_t& value);
 bool __check_json_param_uint64(Request& req, Response& res, Json::Value& root, const std::string& name, uint64_t& value);
+bool __check_json_param_uint64_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<uint64_t>& value);
 bool __check_body_param_uint64_ex(Request& req, Response& res, Json::Value& root, const std::string& name, uint64_t& value);
 
 bool __check_url_param_double(Request& req, Response& res, Json::Value& root, const std::string& name, double& value);
 bool __check_body_param_double(Request& req, Response& res, Json::Value& root, const std::string& name, double& value);
 bool __check_json_param_double(Request& req, Response& res, Json::Value& root, const std::string& name, double& value);
+bool __check_json_param_double_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<double>& value);
 bool __check_body_param_double_ex(Request& req, Response& res, Json::Value& root, const std::string& name, double& value);
 
 } // namespace helper
