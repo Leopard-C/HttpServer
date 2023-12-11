@@ -88,15 +88,28 @@
 #define DEF_FUNC_CHECK_JSON_PARAM_ARRAY(func, value_type, as_value_type) \
     bool func(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<as_value_type>& value) {\
         const Json::Value& array_node = req.GetJsonParam(name);\
-        if (array_node.isArray() && (array_node.empty() || array_node[0].is<value_type>())) {\
-            unsigned int size = array_node.size();\
-            value.reserve(size);\
-            for (unsigned int i = 0; i < size; ++i) {\
-                value.push_back(array_node[i].as<as_value_type>());\
+        if (array_node.isArray()) {\
+            if (array_node.size()) {\
+                if (array_node[0].is<value_type>()) {\
+                    unsigned int size = array_node.size();\
+                    value.reserve(size);\
+                    for (unsigned int i = 0; i < size; ++i) {\
+                        value.push_back(array_node[i].as<as_value_type>());\
+                    }\
+                    return true;\
+                }\
+                else {\
+                    RETURN_INVALID_PARAM(name) false;\
+                }\
             }\
             return true;\
         }\
-        return false;\
+        else if (array_node.isNull()) {\
+            RETURN_MISSING_PARAM(name) false;\
+        }\
+        else {\
+            RETURN_INVALID_PARAM(name) false;\
+        }\
     }
 
 #define DEF_FUNC_CHECK_PARAM_NUMBER(func, func_get_param, number_type) \
@@ -191,7 +204,7 @@ DEF_FUNC_CHECK_BODY_PARAM_EX(__check_body_param_int_ex, __check_body_param_int, 
 DEF_FUNC_CHECK_PARAM_NUMBER(__check_url_param_uint, GetUrlParam, uint32_t)
 DEF_FUNC_CHECK_PARAM_NUMBER(__check_body_param_uint, GetBodyParam, uint32_t)
 DEF_FUNC_CHECK_JSON_PARAM(__check_json_param_uint, uint32_t)
-DEF_FUNC_CHECK_JSON_PARAM_ARRAY(__check_json_param_uint_array, uint32_t, int32_t)
+DEF_FUNC_CHECK_JSON_PARAM_ARRAY(__check_json_param_uint_array, uint32_t, uint32_t)
 DEF_FUNC_CHECK_BODY_PARAM_EX(__check_body_param_uint_ex, __check_body_param_uint, __check_json_param_uint, uint32_t)
 
 

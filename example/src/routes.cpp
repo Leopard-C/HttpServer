@@ -15,6 +15,16 @@ bool register_routes(std::shared_ptr<ic::server::Router> router) {
 
     // controller/test/test_controller.h
     ret &= router->AddStaticRoute("/api/Test/TestEmpty", HttpMethod::kGET, controller::TestController::TestEmpty, "空请求，用于压力测试.", {{"Authorization", "0"}});
+    ret &= router->AddStaticRoute("/api/Test/TestMacro_CHECK_BODY_PARAM", HttpMethod::kPOST, controller::TestController::TestMacro_CHECK_BODY_PARAM, "测试宏-CHECK_BODY_PARAM_xxx.", {});
+    ret &= router->AddStaticRoute("/api/Test/TestMacro_CHECK_BODY_PARAM_EX", HttpMethod::kPOST, controller::TestController::TestMacro_CHECK_BODY_PARAM_EX, "测试宏-CHECK_BODY_PARAM_xxx_EX.", {});
+    ret &= router->AddStaticRoute("/api/Test/TestMacro_CHECK_JSON_PARAM", HttpMethod::kPOST, controller::TestController::TestMacro_CHECK_JSON_PARAM, "测试宏-CHECK_JSON_PARAM_xxx.", {});
+    ret &= router->AddStaticRoute("/api/Test/TestMacro_CHECK_JSON_PARAM_ARRAY", HttpMethod::kPOST, controller::TestController::TestMacro_CHECK_JSON_PARAM_ARRAY, "测试宏-CHECK_JSON_PARAM_xxx_ARRAY.", {});
+    ret &= router->AddStaticRoute("/api/Test/TestMacro_CHECK_URL_PARAM", HttpMethod::kGET, controller::TestController::TestMacro_CHECK_URL_PARAM, "测试宏-CHECK_URL_PARAM_xxx.", {});
+    ret &= router->AddStaticRoute("/api/Test/TestMacro_GET_BODY_PARAM", HttpMethod::kPOST, controller::TestController::TestMacro_GET_BODY_PARAM, "测试宏-GET_BODY_PARAM_xxx.", {});
+    ret &= router->AddStaticRoute("/api/Test/TestMacro_GET_BODY_PARAM_EX", HttpMethod::kPOST, controller::TestController::TestMacro_GET_BODY_PARAM_EX, "测试宏-GET_BODY_PARAM_xxx_EX.", {});
+    ret &= router->AddStaticRoute("/api/Test/TestMacro_GET_JSON_PARAM", HttpMethod::kPOST, controller::TestController::TestMacro_GET_JSON_PARAM, "测试宏-GET_JSON_PARAM_xxx.", {});
+    ret &= router->AddStaticRoute("/api/Test/TestMacro_GET_JSON_PARAM_ARRAY", HttpMethod::kPOST, controller::TestController::TestMacro_GET_JSON_PARAM_ARRAY, "测试宏-GET_JSON_PARAM_xxx_ARRAY.", {});
+    ret &= router->AddStaticRoute("/api/Test/TestMacro_GET_URL_PARAM", HttpMethod::kGET, controller::TestController::TestMacro_GET_URL_PARAM, "测试宏-GET_URL_PARAM_xxx.", {});
 
     // controller/user/user_controller.h
     ret &= router->AddStaticRoute("/api/User/GetInfo", HttpMethod::kGET | HttpMethod::kPOST, controller::UserController::GetInfo, "获取用户信息.", {{"Authorization", "1"}});

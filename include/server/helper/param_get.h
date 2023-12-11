@@ -92,7 +92,7 @@
 #define GET_URL_PARAM_DOUBLE(_default, ...)         __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_url_param_double, double, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_DOUBLE(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_double, double, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_DOUBLE(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_double, double, _default, __VA_ARGS__)
-#define GET_JSON_PARAM_DOUBLE_ARRAY(_default, ...)  __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_double, double, _default, __VA_ARGS__)
+#define GET_JSON_PARAM_DOUBLE_ARRAY(_default, ...)  __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_double_array, std::vector<double>, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_DOUBLE_EX(_default, ...)     __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_double_ex, double, _default, __VA_ARGS__)
 
 

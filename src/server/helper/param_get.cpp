@@ -37,11 +37,11 @@
 #define DEF_FUNC_GET_BODY_PARAM_EX(func, func_get_body_param, func_get_json_param, value_type, default_value_type) \
     bool func(Request& req, Response& res, Json::Value& root, const std::string& name, value_type& value, default_value_type default_value) {\
         auto& content_type = req.content_type();\
-        if (content_type.IsApplicationXWwwFormUrlEncoded()) {\
-            return func_get_body_param(req, res, root, name, value, default_value);\
-        }\
-        else if (content_type.IsApplicationJson()) {\
+        if (content_type.IsApplicationJson()) {\
             return func_get_json_param(req, res, root, name, value, default_value);\
+        }\
+        else if (content_type.IsApplicationXWwwFormUrlEncoded() || content_type.type().empty()) {\
+            return func_get_body_param(req, res, root, name, value, default_value);\
         }\
         else {\
             RETURN_MISSING_PARAM(name) false;\
@@ -105,10 +105,7 @@
                     RETURN_INVALID_PARAM(name) false;\
                 }\
             }\
-            else {\
-                value = default_value;\
-                return true;\
-            }\
+            return true;\
         }\
         else if (array_node.isNull()) {\
             value = default_value;\
@@ -178,10 +175,7 @@ bool __get_json_param_str_array(Request& req, Response& res, Json::Value& root, 
                 RETURN_INVALID_PARAM(name) false;
             }
         }
-        else {
-            value = default_value;
-            return true;
-        }
+        return true;
     }
     else if (array_node.isNull()) {
         value = default_value;
@@ -192,19 +186,7 @@ bool __get_json_param_str_array(Request& req, Response& res, Json::Value& root, 
     }
 }
 
-bool __get_body_param_str_ex(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value) {\
-    auto& content_type = req.content_type();
-    if (content_type.IsApplicationJson()) {
-        return __get_json_param_str(req, res, root, name, value, default_value);
-    }
-    else if (content_type.IsApplicationXWwwFormUrlEncoded()) {
-        return __get_body_param_str(req, res, root, name, value, default_value);
-    }
-    else {
-        value = default_value;
-        return true;
-    }
-}
+DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_str_ex, __get_body_param_str, __get_json_param_str, std::string, const std::string&)
 
 
 /*******************************************************
@@ -220,8 +202,8 @@ DEF_FUNC_GET_PARAM_STR_CASE(__get_json_param_str_lower, __get_json_param_str, to
 DEF_FUNC_GET_PARAM_STR_CASE(__get_json_param_str_upper, __get_json_param_str, to_upper)
 DEF_FUNC_GET_PARAM_STR_CASE_ARRAY(__get_json_param_str_lower_array, __get_json_param_str_array, to_lower)
 DEF_FUNC_GET_PARAM_STR_CASE_ARRAY(__get_json_param_str_upper_array, __get_json_param_str_array, to_upper)
-DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_str_lower_ex, __get_body_param_str_lower, __get_json_param_str_lower, std::string, const std::string&);
-DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_str_upper_ex, __get_body_param_str_upper, __get_json_param_str_upper, std::string, const std::string&);
+DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_str_lower_ex, __get_body_param_str_lower, __get_json_param_str_lower, std::string, const std::string&)
+DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_str_upper_ex, __get_body_param_str_upper, __get_json_param_str_upper, std::string, const std::string&)
 
 
 /*******************************************************
@@ -232,8 +214,8 @@ DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_str_upper_ex, __get_body_param_str_u
 DEF_FUNC_GET_PARAM_BOOL(__get_url_param_bool, GetUrlParam)
 DEF_FUNC_GET_PARAM_BOOL(__get_body_param_bool, GetBodyParam)
 DEF_FUNC_GET_JSON_PARAM(__get_json_param_bool, bool)
-DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_bool, bool, int)
-DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_bool_ex, __get_body_param_bool, __get_json_param_bool, bool, bool);
+DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_bool_array, bool, int)
+DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_bool_ex, __get_body_param_bool, __get_json_param_bool, bool, bool)
 
 
 /*******************************************************
@@ -244,8 +226,8 @@ DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_bool_ex, __get_body_param_bool, __ge
 DEF_FUNC_GET_PARAM_NUMBER(__get_url_param_int, GetUrlParam, int32_t)
 DEF_FUNC_GET_PARAM_NUMBER(__get_body_param_int, GetBodyParam, int32_t)
 DEF_FUNC_GET_JSON_PARAM(__get_json_param_int, int32_t)
-DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_int, int32_t, int32_t)
-DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_int_ex, __get_body_param_int, __get_json_param_int, int32_t, int32_t);
+DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_int_array, int32_t, int32_t)
+DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_int_ex, __get_body_param_int, __get_json_param_int, int32_t, int32_t)
 
 
 /*******************************************************
@@ -256,8 +238,8 @@ DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_int_ex, __get_body_param_int, __get_
 DEF_FUNC_GET_PARAM_NUMBER(__get_url_param_uint, GetUrlParam, uint32_t)
 DEF_FUNC_GET_PARAM_NUMBER(__get_body_param_uint, GetBodyParam, uint32_t)
 DEF_FUNC_GET_JSON_PARAM(__get_json_param_uint, uint32_t)
-DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_uint, uint32_t, uint32_t)
-DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_uint_ex, __get_body_param_uint, __get_json_param_uint, uint32_t, uint32_t);
+DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_uint_array, uint32_t, uint32_t)
+DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_uint_ex, __get_body_param_uint, __get_json_param_uint, uint32_t, uint32_t)
 
 
 /*******************************************************
@@ -268,8 +250,8 @@ DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_uint_ex, __get_body_param_uint, __ge
 DEF_FUNC_GET_PARAM_NUMBER(__get_url_param_int64, GetUrlParam, int64_t)
 DEF_FUNC_GET_PARAM_NUMBER(__get_body_param_int64, GetBodyParam, int64_t)
 DEF_FUNC_GET_JSON_PARAM(__get_json_param_int64, int64_t)
-DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_int64, int64_t, int64_t)
-DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_int64_ex, __get_body_param_int64, __get_json_param_int64, int64_t, int64_t);
+DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_int64_array, int64_t, int64_t)
+DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_int64_ex, __get_body_param_int64, __get_json_param_int64, int64_t, int64_t)
 
 
 /*******************************************************
@@ -280,8 +262,8 @@ DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_int64_ex, __get_body_param_int64, __
 DEF_FUNC_GET_PARAM_NUMBER(__get_url_param_uint64, GetUrlParam, uint64_t)
 DEF_FUNC_GET_PARAM_NUMBER(__get_body_param_uint64, GetBodyParam, uint64_t)
 DEF_FUNC_GET_JSON_PARAM(__get_json_param_uint64, uint64_t)
-DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_uint64, uint64_t, uint64_t)
-DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_uint64_ex, __get_body_param_uint64, __get_json_param_uint64, uint64_t, uint64_t);
+DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_uint64_array, uint64_t, uint64_t)
+DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_uint64_ex, __get_body_param_uint64, __get_json_param_uint64, uint64_t, uint64_t)
 
 
 /*******************************************************
@@ -292,8 +274,8 @@ DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_uint64_ex, __get_body_param_uint64, 
 DEF_FUNC_GET_PARAM_NUMBER(__get_url_param_double, GetUrlParam, double)
 DEF_FUNC_GET_PARAM_NUMBER(__get_body_param_double, GetBodyParam, double)
 DEF_FUNC_GET_JSON_PARAM(__get_json_param_double, double)
-DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_double, double, double)
-DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_double_ex, __get_body_param_double, __get_json_param_double, double, double);
+DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_double_array, double, double)
+DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_double_ex, __get_body_param_double, __get_json_param_double, double, double)
 
 } // namespace helper
 } // namespace server

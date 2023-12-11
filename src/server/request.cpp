@@ -147,7 +147,7 @@ const std::string& Request::GetUrlParam(const std::string& name, bool* exist/* =
 
 const std::string& Request::GetBodyParam(const std::string& name, bool* exist/* = nullptr*/) const {
     auto it = body_params_.find(name);
-    bool _exist = (it != url_params_.end());
+    bool _exist = (it != body_params_.end());
     exist && (*exist = _exist);
     return _exist ? it->second : s_empty_string;
 }
