@@ -10,6 +10,6 @@ set output_file=%script_dir%/../src/routes.cpp
 set include_prefix=controller
 
 REM 调用python脚本 route_collector.py
-python3 %script_dir%\route_collector.py %controller_dir% %output_file% -p %include_prefix% -y
+python %script_dir%\route_collector.py %controller_dir% %output_file% -p %include_prefix% -y
 
 endlocal
