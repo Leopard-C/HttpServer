@@ -4,7 +4,6 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/third_party/jsoncpp/include",
-                "${workspaceFolder}/third_party/jsoncpp/include/jsoncpp",
                 "${workspaceFolder}/third_party/spdlog-wrapper/spdlog/include",
                 "${workspaceFolder}/third_party/spdlog-wrapper/spdlog-wrapper/include",
                 "${workspaceFolder}/include",
