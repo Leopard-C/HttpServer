@@ -8,7 +8,8 @@
                 "${workspaceFolder}/third_party/spdlog-wrapper/spdlog-wrapper/include",
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/example/src",
-                "${default}"
+                "${default}",
+                "/usr/local/boost/boost_1.70.0/x86_64/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

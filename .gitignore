@@ -1,5 +1,6 @@
 /bin/
 /build/
+/dist/
 /lib/
 /logs/
 /lib/linux/**/libhttp_server.*

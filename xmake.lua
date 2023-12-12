@@ -5,29 +5,45 @@ set_languages("c99", "cxx11")
 add_cxflags("-Wreturn-type", "-Wsign-compare", "-Wunused-variable", "-Wswitch")
 add_cxflags("-Wno-deprecated-declarations")
 
-mode = "debug"
-if is_mode("debug") then
-    mode = "debug"
-elseif is_mode("release") then
-    mode = "release"
-elseif is_mode("releasedbg") then
-    mode = "releasedbg"
+-- arm64编译工具链
+toolchain("aarch64")
+    set_kind("standalone")
+    set_toolset("cc", "aarch64-linux-gnu-gcc")
+    set_toolset("cxx", "aarch64-linux-gnu-g++")
+    set_toolset("ar", "aarch64-linux-gnu-ar")
+    set_toolset("ld", "aarch64-linux-gnu-g++")
+toolchain_end()
+
+if is_arch("aarch64") then
+    set_toolchains("aarch64")
 end
 
-add_includedirs("include")
+-- boost库依赖配置
+add_includedirs("/usr/local/boost/boost_1.70.0/$(arch)/include")
+add_linkdirs("/usr/local/boost/boost_1.70.0/$(arch)/lib")
+
+-- 第三方库(submodule)依赖配置
 add_includedirs("third_party/jsoncpp/include")
 add_includedirs("third_party/spdlog-wrapper/spdlog/include")
 add_includedirs("third_party/spdlog-wrapper/spdlog-wrapper/include")
-add_linkdirs(string.format("lib/linux/%s", mode), "lib/linux")
-add_linkdirs("third_party/jsoncpp/lib/linux")
-add_linkdirs("third_party/spdlog-wrapper/spdlog-wrapper/lib/linux")
-set_objectdir(string.format("build/obj/%s", mode))
+add_linkdirs("third_party/jsoncpp/lib/$(plat)/$(arch)")
+add_linkdirs("third_party/spdlog-wrapper/spdlog-wrapper/lib/$(plat)/$(arch)")
 
+-- 全局配置
+add_includedirs("include")
+set_objectdir("build/obj/$(plat)/$(arch)/$(mode)")
+
+--
+-- http_server静态库
+--
 target("http_server")
     set_kind("static")
     add_files("src/server/**.cpp")
-    set_targetdir(string.format("lib/linux/%s", mode))
+    set_targetdir("lib/$(plat)/$(arch)/$(mode)")
 
+--
+-- 示例程序
+--
 target("example")
     set_kind("binary")
     add_files("example/**.cpp")
@@ -37,6 +53,9 @@ target("example")
     add_linkorders("http_server", "spdlog_wrapper", "spdlog", "jsoncpp", "pthread", "dl")
     set_targetdir("bin")
 
+--
+-- 示例程序2
+--
 target("example2")
     set_kind("binary")
     add_files("example2/**.cpp")

@@ -17,8 +17,6 @@
 #include "form_item.h"
 #include "http_method.h"
 
-struct multipart_parser;
-
 namespace ic {
 namespace server {
 

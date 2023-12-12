@@ -45,14 +45,9 @@ wget https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70
 tar -xzf boost_1_70_0.tar.gz && cd boost_1_70_0
 
 # 编译安装
-./bootstrap.sh --prefix=/usr/local
-./b2 -j6   # -j指定编译线程数
-sudo ./b2 install
-sudo ldconfig
-
-# 卸载
-# sudo rm -rf /usr/local/lib/libboost*
-# sudo rm -rf /usr/local/include/boost
+./bootstrap.sh --prefix=/usr/local/boost/boost_1_70_0/x86_64
+./b2 -a -j6 cxxflags='-fPIC -std=c++11 -O3' link=static   # 编译静态库
+sudo ./b2 install cxxflags='-fPIC -std=c++11 -O3' link=static  # 安装静态库
 ```
 
 ### 2.2 编译子模块
@@ -68,28 +63,47 @@ git submodule update --init --recursive
 
 按照子模块的 `README.md` 文档中的方法，编译两个子模块。
 
-### 2.3 编译`HttpServer`
+### 2.3 编译`HttpServer`静态库及示例程序
 
 #### 2.3.1 `Linux`
+
+修改`xmake.lua`或`makefile`中`boost`库的配置。
+
+```lua
+-- xmake.lua
+-- boost库依赖配置
+add_includedirs("/usr/local/boost/boost_1.70.0/$(arch)/include")
+add_linkdirs("/usr/local/boost/boost_1.70.0/$(arch)/lib")
+```
+
+然后执行如下命令：
 
 ```shell
 # 方式1：使用xmake构建
 xmake f -m debug     # 可选debug、reelase、releasedbg
-xmake b http_server  # 编译静态库
-xmake b example      # 编译示例程序
-xmake b example2     # 编译示例程序2
+xmake
 # xmake project -k makefile   # 生成makefile文件
 
-# 方式2：使用`make`构建
+# 方式2：使用make构建
 make -j
 ```
 
-编译生成的静态库路径：`lib/linux/debug/libhttp_server.a`
+支持交叉编译，例如在`x86_64`机器上编译`aarch64`架构机器中可执行程序。首先需要交叉编译依赖库(boost, third_party/jsoncpp, third_party/spdlog-wrapper)，然后执行如下命令进行编译：
 
 ```shell
-# 运行示例程序：
+# 方式1：使用xmake构建
+xmake f --arch=aarch64
+xmake
+
+# 方式2：使用make构建
+make -f makefile.aarch64
+```
+
+```shell
+# 运行示例程序
 bin/example
-bin/example2
+# 或
+# bin/example2
 ```
 
 浏览器地址栏输入 [`http://127.0.0.1:8099/`](http://127.0.0.1:8099/) 访问。关于示例程序，请参考说明文档 [`example/README.md`](example/README.md)
