@@ -5,10 +5,9 @@
 #include <server/util/hash/md5.h>
 #include <server/util/path.h>
 #include <server/util/io.h>
+#include "dto/user_dto.h"
 #include "manager/user_manager.h"
 #include "singleton/singleton.h"
-
-namespace controller {
 
 /**
  * @brief 登录.
@@ -19,18 +18,17 @@ namespace controller {
  */
 void UserController::Login(Request& req, Response& res) {
     API_INIT();
-    CHECK_BODY_PARAM_STR_EX(uid);
-    CHECK_BODY_PARAM_STR_LOWER_EX(password);
+    MAKE_DTO(dto::user::LoginDto, dto);
 
     /* 验证用户名和密码，成功则颁发token */
     auto user_mgr = ic::Singleton<UserManager>::GetInstance();
     std::string token;
-    if (!user_mgr->Login(uid, password, 600, &token)) {
-        RETURN_CODE(status::base::kWrongUserOrPassword);
+    if (!user_mgr->Login(dto.uid, dto.password_md5, 600, &token)) {
+        RETURN_CODE(ic::server::status::base::kWrongUserOrPassword);
     }
 
     /* 将token写入cookie中，之后的请求会自动携带 */
-    auto cookie = HttpCookie("Authorization", token).Path("/").MaxAge(600).HttpOnly(true);
+    auto cookie = ic::server::HttpCookie("Authorization", token).Path("/").MaxAge(600).HttpOnly(true);
     res.SetCookie(cookie);
 
     RETURN_OK();
@@ -70,17 +68,11 @@ void UserController::GetInfo(Request& req, Response& res) {
  */
 void UserController::UpdateInfo(Request& req, Response& res) {
     API_INIT();
-    CHECK_BODY_PARAM_INT_EX(gender, province, job);
-    CHECK_BODY_PARAM_STR_EX(avatar, nickname, sign);
+    MAKE_DTO(dto::user::UpdateInfoDto, dto);
 
     User user;
     user.uid = req.custom_data("uid").asString();
-    user.gender = gender;
-    user.province = province;
-    user.job = job;
-    user.avatar = avatar;
-    user.nickname = nickname;
-    user.sign = sign;
+    dto.SwapToUser(user);
 
     auto user_mgr = ic::Singleton<UserManager>::GetInstance();
     if (!user_mgr->UpdateUserInfo(user)) {
@@ -99,19 +91,20 @@ void UserController::UpdateInfo(Request& req, Response& res) {
  */
 void UserController::UploadAvatar(Request& req, Response& res) {
     API_INIT();
+    using namespace ic::server;
 
     const FormItem* item = req.GetFormItem("image");
     if (!item) {
         RETURN_MISSING_PARAM("image");
     }
     if (!item->is_file()) {
-        RETURN_INVALID_PARAM_MSG("image", "param [image] is not a file object");
+        RETURN_INVALID_PARAM_MSG("param [image] is not a file object");
     }
 
     std::string md5 = util::hash::md5_lower(item->content().data(), item->content().size());
     std::string ext = util::path::get_ext(item->filename());
     if (ext.empty()) {
-        RETURN_INVALID_PARAM_MSG("image", "filename is invalid");
+        RETURN_INVALID_PARAM_MSG("filename is invalid");
     }
 
     /* 写入服务器本地文件 */
@@ -139,10 +132,8 @@ void UserController::GetAvatarImage(Request& req, Response& res) {
     std::string dir = req.GetRouteRegexMatch(0);
     std::string filename = req.GetRouteRegexMatch(1);
     //std::string ext = req.GetRouteRegexMatch(2);
-    std::string filepath = HttpServer::GetBinDir() + "../data/system/avatar/" + dir + "/" + filename;
+    std::string filepath = ic::server::HttpServer::GetBinDir() + "../data/system/avatar/" + dir + "/" + filename;
     if (!res.SetFileBody(filepath)) {
         res.SetStringBody(404, "<h2>404 Not Found</h2>", "text/html");
     }
 }
-
-} // namespace controller

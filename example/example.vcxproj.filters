@@ -9,7 +9,7 @@
     <None Include=".editorconfig" />
     <None Include="apifox\http_server_example.apifox.json" />
     <None Include="README.md" />
-    <None Include="script\route_collector.bat" />
+    <None Include="script\server-assistant.bat" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\app\app.cpp" />
@@ -20,6 +20,7 @@
     <ClCompile Include="src\manager\user_manager.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\routes.cpp" />
+    <ClCompile Include="src\controller\user\dto\user_dto.impl_dto.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app\app.h" />
@@ -30,5 +31,6 @@
     <ClInclude Include="src\manager\user_manager.h" />
     <ClInclude Include="src\singleton\singleton.h" />
     <ClInclude Include="src\routes.h" />
+    <ClInclude Include="src\controller\user\dto\user_dto.h" />
   </ItemGroup>
 </Project>

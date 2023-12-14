@@ -9,7 +9,7 @@
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/example/src",
                 "${default}",
-                "/usr/local/boost/boost_1.70.0/x86_64/include"
+                "/usr/local/boost/boost_1.73.0/x86_64/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

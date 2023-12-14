@@ -2,9 +2,8 @@
 #include <server/request.h>
 #include <server/response.h>
 
-namespace controller {
-
-using namespace ic::server;
+using Request = ic::server::Request;
+using Response = ic::server::Response;
 
 /**
  * @brief 测试控制器.
@@ -106,5 +105,3 @@ public:
      */
     static void TestMacro_GET_BODY_PARAM_EX(Request& req, Response& res);
 };
-
-} // namespace controller

@@ -46,7 +46,7 @@ src
 ├── manager
 │   ├── user_manager.cpp
 │   └── user_manager.h
-├── routes.cpp   # 路由注册，由脚本 route_collector.py 生成
+├── routes.cpp   # 路由注册，由脚本 server-assistant.py 生成
 ├── routes.h
 └── singleton
     └── singleton.h
@@ -55,11 +55,11 @@ src
 ```shell
 # 通过脚本，生成注册控制器中所有路由的代码
 cd example
-script/route_collector.py src/controller src/routes.cpp -p controller
+script/server-assistant.py parse-controller src/controller src/routes.cpp -p controller
 # 或者 (Linux)
-script/route_collector.sh
+script/server-assistant.sh
 # 或者 (Windows)
-script\route_collector.bat
+script\server-assistant.bat
 ```
 
 ## 接口列表

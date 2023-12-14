@@ -2,9 +2,8 @@
 #include <server/request.h>
 #include <server/response.h>
 
-namespace controller {
-
-using namespace ic::server;
+using Request = ic::server::Request;
+using Response = ic::server::Response;
 
 /**
  * @brief web服务器.
@@ -37,5 +36,3 @@ public:
      */
     static void GetResource(Request& req, Response& res);
 };
-
-} // namespace controller

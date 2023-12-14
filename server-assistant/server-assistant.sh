@@ -9,5 +9,5 @@ controller_dir=$script_dir/../src/controller
 output_file=$script_dir/../src/routes.cpp
 include_prefix=controller
 
-# 调用python脚本 route_collector.py
-python3 $script_dir/route_collector.py $controller_dir $output_file -p $include_prefix -y
+# 调用python脚本 server-assistant.py
+python3 "$script_dir/server-assistant.py" parse-controller "$controller_dir" "$output_file" -p $include_prefix -y

@@ -1,8 +1,6 @@
 #include "test_controller.h"
 #include <server/helper/helper.h>
 
-namespace controller {
-
 /**
  * @brief 空请求，用于压力测试.
  *
@@ -354,5 +352,3 @@ void TestController::TestMacro_GET_BODY_PARAM_EX(Request& req, Response& res) {
     data["double_val"] = double_val;
     RETURN_OK();
 }
-
-} // namespace controller

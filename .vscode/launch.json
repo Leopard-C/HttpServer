@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+        // 调试example程序
         {
             "name": "g++-10 - Build and debug active file",
             "type": "cppdbg",
@@ -20,6 +21,16 @@
             ],
             "miDebuggerPath": "/usr/bin/gdb",
             "sourceFileMap": {}
+        },
+        // 调试server-assistant.py脚本
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/server-assistant/server-assistant.py",
+            "args": ["parse-controller", "${workspaceFolder}/example/src/controller", "${workspaceFolder}/example/src/routes.cpp", "-p", "controller", "-y"],
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ],
     "logging": {

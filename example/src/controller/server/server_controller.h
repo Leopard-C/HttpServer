@@ -2,9 +2,8 @@
 #include <server/request.h>
 #include <server/response.h>
 
-namespace controller {
-
-using namespace ic::server;
+using Request = ic::server::Request;
+using Response = ic::server::Response;
 
 class ServerController {
 public:
@@ -28,5 +27,3 @@ public:
      */
     static void DumpThreadInfos(Request& req, Response& res);
 };
-
-} // namespace controller

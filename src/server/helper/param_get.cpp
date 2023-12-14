@@ -92,14 +92,11 @@
     bool func(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<as_value_type>& value, const std::vector<as_value_type>& default_value) {\
         const Json::Value& array_node = req.GetJsonParam(name);\
         if (array_node.isArray()) {\
-            if (array_node.size()) {\
-                if (array_node[0].is<value_type>()) {\
-                    unsigned int size = array_node.size();\
-                    value.reserve(size);\
-                    for (unsigned int i = 0; i < size; ++i) {\
-                        value.push_back(array_node[i].as<as_value_type>());\
-                    }\
-                    return true;\
+            unsigned int size = array_node.size();\
+            value.reserve(size);\
+            for (unsigned int i = 0; i < size; ++i) {\
+                if (array_node[i].is<value_type>()) {\
+                    value.push_back(array_node[i].as<as_value_type>());\
                 }\
                 else {\
                     RETURN_INVALID_PARAM(name) false;\
@@ -159,33 +156,7 @@ bool __get_json_param_str(Request& req, Response& res, Json::Value& root, const 
     }
 }
 
-bool __get_json_param_str_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<std::string>& value, const std::vector<std::string>& default_value) {
-    const Json::Value& array_node = req.GetJsonParam(name);
-    if (array_node.isArray()) {
-        if (array_node.size()) {
-            if (array_node[0].isString() || array_node[0].isNumeric()) {
-                unsigned int size = array_node.size();
-                value.reserve(size);
-                for (unsigned int i = 0; i < size; ++i) {
-                    value.push_back(array_node[i].asString());
-                }
-                return true;
-            }
-            else {
-                RETURN_INVALID_PARAM(name) false;
-            }
-        }
-        return true;
-    }
-    else if (array_node.isNull()) {
-        value = default_value;
-        return true;
-    }
-    else {
-        RETURN_INVALID_PARAM(name) false;
-    }
-}
-
+DEF_FUNC_GET_JSON_PARAM_ARRAY(__get_json_param_str_array, std::string, std::string)
 DEF_FUNC_GET_BODY_PARAM_EX(__get_body_param_str_ex, __get_body_param_str, __get_json_param_str, std::string, const std::string&)
 
 

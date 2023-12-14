@@ -19,8 +19,8 @@ if is_arch("aarch64") then
 end
 
 -- boost库依赖配置
-add_includedirs("/usr/local/boost/boost_1.70.0/$(arch)/include")
-add_linkdirs("/usr/local/boost/boost_1.70.0/$(arch)/lib")
+add_includedirs("/usr/local/boost/boost_1.73.0/$(arch)/include")
+add_linkdirs("/usr/local/boost/boost_1.73.0/$(arch)/lib")
 
 -- 第三方库(submodule)依赖配置
 add_includedirs("third_party/jsoncpp/include")

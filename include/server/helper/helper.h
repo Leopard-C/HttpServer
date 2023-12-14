@@ -52,12 +52,12 @@ void prepare_json_response(Json::Value& root, int code, const std::string& msg, 
 
 #define RETURN_INVALID_PARAM(name) \
     RETURN_CODE_MSG(ic::server::status::base::kInvalidParam, std::string("Invalid param:[") + name + std::string("]"))
-#define RETURN_INVALID_PARAM_MSG(name, _msg) \
+#define RETURN_INVALID_PARAM_MSG(_msg) \
     RETURN_CODE_MSG(ic::server::status::base::kInvalidParam, _msg)
 
 #define RETURN_MISSING_PARAM(name) \
     RETURN_CODE_MSG(ic::server::status::base::kMissingParam, std::string("Missing param:[") + name + std::string("]"))
-#define RETURN_MISSING_PARAM_MSG(name, _msg) \
+#define RETURN_MISSING_PARAM_MSG(_msg) \
     RETURN_CODE_MSG(ic::server::status::base::kMissingParam, _msg)
 
 // for DEBUG

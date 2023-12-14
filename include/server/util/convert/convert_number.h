@@ -27,7 +27,7 @@ namespace conv {
 
 namespace _internal {
 
-void trim(const std::string& str, int* start, int* end, bool* is_negative, bool* trimmed);
+bool trim(const std::string& str, int* start, int* end, bool* is_negative);
 bool is_valid_floating_point(const std::string& str, const int start, const int end);
 
 template<typename T, typename std::enable_if<std::is_same<T, float>::value, int>::type* = nullptr>
@@ -47,10 +47,10 @@ bool convert_negative_integer(const std::string& in, const int start, const int 
     T val = 0;
     T digit;
     for (int i = start; i <= end; ++i) {
-        digit = in[i] - 48; // '0'
-        if (digit >= 0 && digit <= 9) {
+        if (in[i] >= '0' && in[i] <= '9') {
+            digit = in[i] - '0';
             if (val >= min_limit_div_10) {
-                val = (val << 1) + (val << 3);
+                val *= 10;
                 if (val >= min_limit + digit) {
                     val -= digit;
                     continue;
@@ -71,10 +71,10 @@ bool convert_positive_integer(const std::string& in, const int start, const int 
     T val = 0;
     T digit;
     for (int i = start; i <= end; ++i) {
-        digit = in[i] - 48;
-        if (digit >= 0 && digit <= 9) {
+        if (in[i] >= '0' && in[i] <= '9') {
+            digit = in[i] - '0';
             if (val <= max_limit_div_10) {
-                val = (val << 1) + (val << 3);
+                val *= 10;
                 if (val <= max_limit - digit) {
                     val += digit;
                     continue;
@@ -102,9 +102,8 @@ bool convert_positive_integer(const std::string& in, const int start, const int 
 template<typename T, typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, int>::type* = nullptr>
 bool convert_number(const std::string& in, T* out, std::string* err_msg = nullptr) {
     int start, end;
-    bool is_negative, trimmed;
-    _internal::trim(in, &start, &end, &is_negative, &trimmed);
-    if (start < 0) {
+    bool is_negative;
+    if (!_internal::trim(in, &start, &end, &is_negative)) {
         UTIL_CONV_ERR_INVALID_STRING();
     }
     return is_negative ?
@@ -115,9 +114,8 @@ bool convert_number(const std::string& in, T* out, std::string* err_msg = nullpt
 template<typename T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, int>::type* = nullptr>
 bool convert_number(const std::string& in, T* out, std::string* err_msg = nullptr) {
     int start, end;
-    bool is_negative, trimmed;
-    _internal::trim(in, &start, &end, &is_negative, &trimmed);
-    if (start < 0 || is_negative) {
+    bool is_negative;
+    if (!_internal::trim(in, &start, &end, &is_negative) || is_negative) {
         UTIL_CONV_ERR_INVALID_STRING();
     }
     return _internal::convert_positive_integer<T>(in, start, end, out, err_msg);
@@ -126,19 +124,12 @@ bool convert_number(const std::string& in, T* out, std::string* err_msg = nullpt
 template<typename T, typename std::enable_if<std::is_floating_point<T>::value, int>::type* = nullptr>
 bool convert_number(const std::string& in, T* out, std::string* err_msg = nullptr) {
     int start, end;
-    bool is_negative, trimmed;
-    _internal::trim(in, &start, &end, &is_negative, &trimmed);
-    if (start < 0 ||!_internal::is_valid_floating_point(in, start, end)) {
+    bool is_negative;
+    if (!_internal::trim(in, &start, &end, &is_negative) || !_internal::is_valid_floating_point(in, start, end)) {
         UTIL_CONV_ERR_INVALID_STRING();
     }
     try {
-        if (trimmed) {
-            std::string _in = is_negative ? in.substr(start - 1, end - start + 2) : in.substr(start, end - start + 1);
-            _internal::str_to_floating_point(_in, out);
-        }
-        else {
-            _internal::str_to_floating_point(in, out);
-        }
+        _internal::str_to_floating_point(in, out);
         return true;
     }
     catch (std::invalid_argument) {

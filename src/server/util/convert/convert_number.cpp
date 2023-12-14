@@ -8,60 +8,44 @@ namespace conv {
 namespace _internal {
 
 /**
- * @brief 去除首尾的空格.
+ * @brief 去除首尾的空白字符.
  * 
  * @param[in]  str 输入字符串
- * @param[out] start 左起第一个非空格的位置(如果是第一个位置是正/负号，则跳过)，
- *                   -1表示字符串中没有有效字符，该字符串不是有效的数字，调用该函数后一定要判断start是否为负 !!!
- * @param[out] end 右起第一个非空格的位置
+ * @param[out] start 左起第一个非空白字符的位置(如果是第一个位置是正/负号，则跳过)，
+ * @param[out] end 右起第一个非空白字符的位置
  * @param[out] is_negative 是否是负号开头
- * @param[out] trimmed 是否去除了首尾的空格字符
+ * @return 去除后字符串是否有效(非空)
  */
-void trim(const std::string& str, int* start, int* end, bool* is_negative, bool* trimmed) {
+bool trim(const std::string& str, int* start, int* end, bool* is_negative) {
     const int len = static_cast<int>(str.length());
     if (len == 0) {
-        *start = *end = -1;
-        *is_negative = false;
-        *trimmed = false;
-        return;
+        return false;
     }
-    /* 找到左起第一个和右起第一个非空格的位置 */
-    int i = 0, j = 0;
-    for (i = 0; i < len; ++i) {
-        if (str[i] != ' ') {
-            break;
-        }
+    /* 找到左起第一个和右起第一个非空白字符的位置 */
+    int i = 0, j = len - 1;
+    while (i < len && (str[i] == ' ' || str[i] == '\t')) {
+        ++i;
     }
     if (i == len) {
-        *start = *end = -1;
-        *is_negative = false;
-        *trimmed = false;
-        return;
+        return false;
     }
-    for (j = len - 1; j >= i; --j) {
-        if (str[j] != ' ') {
-            break;
-        }
+    while (j >= i && (str[j] == ' ' || str[j] == '\t')) {
+        --j;
     }
-    /* 裁剪字符串，同时判断是否以负号/正号开头 */
+    /* 裁剪字符串，同时判断是否以正/负号开头 */
     if (str[i] == '-' || str[i] == '+') {
         if (i == j) {
-            *start = *end = -1; /* 只有一个负/负号，无效 */
-            *is_negative = false;
-            *trimmed = false;
-            return;
+            return false; /* 只有一个正/负号，无效 */
         }
-        else {
-            *start = i + 1;
-            *end = j;
-        }
+        *start = i + 1;
+        *end = j;
     }
     else {
         *start = i;
         *end = j;
     }
     *is_negative = (str[i] == '-');
-    *trimmed = (i == 0 && j == len - 1);
+    return true;
 }
 
 /**
@@ -71,8 +55,6 @@ void trim(const std::string& str, int* start, int* end, bool* is_negative, bool*
  * @param[in]  start 开始检测的起始位置
  * @param[in]  end 开始检测的结束位置
  * @param[out] err_msg 出错信息
- * @retval true 成功
- * @retval false 失败
  */
 bool is_valid_floating_point(const std::string& str, const int start, const int end) {
     bool has_e = false;
@@ -81,8 +63,8 @@ bool is_valid_floating_point(const std::string& str, const int start, const int 
     bool has_num_after_e = false;
     for (int i = start; i <= end; ++i) {
         switch (str[i]) {
-        case 48: case 49: case 50: case 51: case 52:
-        case 53: case 54: case 55: case 56: case 57: {
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9': {
             if (has_e) {
                 has_num_after_e = true;
             }
@@ -93,21 +75,23 @@ bool is_valid_floating_point(const std::string& str, const int start, const int 
         }
         case 'e':
         case 'E': {
+            /* e只能出现一次，且前面必须有数字 */
             if (has_e || !has_num_before_e)  {
                 return false;
             }
-            else {
-                has_e = true;
+            /* e之后可以紧接着一个正/负号 */
+            if (i+1 <= end && (str[i+1] == '+' || str[i+1] == '-')) {
+                ++i;
             }
+            has_e = true;
             break;
         }
         case '.': {
+            /* 小数点只能出现一次，且只能出现在e之前 */
             if (has_dot || has_e) {
                 return false;
             }
-            else {
-                has_dot = true;
-            }
+            has_dot = true;
             break;
         }
         default: {

@@ -2,9 +2,8 @@
 #include <server/request.h>
 #include <server/response.h>
 
-namespace controller {
-
-using namespace ic::server;
+using Request = ic::server::Request;
+using Response = ic::server::Response;
 
 /**
  * @brief 用户控制器.
@@ -56,5 +55,3 @@ public:
      */
     static void GetAvatarImage(Request& req, Response& res);
 };
-
-} // namespace controller

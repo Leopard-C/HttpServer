@@ -6,10 +6,10 @@ ifneq ($(VERBOSE),1)
 VV=@
 endif
 
+CXX=/usr/bin/gcc
 AS=/usr/bin/gcc
 CC=/usr/bin/gcc
 MM=/usr/bin/gcc
-CXX=/usr/bin/gcc
 MXX=/usr/bin/gcc
 
 LD=/usr/bin/g++
@@ -26,15 +26,15 @@ example_LD=/usr/bin/g++
 example_CXX=/usr/bin/gcc
 example_CXX=/usr/bin/gcc
 
-example2_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.70.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
-example2_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.70.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
-example2_LDFLAGS=-m64 -L/usr/local/boost/boost_1.70.0/x86_64/lib -Lthird_party/jsoncpp/lib/linux/x86_64 -Lthird_party/spdlog-wrapper/spdlog-wrapper/lib/linux/x86_64 -Llib/linux/x86_64/release -s -lhttp_server -lspdlog_wrapper -lspdlog -ljsoncpp -lboost_regex -lpthread -ldl
-http_server_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.70.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
-http_server_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.70.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+example2_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+example2_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+example2_LDFLAGS=-m64 -L/usr/local/boost/boost_1.73.0/x86_64/lib -Lthird_party/jsoncpp/lib/linux/x86_64 -Lthird_party/spdlog-wrapper/spdlog-wrapper/lib/linux/x86_64 -Llib/linux/x86_64/release -s -lhttp_server -lspdlog_wrapper -lspdlog -ljsoncpp -lboost_regex -lpthread -ldl
+http_server_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+http_server_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
 http_server_ARFLAGS=-cr
-example_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.70.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Iexample/src -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
-example_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.70.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Iexample/src -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
-example_LDFLAGS=-m64 -L/usr/local/boost/boost_1.70.0/x86_64/lib -Lthird_party/jsoncpp/lib/linux/x86_64 -Lthird_party/spdlog-wrapper/spdlog-wrapper/lib/linux/x86_64 -Llib/linux/x86_64/release -s -lhttp_server -lspdlog_wrapper -lspdlog -ljsoncpp -lboost_regex -lpthread -ldl
+example_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Iexample/src -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+example_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Iexample/src -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+example_LDFLAGS=-m64 -L/usr/local/boost/boost_1.73.0/x86_64/lib -Lthird_party/jsoncpp/lib/linux/x86_64 -Lthird_party/spdlog-wrapper/spdlog-wrapper/lib/linux/x86_64 -Llib/linux/x86_64/release -s -lhttp_server -lspdlog_wrapper -lspdlog -ljsoncpp -lboost_regex -lpthread -ldl
 
 default:  example2 http_server example
 
@@ -210,10 +210,10 @@ build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/liste
 	$(VV)$(http_server_CXX) -c $(http_server_CXXFLAGS) -o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/listener.cpp.o src/server/listener.cpp
 
 example: bin/example
-bin/example: lib/linux/x86_64/release/libhttp_server.a build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o
+bin/example: lib/linux/x86_64/release/libhttp_server.a build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o
 	@echo linking.release example
 	@mkdir -p bin
-	$(VV)$(example_LD) -o bin/example build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o $(example_LDFLAGS)
+	$(VV)$(example_LD) -o bin/example build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o $(example_LDFLAGS)
 
 build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o: example/src/app/app.cpp
 	@echo compiling.release example/src/app/app.cpp
@@ -249,6 +249,11 @@ build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controll
 	@echo compiling.release example/src/controller/test/test_controller.cpp
 	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test
 	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o example/src/controller/test/test_controller.cpp
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o: example/src/controller/user/dto/user_dto.impl_dto.cpp
+	@echo compiling.release example/src/controller/user/dto/user_dto.impl_dto.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o example/src/controller/user/dto/user_dto.impl_dto.cpp
 
 build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o: example/src/controller/user/user_controller.cpp
 	@echo compiling.release example/src/controller/user/user_controller.cpp
@@ -306,5 +311,6 @@ clean_example:  clean_http_server
 	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o
 

@@ -89,14 +89,11 @@
     bool func(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<as_value_type>& value) {\
         const Json::Value& array_node = req.GetJsonParam(name);\
         if (array_node.isArray()) {\
-            if (array_node.size()) {\
-                if (array_node[0].is<value_type>()) {\
-                    unsigned int size = array_node.size();\
-                    value.reserve(size);\
-                    for (unsigned int i = 0; i < size; ++i) {\
-                        value.push_back(array_node[i].as<as_value_type>());\
-                    }\
-                    return true;\
+            unsigned int size = array_node.size();\
+            value.reserve(size);\
+            for (unsigned int i = 0; i < size; ++i) {\
+                if (array_node[i].is<value_type>()) {\
+                    value.push_back(array_node[i].as<as_value_type>());\
                 }\
                 else {\
                     RETURN_INVALID_PARAM(name) false;\

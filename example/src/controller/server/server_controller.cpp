@@ -2,8 +2,6 @@
 #include <server/http_server.h>
 #include <server/helper/helper.h>
 
-namespace controller {
-
 /**
  * @brief 关闭服务器.
  * 
@@ -31,5 +29,3 @@ void ServerController::DumpThreadInfos(Request& req, Response& res) {
     data = req.svr()->DumpThreadInfos();
     RETURN_OK();
 }
-
-} // namespace controller
