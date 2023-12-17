@@ -1,11 +1,12 @@
 # Http Server
 
-<img alt="C++11" src="https://img.shields.io/badge/Language-C++11-brightgreen" />
-<img alt="Boost" src="https://img.shields.io/badge/Boost->=1.73.0-brightgreen" />
-<img alt="Windows& Linux" src="https://img.shields.io/badge/platform-windows%20%7C%20linux-brightgreen" />
-<img alt="MIT-License" src="https://img.shields.io/badge/License-MIT-blue" />
- <a href="https://github.com/Leopard-C/HttpServer/wiki"><img src="https://img.shields.io/badge/Documentation-Wiki-brightgreen" /></a>
-<br>
+<p align="center">
+  <img alt="C++11" src="https://img.shields.io/badge/Language-C++11-brightgreen" />
+  <img alt="Boost" src="https://img.shields.io/badge/Boost->=1.73.0-brightgreen" />
+  <img alt="Windows& Linux" src="https://img.shields.io/badge/platform-windows%20%7C%20linux-brightgreen" />
+  <img alt="MIT-License" src="https://img.shields.io/badge/License-MIT-blue" />
+  <a href="https://github.com/Leopard-C/HttpServer/wiki"><img src="https://img.shields.io/badge/Documentation-Wiki-brightgreen" /></a>
+</p>
 
 基于 `Boost.Beast` 实现的跨平台、高性能的HTTP服务器。
 
