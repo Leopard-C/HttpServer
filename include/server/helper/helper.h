@@ -1,5 +1,6 @@
 #ifndef IC_SERVER_HELPER_H_
 #define IC_SERVER_HELPER_H_
+#include <functional>
 #include <jsoncpp/json/value.h>
 #include <log/logger.h>
 #include "param_check.h"
@@ -12,7 +13,15 @@ namespace ic {
 namespace server {
 namespace helper {
 
-void prepare_json_response(Json::Value& root, int code, const std::string& msg, Response& res);
+using FuncPrepareJsonResponse = std::function<void(Json::Value& root, int code, const std::string& msg, Response& res)>;
+
+extern FuncPrepareJsonResponse prepare_json_response;
+
+/**
+ * @brief 自定义接口响应的JSON格式.
+ * @details 默认格式: { "code": 0, "msg": "Ok", "data": xxx }
+ */
+void set_custom_func_prepare_json_response(FuncPrepareJsonResponse func);
 
 } // namespace helper
 } // namespace server
