@@ -1,4 +1,4 @@
-# 编译 HttpServer 静态库及示例程序 (Linux)
+# 编译 HttpServer 静态库及示例程序 (Windows)
 
 + [Linux](./BUILD_Linux.md)
 + Windows

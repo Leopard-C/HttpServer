@@ -14,8 +14,8 @@
 
 + 项目Wiki: [Http Server Wiki](https://github.com/Leopard-C/HttpServer/wiki)
 + 构建文档：
-    + Windows平台：[BUILD_Windows.md](BUILD_Windows.md.md)
-    + Linux平台：[BUILD_Linux.md](BUILD_Linux.md.md)
+    + Windows平台：[BUILD_Windows.md](BUILD_Windows.md)
+    + Linux平台：[BUILD_Linux.md](BUILD_Linux.md)
 
 ## 2. 依赖
 
