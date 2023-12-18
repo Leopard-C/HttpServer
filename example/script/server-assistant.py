@@ -15,14 +15,20 @@
 ##
 ###############################################################################################
 
+import argparse
+import hashlib
+import json
 import os
 import re
-import argparse
+import tempfile
+import time
+from enum import Enum
+from functools import cmp_to_key
+from typing import List, Dict, Set
+
 # pip3 install robotpy-cppheaderparser
 from CppHeaderParser import CppHeader, CppClass
-from typing import List, Dict, Set
-from functools import cmp_to_key
-from enum import Enum
+
 
 ###############################################################################################
 ##
@@ -39,6 +45,7 @@ class Helper:
 
     @staticmethod
     def FormatDir(dir: str):
+        ''' 格式化文件夹字符串，以/结尾 '''
         dir = Helper.FormatPath(dir)
         if len(dir) > 0 and dir[-1] != '/':
             dir += '/'
@@ -102,22 +109,21 @@ valid_http_methods = set(['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT, OPTI
 
 class Route:
     ''' 路由 '''
-    def __init__(self):
+    def __init__(self, header_file_abspath: str, header_file_relpath: str):
         self.is_regex = False
-        self.include_header_file = ''
+        self.header_file_abspath = header_file_abspath
+        self.header_file_relpath = header_file_relpath
         self.description = ''
         self.pathes: List[str] = []
         self.function = ''
-        self.http_methods: Set[str] = set()
+        self.http_methods: List[str] = []
         self.config = {}
 
     def __ConfigToCppMap(self):
-        str = ''
-        for key, value in self.config.items():
-            if len(str) > 0:
-                str += ', '
-            str += '{"%s", "%s"}' % (key.replace('"', '\\"'), value.replace('"', '\\"'))
-        return '{' + str + '}'
+        key_values: List[str] = []
+        for key in sorted(self.config.keys()):
+            key_values.append('{"%s", "%s"}' % (key.replace('"', '\\"'), self.config[key].replace('"', '\\"')))
+        return '{' + ', '.join(key_values) + '}'
 
     def __ToCppHttpMethods(self):
         cpp_http_methods = ''
@@ -141,7 +147,7 @@ class Route:
         for r in self.pathes:
             print('route: %s %s' % (r, suffix))
         print('    method: %s' % self.__GetHttpMethodsStr())
-        print('   include: %s' % self.include_header_file)
+        print('   include: %s' % self.header_file_relpath)
         print('  function: %s' % self.function)
 
     def ParseFunction(self, function: dict):
@@ -151,7 +157,7 @@ class Route:
         if not self.ParseDoxygen(function.get('doxygen', '')):
             print('-------------------------------------')
             print('Invalid route:')
-            print('     header: %s' % self.include_header_file)
+            print('     header: %s' % self.header_file_relpath)
             print('  namespace: %s' % namespace)
             print('   function: %s' % name)
             print('   line num: %d' % function['line_number'])
@@ -160,12 +166,12 @@ class Route:
 
     def ParseClassMethod(self, method: dict, class_name: str):
         name = method['name']
-        namespace = Helper.FormatNamespace(method['namespace'])
+        namespace = Helper.FormatNamespace(method.get('namespace', ''))
         self.function = namespace + class_name + '::' + name
         if not self.ParseDoxygen(method.get('doxygen', '')):
             print('-------------------------------------')
             print('Invalid route:')
-            print('     header: %s' % self.include_header_file)
+            print('     header: %s' % self.header_file_relpath)
             print('  namespace: %s' % namespace)
             print('      class: %s' % class_name)
             print('     method: %s' % name)
@@ -184,12 +190,15 @@ class Route:
             for method_str in doxygen_attrs['@method']:
                 if not self.__ParseDoxygen_Method(method_str):
                     return False
+            self.http_methods.sort()
         if '@config' in doxygen_attrs:
             for config_str in doxygen_attrs['@config']:
                 if not self.__ParseDoxygen_Config(config_str):
                     return False
         if '@brief' in doxygen_attrs:
             self.description = doxygen_attrs['@brief'][0]
+        elif '@description' in doxygen_attrs:
+            self.description = doxygen_attrs['@description'][0]
         return True
 
     def __ParseDoxygen_Route(self, route_path: str):
@@ -219,7 +228,7 @@ class Route:
             if method not in valid_http_methods:
                 print('Invalid @method: [%s]' % method_str)
                 return False
-            self.http_methods.add(method)
+            self.http_methods.append(method)
         return True
 
     def __ParseDoxygen_Config(self, config_str: str):
@@ -242,73 +251,82 @@ class RouteCollector:
     def __init__(self, output_file: str, overwrite: bool):
         self.output_file = output_file
         self.overwirte = overwrite
-        self.routes: List[Route] = []
+        self.routes_dict: Dict[str, List[Route]] = {}  # { header_file_abspath: List[Route] }
 
     @staticmethod
     def __CompareRoute(r1: Route, r2: Route):
-        result = (r1.include_header_file > r2.include_header_file) - (r1.include_header_file < r2.include_header_file)
+        result = (r1.header_file_relpath > r2.header_file_relpath) - (r1.header_file_relpath < r2.header_file_relpath)
         return result if result != 0 else (r1.pathes[0] > r2.pathes[0]) - (r1.pathes[0] < r2.pathes[0])
 
-    def ParseHeaderFile(self, include_header_file: str, parser: CppHeader):
+    def ParseHeaderFile(self, header_file_abspath, header_file_relpath: str, cpp_header: CppHeader):
         ''' 解析头文件 '''
+        route_list: List[Route] = []
         # 1. 普通函数
-        for function in parser.functions:
-            route = Route()
-            route.include_header_file = include_header_file
+        for function in cpp_header.functions:
+            route = Route(header_file_abspath, header_file_relpath)
             if not route.ParseFunction(function):
                 return False
             if len(route.pathes) > 0:
-                self.routes.append(route)
+                route_list.append(route)
         # 2. 类成员方法
-        for class_name in parser.classes:
-            methods = parser.classes[class_name]['methods']
+        for class_name in cpp_header.classes:
+            methods = cpp_header.classes[class_name]['methods']
             for public_method in methods['public']: # 公有方法
-                route = Route()
-                route.include_header_file = include_header_file
+                route = Route(header_file_abspath, header_file_relpath)
                 if not route.ParseClassMethod(public_method, class_name):
                     return False
                 if len(route.pathes) > 0:
-                    self.routes.append(route)
+                    route_list.append(route)
+        if len(route_list) > 0:
+            self.routes_dict[header_file_abspath] = route_list
         return True
 
     def WriteToOutputFile(self):
         # 按指定规则排序
-        self.routes.sort(key = cmp_to_key(RouteCollector.__CompareRoute))
+        routes: List[Route] = []
+        for route_list in self.routes_dict.values():
+            routes += route_list
+        routes.sort(key = cmp_to_key(RouteCollector.__CompareRoute))
         print('------------------- begin route list --------------------')
-        for route in self.routes:
+        for route in routes:
             #route.PrintDebug()
             route.Print()
         print('-------------------- end route list --------------------')
-        count_regex_routes  = sum([(len(route.pathes) if route.is_regex else 0) for route in self.routes])
-        count_static_routes = sum([(len(route.pathes) if not route.is_regex else 0) for route in self.routes])
+        count_regex_routes  = sum([(len(route.pathes) if route.is_regex else 0) for route in routes])
+        count_static_routes = sum([(len(route.pathes) if not route.is_regex else 0) for route in routes])
         print('count(static routes):', count_static_routes)
         print('count(regex  routes):', count_regex_routes)
         print('total:', count_static_routes + count_regex_routes)
-        return self.__WriteToOutputFile()
+        if os.path.exists(self.output_file) and not self.overwirte:
+            operation = input('Output file is exist already. Overwrite? (y/N) ')
+            if operation != 'y' and operation != 'Y':
+                print('Canceled')
+                return False
+        return self.__WriteToOutputFile(routes)
 
-    def __WriteToOutputFile(self):
+    def __WriteToOutputFile(self, routes: List[Route]):
         header_lines = [
             '// Generated by script server-assistant.py',
             '// DO NOT EDIT',
             '#include <server/router.h>'
         ]
         headers_set = set()
-        for route in self.routes:
-            if route.include_header_file not in headers_set:
-                header_lines.append('#include "%s"' % route.include_header_file)
-                headers_set.add(route.include_header_file)
+        for route in routes:
+            if route.header_file_relpath not in headers_set:
+                header_lines.append('#include "%s"' % route.header_file_relpath)
+                headers_set.add(route.header_file_relpath)
 
         body_lines = [
             'bool register_routes(std::shared_ptr<ic::server::Router> router) {',
             '    using namespace ic::server;',
             '    bool ret = true;'
         ]
-        last_include_header_file = ''
-        for route in self.routes:
-            if route.include_header_file != last_include_header_file:
+        last_include_header_file_relpath = ''
+        for route in routes:
+            if route.header_file_relpath != last_include_header_file_relpath:
                 body_lines.append('')
-                body_lines.append('    // %s'  % (route.include_header_file))
-                last_include_header_file = route.include_header_file
+                body_lines.append('    // %s'  % (route.header_file_relpath))
+                last_include_header_file_relpath = route.header_file_relpath
             if route.is_regex:
                 for r in route.pathes:
                     body_lines.append('    ret &= router->AddRegexRoute(%s);' % (route.ToCppParamerterList(r)))
@@ -317,18 +335,11 @@ class RouteCollector:
                     body_lines.append('    ret &= router->AddStaticRoute(%s);' % (route.ToCppParamerterList(r)))
         body_lines.append('')
         body_lines.append('    return ret;')
-        body_lines.append('}')
-        if os.path.exists(self.output_file) and not self.overwirte:
-            operation = input('Output file is exist already. Overwrite? (y/N) ')
-            if operation != 'y' and operation != 'Y':
-                print('Canceled')
-                return False
+        body_lines.append('} // end register_routes')
         with open(self.output_file, mode='w', encoding='utf-8') as f:
-            for line in header_lines:
-                f.write(line + '\n')
-            f.write('\n')
-            for line in body_lines:
-                f.write(line + '\n')
+            f.write('\n'.join(header_lines))
+            f.write('\n\n')
+            f.write('\n'.join(body_lines))
         return True
 
 
@@ -389,12 +400,14 @@ class Dto:
     def Parse(self, cpp_class: CppClass):
         ''' 返回值：-1(出错), 0(成功), 1(忽略) '''
         self.name = cpp_class['name']
-        self.namespace = Helper.FormatNamespace(cpp_class['namespace'])
-        self.fields.clear()
+        self.namespace = Helper.FormatNamespace(cpp_class.get('namespace', ''))
         # 解析doxygen注释
         doxygen_attrs = Helper.ParseDoxygen(cpp_class.get('doxygen', ''))
         if '@brief' in doxygen_attrs:
             self.description = doxygen_attrs['@brief'][0]
+        elif '@description' in doxygen_attrs:
+            self.description = doxygen_attrs['@description'][0]
+        # 遍历公有成员变量
         for property in cpp_class['properties']['public']:
             if property['static']: # 忽略静态成员变量
                 continue
@@ -402,16 +415,16 @@ class Dto:
                 print('Error: parse public property failed. <%s> <%d>' % (property['filename'], property['line_number']))
                 return -1
         # 判断是否有有 DTO_IN、DOT_OUT、DOT_IN_OUT 这三个宏
-        if self.dto_type > 0:
-            self.user_types.add(self.namespace + self.name)
-            return 0
-        return 1
+        if self.dto_type == 0:
+            return 1   # 无效的DTO，忽略
+        self.user_types.add(self.namespace + self.name)
+        return 0
 
     def __ParsePublicProperty(self, property: dict):
         ''' 解析public成员变量 '''
         field: DtoField = DtoField()
         field.name = property['name']
-        field.alias = field.name
+        field.alias = property['name']
         field.value_type = property['type']
         # 判断成员变量类型
         if not self.ValidateType(field):
@@ -421,10 +434,13 @@ class Dto:
         if '@alias' in doxygen_attrs:
             aliases = doxygen_attrs['@alias']
             if len(aliases) > 1:
-                print('Error: @alias should be occur once at most. <%s> <%d>' % (property['filename'], property['line_number']))
+                print('Error: @alias should be occur at most once. <%s> <%d>' % (property['filename'], property['line_number']))
                 return False
             field.alias = aliases[0]
-        field.description = doxygen_attrs['@brief'] if '@brief' in doxygen_attrs else ''
+        if '@brief' in doxygen_attrs:
+            field.description = doxygen_attrs['@brief'][0]
+        elif '@description' in doxygen_attrs:
+            field.description = doxygen_attrs['@description'][0]
         field.ignore = True if '@ignore' in doxygen_attrs else False
         field.required = False if '@optional' in doxygen_attrs else True
         self.fields.append(field)
@@ -452,21 +468,20 @@ class Dto:
         # 容器类型
         type_arr = re.split('<|>', field.value_type)
         type_arr = [item.strip() for item in type_arr if item.strip()]
-        if len(type_arr) == 2:
-            if not type_arr[0].startswith('std::'):
-                type_arr[0] = 'std::' + type_arr[0]
-            if type_arr[0] in dto_valid_cpp_stl_types.keys():
-                [value_type, type] = self.__ValidatePlainType(type_arr[1])
-                field.value_type = value_type
-                field.stl_type = type_arr[0]
-                field.stl_attr = dto_valid_cpp_stl_types[type_arr[0]]
-                if type == DtoFieldType.BuiltInType:
-                    field.type = DtoFieldType.STL_BuiltInType
-                    return True
-                elif type == DtoFieldType.UserType:
-                    field.type = DtoFieldType.STL_UserType
-                    return True
-        return False
+        if len(type_arr) != 2:
+            return False
+        if not type_arr[0].startswith('std::'):
+            type_arr[0] = 'std::' + type_arr[0]
+        if type_arr[0] not in dto_valid_cpp_stl_types.keys():
+            return False
+        [value_type, type] = self.__ValidatePlainType(type_arr[1])
+        if type == DtoFieldType.NONE:
+            return False
+        field.value_type = value_type
+        field.stl_type = type_arr[0]
+        field.stl_attr = dto_valid_cpp_stl_types[type_arr[0]]
+        field.type = DtoFieldType.STL_BuiltInType if (type == DtoFieldType.BuiltInType) else DtoFieldType.STL_UserType
+        return True
 
     def __ValidatePlainType(self, type: str):
         if type in dto_valid_cpp_builtin_types:
@@ -555,15 +570,25 @@ class Dto:
 
 class DtoParser:
     ''' DTO解析器 '''
-    def __init__(self):
-        self.dtos: Dict[str, List[Dto]] = {}  # { filename, dtos }
-        self.dtos = {}
+    def __init__(self, dto_dir: str):
+        self.cache_files_modify_time: Dict[str, int] = {} # { filename: modify_time }
+        self.dtos_dict: Dict[str, List[Dto]] = {}  # { filename: dtos }
+        self.cache_file: str = tempfile.gettempdir() + '/server-assistant_dto-parser-' + hashlib.md5(os.path.abspath(dto_dir).encode()).hexdigest()
+        self.__LoadCacheFile()
 
-    def ParseHeaderFile(self, cpp_header_file: str, parser: CppHeader):
+    def ParseHeaderFile(self, header_file_abspath: str, cpp_header: CppHeader):
         ''' 解析头文件 '''
+        # 判断是否已缓存（近期未修改头文件、实现文件）
+        impl_file_abspath = self.__GetImplFileAbsPath(header_file_abspath)
+        header_file_modify_time = int(os.path.getmtime(header_file_abspath))
+        impl_file_modify_time = int(os.path.getmtime(impl_file_abspath)) if os.path.exists(impl_file_abspath) else -1
+        if header_file_abspath in self.cache_files_modify_time and abs(header_file_modify_time - self.cache_files_modify_time[header_file_abspath]) <= 5:
+            if impl_file_abspath in self.cache_files_modify_time and abs(impl_file_modify_time - self.cache_files_modify_time[impl_file_abspath]) <= 5:
+                return True  # 已缓存，不再解析
+        # 解析DTO文件
         dto_list: List[Dto] = []
         user_types: Set[str] = set()
-        for cpp_class in parser.CLASSES.values():
+        for cpp_class in cpp_header.CLASSES.values():
             dto = Dto(user_types)
             ret = dto.Parse(cpp_class)
             if ret < 0:
@@ -572,33 +597,56 @@ class DtoParser:
                 continue
             dto_list.append(dto)
         if len(dto_list) > 0:
-            self.dtos[cpp_header_file] = dto_list
+            self.dtos_dict[header_file_abspath] = dto_list
+            self.cache_files_modify_time[header_file_abspath] = header_file_modify_time
+            self.cache_files_modify_time[impl_file_abspath] =  impl_file_modify_time if impl_file_modify_time > 0 else int(time.time())
         return True
 
     def GenerateImplementationFiles(self):
-        for cpp_header_file, dto_list in self.dtos.items():
-            if not self.__GenerateImplementationFile(cpp_header_file, dto_list):
+        for header_file_abspath, dto_list in self.dtos_dict.items():
+            if not self.__GenerateImplementationFile(header_file_abspath, dto_list):
                 return False
+        self.__WriteCacheFile()
         return True
 
-    def __GenerateImplementationFile(self, cpp_header_file: str, dto_list: List[Dto]):
-        header_filename = os.path.basename(cpp_header_file)
-        source_filename = os.path.splitext(cpp_header_file)[0] + '.impl_dto.cpp'
+    def __GenerateImplementationFile(self, header_file_abspath: str, dto_list: List[Dto]):
         header_lines = [
             '// Generated by script server-assistant.py',
             '// DO NOT EDIT',
-            '#include "%s"' % header_filename
+            '#include "%s"' % os.path.basename(header_file_abspath)
         ]
         body_lines: List[str] = []
         for dto in dto_list:
             body_lines += dto.CreateImplementationCode()
-        with open(source_filename, mode='w', encoding='utf-8') as f:
+        impl_file_abspath = self.__GetImplFileAbsPath(header_file_abspath)
+        with open(impl_file_abspath, mode='w', encoding='utf-8') as f:
             for line in header_lines:
                 f.write(line + '\n')
             for line in body_lines:
                 f.write('\n')
                 f.write(line)
         return True
+
+    def __GetImplFileAbsPath(self, header_file_abspath: str):
+        ''' DTO头文件，对应的实现文件路径 '''
+        return os.path.splitext(header_file_abspath)[0] + '.impl_dto.cpp'
+
+    def __LoadCacheFile(self):
+        try:
+            with open(self.cache_file, 'r') as file:
+                data = json.load(file)
+                for key, value in data.items():
+                    if isinstance(key, str) and isinstance(value, int):
+                        self.cache_files_modify_time[key] = value
+        except:
+            self.cache_files_modify_time = {}
+
+    def __WriteCacheFile(self):
+        try:
+            with open(self.cache_file, 'w') as file:
+                json.dump(self.cache_files_modify_time, file)
+        except:
+            pass
 
 
 ###############################################################################################
@@ -612,21 +660,21 @@ class ServerAssistant:
         self.controller_dir = Helper.FormatDir(controller_dir)
         self.include_prefix = Helper.FormatDir(include_prefix)
         self.route_collector = RouteCollector(output_file, overwrite)
-        self.dto_parser = DtoParser()
+        self.dto_parser = DtoParser(self.controller_dir)
 
     def Run(self):
         # 列出所有的头文件(按文件名排序)
         files = Helper.ListHeaderFiles(self.controller_dir)
         # 遍历所有头文件
         for file in files:
-            cpp_header_file_abspath = os.path.abspath(self.controller_dir + file)
-            parser = CppHeader(cpp_header_file_abspath, encoding='utf-8')
+            header_file_abspath = os.path.abspath(self.controller_dir + file)
+            cpp_header = CppHeader(header_file_abspath, encoding='utf-8')
             # 路由注册
-            include_header_file = Helper.FormatPath(self.include_prefix + file)
-            if not self.route_collector.ParseHeaderFile(include_header_file, parser):
+            header_file_relpath = Helper.FormatPath(self.include_prefix + file)
+            if not self.route_collector.ParseHeaderFile(header_file_abspath, header_file_relpath, cpp_header):
                 return False
             # DTO序列化和反序列化
-            if not self.dto_parser.ParseHeaderFile(cpp_header_file_abspath, parser):
+            if not self.dto_parser.ParseHeaderFile(header_file_abspath, cpp_header):
                 return False
         # 生成代码文件
         return self.route_collector.WriteToOutputFile() and self.dto_parser.GenerateImplementationFiles()
@@ -640,13 +688,16 @@ class ServerAssistant:
 ###############################################################################################
 
 def ExecCMD_ParseController(args):
+    if not os.path.exists(args.controller_dir):
+        print('controller_dir="%s" is not exist' % args.controller_dir)
+        return 1
     assistant = ServerAssistant(args.controller_dir, args.prefix, args.output_file, args.yes)
     if assistant.Run():
         print('Success!')
-        exit(0)
+        return 0
     else:
         print('Fail!')
-        exit(1)
+        return 1
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Assistant for http-server')
@@ -664,5 +715,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    ret = 0
     if args.command == 'parse-controller':
-        ExecCMD_ParseController(args)
+        ret = ExecCMD_ParseController(args)
+    else:
+        print('Invalid command=%s' % args.command)
+        ret = 1
+    exit(ret)

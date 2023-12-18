@@ -11,8 +11,8 @@ bool register_routes(std::shared_ptr<ic::server::Router> router) {
     bool ret = true;
 
     // controller/server/server_controller.h
-    ret &= router->AddStaticRoute("/api/Server/DumpThreadInfos", HttpMethod::kPOST, ServerController::DumpThreadInfos, "获取所有线程信息.", {{"Authorization", "1"}, {"AdminOnly", "1"}});
-    ret &= router->AddStaticRoute("/api/Server/Shutdown", HttpMethod::kPOST, ServerController::Shutdown, "关闭服务器.", {{"Authorization", "1"}, {"AdminOnly", "1"}});
+    ret &= router->AddStaticRoute("/api/Server/DumpThreadInfos", HttpMethod::kPOST, ServerController::DumpThreadInfos, "获取所有线程信息.", {{"AdminOnly", "1"}, {"Authorization", "1"}});
+    ret &= router->AddStaticRoute("/api/Server/Shutdown", HttpMethod::kPOST, ServerController::Shutdown, "关闭服务器.", {{"AdminOnly", "1"}, {"Authorization", "1"}});
 
     // controller/test/test_controller.h
     ret &= router->AddStaticRoute("/api/Test/TestEmpty", HttpMethod::kGET, TestController::TestEmpty, "空请求，用于压力测试.", {{"Authorization", "0"}});
@@ -42,4 +42,4 @@ bool register_routes(std::shared_ptr<ic::server::Router> router) {
     ret &= router->AddRegexRoute("/web/(.+)", HttpMethod::kGET, WebController::GetResource, "网页资源文件(html/js/css/img).", {});
 
     return ret;
-}
+} // end register_routes
