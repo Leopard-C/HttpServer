@@ -3,6 +3,9 @@
   <ItemGroup>
     <None Include=".editorconfig" />
     <None Include="..\README.md" />
+    <None Include="jsoncpp\json_valueiterator.inl">
+      <Filter>src\jsoncpp</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
@@ -53,6 +56,21 @@
     <Filter Include="src\server\util\convert">
       <UniqueIdentifier>{c97503e9-8682-48cd-ac4f-7ca3ed5dbd97}</UniqueIdentifier>
     </Filter>
+    <Filter Include="third_party">
+      <UniqueIdentifier>{14b138a5-3b1e-4cd5-b479-a62d4917ce03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\jsoncpp">
+      <UniqueIdentifier>{6674d8af-3786-410e-b2a9-759aedd46650}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\jsoncpp">
+      <UniqueIdentifier>{5ddc5219-0afd-4dab-b9c2-949c9a083145}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\jsoncpp\json">
+      <UniqueIdentifier>{5e61db61-2742-4509-99c6-224a9feb283e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\jsoncpp">
+      <UniqueIdentifier>{2de37be6-2c09-4dc0-933d-d52acf325df5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\server\config.h">
@@ -61,7 +79,7 @@
     <ClInclude Include="..\include\server\content_type.h">
       <Filter>include\server</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\server\form_item.h">
+    <ClInclude Include="..\include\server\form_param.h">
       <Filter>include\server</Filter>
     </ClInclude>
     <ClInclude Include="..\include\server\http_cookie.h">
@@ -115,19 +133,10 @@
     <ClInclude Include="..\include\server\util\hash\md5.h">
       <Filter>include\server\util\hash</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\server\util\hash\xxh64.h">
-      <Filter>include\server\util\hash</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\server\util\string\isprint.h">
       <Filter>include\server\util\string</Filter>
     </ClInclude>
     <ClInclude Include="..\include\server\util\string\memmem.h">
-      <Filter>include\server\util\string</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\server\util\string\split.h">
-      <Filter>include\server\util\string</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\server\util\string\split_key_value.h">
       <Filter>include\server\util\string</Filter>
     </ClInclude>
     <ClInclude Include="..\include\server\util\string\trim.h">
@@ -159,6 +168,42 @@
     </ClInclude>
     <ClInclude Include="..\include\server\util\format_time.h">
       <Filter>include\server\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\server\logger.h">
+      <Filter>include\server</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsoncpp\json\allocator.h">
+      <Filter>include\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsoncpp\json\assertions.h">
+      <Filter>include\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsoncpp\json\config.h">
+      <Filter>include\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsoncpp\json\forwards.h">
+      <Filter>include\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsoncpp\json\json.h">
+      <Filter>include\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsoncpp\json\json_features.h">
+      <Filter>include\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsoncpp\json\reader.h">
+      <Filter>include\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsoncpp\json\value.h">
+      <Filter>include\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsoncpp\json\version.h">
+      <Filter>include\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsoncpp\json\writer.h">
+      <Filter>include\jsoncpp\json</Filter>
+    </ClInclude>
+    <ClInclude Include="jsoncpp\json_tool.h">
+      <Filter>src\jsoncpp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -237,9 +282,6 @@
     <ClCompile Include="server\util\hash\md5.cpp">
       <Filter>src\server\util\hash</Filter>
     </ClCompile>
-    <ClCompile Include="server\util\hash\xxh64.cpp">
-      <Filter>src\server\util\hash</Filter>
-    </ClCompile>
     <ClCompile Include="server\util\convert\convert_case.cpp">
       <Filter>src\server\util\convert</Filter>
     </ClCompile>
@@ -251,6 +293,18 @@
     </ClCompile>
     <ClCompile Include="server\helper\helper.cpp">
       <Filter>src\server\helper</Filter>
+    </ClCompile>
+    <ClCompile Include="server\logger.cpp">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="jsoncpp\json_reader.cpp">
+      <Filter>src\jsoncpp</Filter>
+    </ClCompile>
+    <ClCompile Include="jsoncpp\json_value.cpp">
+      <Filter>src\jsoncpp</Filter>
+    </ClCompile>
+    <ClCompile Include="jsoncpp\json_writer.cpp">
+      <Filter>src\jsoncpp</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -14,7 +14,7 @@
 #include <vector>
 #include <jsoncpp/json/value.h>
 #include "content_type.h"
-#include "form_item.h"
+#include "form_param.h"
 #include "http_method.h"
 
 namespace ic {
@@ -69,11 +69,6 @@ public:
      * @brief 当前请求路径(/path/to/resource).
      */
     const std::string& path() const { return path_; }
-
-    /**
-     * @brief 请求路径(/path/to/resource)的xxh64哈希值.
-     */
-    uint64_t path_id() const { return path_id_; }
 
     /**
      * @brief 当前请求命中的路由对象.
@@ -146,17 +141,6 @@ public:
     std::string GetUserAgent() const;
 
     /**
-     * @brief 正则路由的匹配项.
-     * 
-     * @details 例如对于正则路由 /article/post/(.+)/(\d+), 用户请求 /article/post/Tom/16
-     * @details GetRouteRegexMatch(0) 返回第1个匹配项 Tom
-     * @details GetRouteRegexMatch(1) 返回第2个匹配项 16
-     * 
-     * @param index 下标索引，第index个匹配项，从0开始编号
-     */
-    const std::string& GetRouteRegexMatch(size_t index) const { return route_regex_match_[index]; }
-
-    /**
      * @brief 请求来源客户端IP地址.
      * 
      * @details 如果经过（正向/反向）代理，获取的是与当前服务器直接建立TCP连接的客户端IP.
@@ -181,6 +165,17 @@ public:
     const std::string& GetCookie(const std::string& name, bool* exist = nullptr);
 
     /**
+     * @brief 正则路由的匹配项.
+     * 
+     * @details 例如对于正则路由 /article/post/(.+)/([0-9]+), 用户请求 /article/post/Tom/16
+     * @details GetRouteRegexMatch(0) 返回第1个匹配项 Tom
+     * @details GetRouteRegexMatch(1) 返回第2个匹配项 16
+     * 
+     * @param index 下标索引，第index个匹配项，从0开始编号
+     */
+    const std::string& GetRouteRegexMatch(size_t index) const { return route_regex_match_[index]; }
+
+    /**
      * @brief 获取URL中的指定名称的参数值.
      */
     const std::string& GetUrlParam(const std::string& name, bool* exist = nullptr) const;
@@ -191,6 +186,15 @@ public:
      * @note content_type().IsApplicationXWwwFormUrlEncoded() == true
      */
     const std::string& GetBodyParam(const std::string& name, bool* exist = nullptr) const;
+
+    /**
+     * @brief 内容类型为multipart/form-data，获取解析后的指定名称的表单项.
+     * 
+     * @note content_type().IsMultipartFormData() == true
+     * 
+     * @return const FormParam* 如果不存在该参数，则返回nullptr
+     */
+    const FormParam* GetFormParam(const std::string& name) const;
 
     /**
      * @brief 内容类型为application/json时，获取解析后的json对象中指定字段名称的值.
@@ -211,40 +215,26 @@ public:
     const Json::Value& GetJsonParam(size_t index) const;
 
     /**
-     * @brief 内容类型为multipart/form-data，获取解析后的指定名称的表单项.
-     * 
-     * @note content_type().IsMultipartFormData() == true
-     * 
-     * @return const FormItem* 如果不存在该参数，则返回nullptr
-     */
-    const FormItem* GetFormItem(const std::string& name) const;
-
-    /**
      * @brief 获取所有的URL参数名和参数值.
      */
     const std::multimap<std::string, std::string>& url_params() const { return url_params_; }
 
     /**
      * @brief 内容类型为application/x-www-form-urlencoded时，获取body中所有的参数.
-     * 
-     * @note content_type().IsApplicationXWwwFormUrlEncoded() == true
      */
     const std::multimap<std::string, std::string>& body_params() const { return body_params_; }
 
     /**
+     * @brief 内容类型为multipart/form-data时，获取form表单所有内容.
+     */
+    const std::multimap<std::string, const FormParam*>& form_params() const { return form_params_; };
+
+    /**
      * @brief 内容类型为application/json时，获取解析后的json对象.
-     * 
-     * @note content_type().IsApplicationJson() == true
      */
     const Json::Value& json_params() const { return json_params_; }
 
-    /**
-     * @brief 获取所有的form表单内容.
-     */
-    const std::multimap<std::string, const FormItem*>& form_items() const { return form_items_; };
-
 private:
-    void LogAccess();
     void LogAccessVerbose();
 
     void ParseBasic();
@@ -253,8 +243,8 @@ private:
     bool ParseBody();
 
     bool ParseBody_XWwwFormUrlEncoded(const std::string& body);
-    bool ParseBody_ApplicationJson(const std::string& body);
     bool ParseBody_MultipartFormData(const std::string& body);
+    bool ParseBody_ApplicationJson(const std::string& body);
     void ParseUrlParams(const char* str, size_t len);
 
 private:
@@ -285,9 +275,6 @@ private:
 
     /** 本次请求的ID(全局唯一) */
     int64_t id_{-1};
-
-    /** 请求路径hash值(xxh64摘要算法) */
-    uint64_t path_id_{0};
 
     /** 请求路径，如/user/getInfo */
     std::string path_;
@@ -321,11 +308,11 @@ private:
     /** (1)内容类型为application/x-www-form-urlencoded时body中的参数 */
     std::multimap<std::string, std::string> body_params_;
 
-    /** (2)内容类型为application/json时，存放解析后的json对象 */
-    Json::Value json_params_;
+    /** (2)内容类型为multipart/form-data，存放解析后的表单对象 */
+    std::multimap<std::string, const FormParam*> form_params_;
 
-    /** (3)内容类型为multipart/form-data，存放解析后的表单对象 */
-    std::multimap<std::string, const FormItem*> form_items_;
+    /** (3)内容类型为application/json时，存放解析后的json对象 */
+    Json::Value json_params_;
 };
 
 } // namespace server

@@ -2,6 +2,7 @@
 #include <server/helper/helper.h>
 #include "manager/user_manager.h"
 #include "singleton/singleton.h"
+#include "status/status_code.h"
 #include "../routes.h"
 
 Application::Application() {
@@ -12,27 +13,21 @@ Application::~Application() {
 }
 
 bool Application::Init() {
-    if (!InitLogger()) {
-        ic::log::Log("Init logger failed");
-        return false;
-    }
     if (!InitHttpServer()) {
-        LError("Init http server failed");
+        fprintf(stderr, "Init http server failed\n");
         return false;
     }
     if (!InitRouter()) {
-        LError("Init router failed");
+        fprintf(stderr, "Init router failed\n");
         return false;
     }
     return true;
 }
 
 void Application::Run() {
-    if (!server_->Listen()) {
-        LError("HttpServer listen failed");
-        return;
+    if (server_ && server_->Listen()) {
+        server_->Start();
     }
-    server_->Start();
 }
 
 void Application::Stop() {
@@ -49,26 +44,17 @@ void Application::Cleanup() {
     }
 }
 
-bool Application::InitLogger() {
-    std::string cfg_filename = ic::server::HttpServer::GetBinDir() + "../config/log.ini";
-    ic::log::LoggerConfig config;
-    if (!config.ReadFromFile(cfg_filename)) {
-        return false;
-    }
-    ic::log::Logger::SetConfig(config);
-    LInfo("Application is starting up ...");
-    return true;
-}
-
 bool Application::InitHttpServer() {
     using namespace ic::server;
     // http server
     std::string cfg_filename = HttpServer::GetBinDir() + "../config/server.json";
-    ic::server::HttpServerConfig config;
+    HttpServerConfig config;
     if (!config.ReadFromFile(cfg_filename)) {
         return false;
     }
-    server_ = new HttpServer(config);
+    /* 日志，可以继承ILogger自定义日志输出类 */
+    std::shared_ptr<ILogger> logger = std::make_shared<ConsoleLogger>(LogLevel::kDebug, LogLevel::kWarn);
+    server_ = new HttpServer(config, logger);
     server_->set_cb_before_parse_body(BeforeParseBody);
     server_->set_cb_before_handle_request(BeforeHandleRequest);
     server_->set_cb_before_send_response(BeforeSendResponse);
@@ -108,7 +94,7 @@ bool Application::BeforeParseBody(ic::server::Request& req, ic::server::Response
     if (!user_mgr->Auth(token, &user)) {
         /* 无效的token */
         API_INIT();
-        RETURN_CODE(ic::server::status::base::kAuthFailed) false;
+        RETURN_CODE(ic::server::status::kAuthFailed) false;
     }
 
     /* 检查权限(只有管理员有权限访问) */
@@ -117,7 +103,7 @@ bool Application::BeforeParseBody(ic::server::Request& req, ic::server::Response
         if (user.uid != "admin") {
             /* 权限不足 */
             API_INIT();
-            RETURN_CODE(ic::server::status::base::kPermissionDenied) false;
+            RETURN_CODE(ic::server::status::kPermissionDenied) false;
         }
     }
 

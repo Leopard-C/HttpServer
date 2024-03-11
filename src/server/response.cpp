@@ -1,9 +1,10 @@
 #include "server/response.h"
 #include "server/http_cookie.h"
+#include "server/http_server.h"
+#include "server/logger.h"
 #include "server/util/mime.h"
 #include "server/util/path.h"
 #include <jsoncpp/json/json.h>
-#include <log/logger.h>
 
 namespace ic {
 namespace server {
@@ -72,7 +73,7 @@ bool Response::SetFileBody(const std::string& filename, const std::string& conte
 bool Response::SetFileBody(unsigned int status_code, const std::string& filename, const std::string& content_type/* = "text/plain"*/) {
     /* 查看文件是否存在 */
     if (!util::path::is_path_exist(filename)) {
-        LError("File '{}' is not exist", filename);
+        svr_->logger()->Error(LOG_CTX, "File '%s' is not exist", filename.c_str());
         SetStringBody(404U, "Not Found!", "text/plain");
         return false;
     }

@@ -1,12 +1,12 @@
 #include "server/request.h"
 #include "server/request_raw.h"
 #include "server/http_server.h"
+#include "server/logger.h"
 #include "server/util/string/isprint.h"
 #include "server/util/url_code.h"
 #include "multipart_parser.h"
 #include <boost/asio/dispatch.hpp>
 #include <jsoncpp/json/json.h>
-#include <log/logger.h>
 
 namespace beast = boost::beast;   // from <boost/beast.hpp>
 namespace http = beast::http;     // from <boost/beast/http.hpp>
@@ -82,7 +82,7 @@ Request::Request(HttpServer* svr, RequestRaw* raw, const std::string& client_ip)
 }
 
 Request::~Request() {
-    for (auto iter = form_items_.begin(); iter != form_items_.end(); ++iter) {
+    for (auto iter = form_params_.begin(); iter != form_params_.end(); ++iter) {
         delete iter->second;
         iter->second = nullptr;
     }
@@ -152,6 +152,11 @@ const std::string& Request::GetBodyParam(const std::string& name, bool* exist/* 
     return _exist ? it->second : s_empty_string;
 }
 
+const FormParam* Request::GetFormParam(const std::string& name) const {
+    auto it = form_params_.find(name);
+    return (it != form_params_.end()) ? it->second : nullptr;
+}
+
 const Json::Value& Request::GetJsonParam(const std::string& name) const {
     if (json_params_.isObject()) {
         return json_params_[name];
@@ -164,21 +169,6 @@ const Json::Value& Request::GetJsonParam(size_t index) const {
         return json_params_[(unsigned int)index];
     }
     return Json::Value::nullRef;
-}
-
-const FormItem* Request::GetFormItem(const std::string& name) const {
-    auto it = form_items_.find(name);
-    return (it != form_items_.end()) ? it->second : nullptr;
-}
-
-/**
- * @brief 日志记录.
- */
-void Request::LogAccess() {
-    LInfo("ACCESS {} {:.{}} IP:{}", to_string(method_), raw_->target().data(), raw_->target().length(), client_real_ip_);
-    if (svr_->config().log_access_verbose()) {
-        LogAccessVerbose();
-    }
 }
 
 static std::string to_string(const std::multimap<std::string, std::string>& map) {
@@ -198,40 +188,32 @@ static std::string to_string(const std::multimap<std::string, std::string>& map)
 void Request::LogAccessVerbose() {
     std::string msg;
     msg.reserve(512);
-    msg += fmt::format(
-        "\n------------------------------------------------\n"
-        "  method: {}\n"
-        "  path: {}\n"
-        "  path id: {}\n"
-        "  client ip: {}\n"
-        "  client real ip: {}\n",
-        to_string(method_), path_, path_id_, client_ip_, client_real_ip_
-    );
+    msg += "\n------------------------------------------------\n";
+    msg += "  method: " + std::string(to_string(method_)) + "\n";
+    msg += "  path: " + path_ + "\n";
+    msg += "  client ip: " + client_ip_ + "\n";
+    msg += "  client real ip: " + client_real_ip_ + "\n";
     msg += "  headers:\n";
     for (auto iter = raw_->begin(); iter != raw_->end(); ++iter) {
         msg += "    " + to_string(iter->name_string()) + ": " + to_string(iter->value()) + '\n';
     }
-    msg += fmt::format(
-        "  cookies:\n{}"
-        "  url params:\n{}"
-        "  body params:\n{}",
-        to_string(cookies()), to_string(url_params()), to_string(body_params())
-    );
-    msg += "  form items:\n";
-    if (form_items_.empty()) {
+    msg += "  cookies:\n" + to_string(cookies());
+    msg += "  url params:\n" + to_string(url_params());
+    msg += "  body params:\n" + to_string(body_params());
+    msg += "  form params:\n";
+    if (form_params_.empty()) {
         msg += "    <NONE>\n";
     }
-    for (const auto& pair : form_items_) {
-        const FormItem* item = pair.second;
-        size_t max_len = std::min(item->content().length(), (size_t)512);
-        auto content = item->content().SubStr(0, max_len);
-        msg += fmt::format("    {}: [file={}] [content_type={}] [charset={}] [{}] {}\n",
-            pair.first, item->is_file(), item->content_type(), item->charset(), item->content().length(),
-            util::isprint(content.data(), content.length()) ? content.ToString() : "<NOT PRINTABLE>"
-        );
+    for (const auto& pair : form_params_) {
+        const FormParam* value = pair.second;
+        size_t max_len = std::min(value->content().length(), (size_t)512);
+        auto content = value->content().SubStr(0, max_len);
+        msg += "    " + pair.first + ": [file=" + std::string(value->is_file() ? "true" : "false") + "] [charset="
+            + value->charset() + "] [" + std::to_string(value->content().length()) + "]"
+            + (util::isprint(content.data(), content.length()) ? content.ToString() : "<NOT PRINTABLE>") + "\n";
     }
     msg += "------------------------------------------------";
-    LInfo(msg);
+    svr_->logger()->Info(LOG_CTX, msg);
 }
 
 /**
@@ -257,7 +239,6 @@ void Request::ParseBasic() {
         auto url_params = tgt.substr(pos + 1);
         ParseUrlParams(url_params.data(), url_params.size());
     }
-    path_id_ = svr_->XXH64(path_);
 
     // 4. content type
     auto content_type = raw_->operator[](http::field::content_type);
@@ -284,7 +265,7 @@ void Request::ParseClientRealIp() {
         forwarded_ip = net::ip::address::from_string(to_string(forwarded.substr(0, pos)), ec);
     }
     if (ec) {
-        LWarn("Invalid forwarded ip address: {}", to_string(forwarded));
+        svr_->logger()->Warn(LOG_CTX, "Invalid forwarded ip address: %s", to_string(forwarded).c_str());
         return;
     }
     client_real_ip_ = forwarded_ip.to_string();
@@ -305,15 +286,15 @@ void Request::ParseCookie() {
     split_key_value(cookies.data(), cookies.length(), ";", 1, "=", 1, true, true, &cookies_);
 }
 
-#pragma region PARSE_BODY
 /**********************************************************************************
  *
  *   解析不同内容类型的body，默认只解析以下3种(Content-Type)
  *      1. application/x-www-form-urlencoded  ==> body_params_
- *      2. application/json                   ==> json_params_
- *      3. multipart/form-data                ==> form_items_
+ *      2. multipart/form-data                ==> form_params_
+ *      3. application/json                   ==> json_params_
  *
 **********************************************************************************/
+#pragma region PARSE_BODY
 bool Request::ParseBody() {
     const std::string& body = raw_->body();
     if (body.empty() || (method_ != HttpMethod::kPOST && method_ != HttpMethod::kPUT && method_ != HttpMethod::kPATCH && method_ != HttpMethod::kDELETE)) {
@@ -322,14 +303,14 @@ bool Request::ParseBody() {
     if (content_type_.IsApplicationXWwwFormUrlEncoded()) {
         return ParseBody_XWwwFormUrlEncoded(body);
     }
-    else if (content_type_.IsApplicationJson()) {
-        return ParseBody_ApplicationJson(body);
-    }
     else if (content_type_.IsMultipartFormData()) {
         return ParseBody_MultipartFormData(body);
     }
+    else if (content_type_.IsApplicationJson()) {
+        return ParseBody_ApplicationJson(body);
+    }
     else {
-        LDebug("Unhandled Content-Type: {}", content_type_.type());
+        svr_->logger()->Error(LOG_CTX, "Unhandled Content-Type: %s", content_type_.type().c_str());
         return true;
     }
 }
@@ -343,31 +324,31 @@ bool Request::ParseBody_XWwwFormUrlEncoded(const std::string& body) {
 }
 
 /**
+ * @brief 解析multipart/form-data
+ */
+bool Request::ParseBody_MultipartFormData(const std::string& body) {
+    if (content_type_.boundary().empty()) {
+        svr_->logger()->Warn(LOG_CTX, "Missing boundary. Content-Type=multipart/form-data");
+        return true;
+    }
+    MultipartParser parser(body, svr_->logger());
+    return parser.Parse("--" + content_type_.boundary(), &form_params_);
+}
+
+/**
  * @brief 解析application/json
  */
 bool Request::ParseBody_ApplicationJson(const std::string& body) {
     Json::Reader reader;
     if (!reader.parse(body, json_params_, false)) {
-        LError("Invalid json body:\n{} ", reader.getFormattedErrorMessages());
+        svr_->logger()->Error(LOG_CTX, "Invalid json body:\n%s", reader.getFormattedErrorMessages().c_str());
         return false;
     }
     if (!json_params_.isObject() && !json_params_.isArray()) {
-        LError("Invalid json body: the top level of json must be an object or array");
+        svr_->logger()->Error(LOG_CTX, "Invalid json body: the top level of json must be an object or array");
         return false;
     }
     return true;
-}
-
-/**
- * @brief 解析multipart/form-data
- */
-bool Request::ParseBody_MultipartFormData(const std::string& body) {
-    if (content_type_.boundary().empty()) {
-        LWarn("Missing boundary. Content-Type=multipart/form-data");
-        return true;
-    }
-    MultipartParser parser(body);
-    return parser.Parse("--" + content_type_.boundary(), &form_items_);
 }
 #pragma endregion PARSE_BODY
 

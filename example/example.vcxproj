@@ -105,14 +105,14 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>src;..\include;..\third_party\jsoncpp\include;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;..\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalLibraryDirectories>..\lib\windows\$(Platform)\$(Configuration);..\third_party\spdlog-wrapper\spdlog-wrapper\lib\windows\$(Platform)\$(Configuration);..\third_party\jsoncpp\lib\windows\$(Platform)\$(Configuration);D:\CPP_INCLUDE\boost_1.73.0\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>http_server.lib;jsoncpp.lib;spdlog.lib;spdlog_wrapper.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\lib\windows\$(Platform)\$(Configuration);D:\CPP_INCLUDE\boost_1.73.0\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>http_server.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,7 +128,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>src;..\include;..\third_party\jsoncpp\include;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;..\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,8 +136,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalLibraryDirectories>..\lib\windows\$(Platform)\$(Configuration);..\third_party\spdlog-wrapper\spdlog-wrapper\lib\windows\$(Platform)\$(Configuration);..\third_party\jsoncpp\lib\windows\$(Platform)\$(Configuration);D:\CPP_INCLUDE\boost_1.73.0\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>http_server.lib;jsoncpp.lib;spdlog.lib;spdlog_wrapper.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\lib\windows\$(Platform)\$(Configuration);D:\CPP_INCLUDE\boost_1.73.0\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>http_server.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -151,14 +151,14 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>src;..\include;..\third_party\jsoncpp\include;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;..\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\lib\windows\$(Platform)\$(Configuration);..\third_party\spdlog-wrapper\spdlog-wrapper\lib\windows\$(Platform)\$(Configuration);..\third_party\jsoncpp\lib\windows\$(Platform)\$(Configuration);D:\CPP_INCLUDE\boost_1.73.0\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\lib\windows\$(Platform)\$(Configuration);D:\CPP_INCLUDE\boost_1.73.0\lib</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>http_server.lib;jsoncpp.lib;spdlog.lib;spdlog_wrapper.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>http_server.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -174,7 +174,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>src;..\include;..\third_party\jsoncpp\include;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;..\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -182,8 +182,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalLibraryDirectories>..\lib\windows\$(Platform)\$(Configuration);..\third_party\spdlog-wrapper\spdlog-wrapper\lib\windows\$(Platform)\$(Configuration);..\third_party\jsoncpp\lib\windows\$(Platform)\$(Configuration);D:\CPP_INCLUDE\boost_1.73.0\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>http_server.lib;jsoncpp.lib;spdlog.lib;spdlog_wrapper.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\lib\windows\$(Platform)\$(Configuration);D:\CPP_INCLUDE\boost_1.73.0\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>http_server.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -202,6 +202,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\manager\user_manager.cpp" />
     <ClCompile Include="src\routes.cpp" />
+    <ClCompile Include="src\status\status_code.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app\app.h" />
@@ -213,6 +214,7 @@
     <ClInclude Include="src\manager\user_manager.h" />
     <ClInclude Include="src\routes.h" />
     <ClInclude Include="src\singleton\singleton.h" />
+    <ClInclude Include="src\status\status_code.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

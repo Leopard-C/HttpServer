@@ -6,41 +6,97 @@ ifneq ($(VERBOSE),1)
 VV=@
 endif
 
-CXX=/usr/bin/gcc
-AS=/usr/bin/gcc
-CC=/usr/bin/gcc
-MM=/usr/bin/gcc
 MXX=/usr/bin/gcc
+CXX=/usr/bin/gcc
+CC=/usr/bin/gcc
+AS=/usr/bin/gcc
+MM=/usr/bin/gcc
 
-LD=/usr/bin/g++
 AR=/usr/bin/ar
+LD=/usr/bin/g++
 SH=/usr/bin/g++
 
+example_LD=/usr/bin/g++
+example_CXX=/usr/bin/gcc
+example_CXX=/usr/bin/gcc
 example2_LD=/usr/bin/g++
 example2_CXX=/usr/bin/gcc
 example2_CXX=/usr/bin/gcc
 http_server_AR=/usr/bin/ar
 http_server_CXX=/usr/bin/gcc
 http_server_CXX=/usr/bin/gcc
-example_LD=/usr/bin/g++
-example_CXX=/usr/bin/gcc
-example_CXX=/usr/bin/gcc
 
-example2_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
-example2_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
-example2_LDFLAGS=-m64 -L/usr/local/boost/boost_1.73.0/x86_64/lib -Lthird_party/jsoncpp/lib/linux/x86_64 -Lthird_party/spdlog-wrapper/spdlog-wrapper/lib/linux/x86_64 -Llib/linux/x86_64/release -s -lhttp_server -lspdlog_wrapper -lspdlog -ljsoncpp -lboost_regex -lpthread -ldl
-http_server_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
-http_server_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+example_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Iinclude -Iexample/src -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+example_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Iinclude -Iexample/src -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+example_LDFLAGS=-m64 -L/usr/local/boost/boost_1.73.0/x86_64/lib -Llib/linux/x86_64/release -s -lhttp_server -lboost_regex -lpthread -ldl
+example2_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+example2_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+example2_LDFLAGS=-m64 -L/usr/local/boost/boost_1.73.0/x86_64/lib -Llib/linux/x86_64/release -s -lhttp_server -lboost_regex -lpthread -ldl
+http_server_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
+http_server_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Iinclude -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
 http_server_ARFLAGS=-cr
-example_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Iexample/src -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
-example_CXXFLAGS=-m64 -fvisibility=hidden -fvisibility-inlines-hidden -O3 -std=c++11 -I/usr/local/boost/boost_1.73.0/x86_64/include -Ithird_party/jsoncpp/include -Ithird_party/spdlog-wrapper/spdlog/include -Ithird_party/spdlog-wrapper/spdlog-wrapper/include -Iinclude -Iexample/src -Wreturn-type -Wsign-compare -Wunused-variable -Wswitch -Wno-deprecated-declarations -DNDEBUG
-example_LDFLAGS=-m64 -L/usr/local/boost/boost_1.73.0/x86_64/lib -Lthird_party/jsoncpp/lib/linux/x86_64 -Lthird_party/spdlog-wrapper/spdlog-wrapper/lib/linux/x86_64 -Llib/linux/x86_64/release -s -lhttp_server -lspdlog_wrapper -lspdlog -ljsoncpp -lboost_regex -lpthread -ldl
 
-default:  example2 http_server example
+default:  example example2 http_server
 
-all:  example2 http_server example
+all:  example example2 http_server
 
-.PHONY: default all  example2 http_server example
+.PHONY: default all  example example2 http_server
+
+example: bin/example
+bin/example: lib/linux/x86_64/release/libhttp_server.a build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/status/status_code.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o
+	@echo linking.release example
+	@mkdir -p bin
+	$(VV)$(example_LD) -o bin/example build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/status/status_code.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o $(example_LDFLAGS)
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o: example/src/app/app.cpp
+	@echo compiling.release example/src/app/app.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o example/src/app/app.cpp
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o: example/src/manager/user_manager.cpp
+	@echo compiling.release example/src/manager/user_manager.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o example/src/manager/user_manager.cpp
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o: example/src/routes.cpp
+	@echo compiling.release example/src/routes.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o example/src/routes.cpp
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/status/status_code.cpp.o: example/src/status/status_code.cpp
+	@echo compiling.release example/src/status/status_code.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/status
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/status/status_code.cpp.o example/src/status/status_code.cpp
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o: example/src/main.cpp
+	@echo compiling.release example/src/main.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o example/src/main.cpp
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o: example/src/controller/server/server_controller.cpp
+	@echo compiling.release example/src/controller/server/server_controller.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o example/src/controller/server/server_controller.cpp
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o: example/src/controller/web/web_controller.cpp
+	@echo compiling.release example/src/controller/web/web_controller.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o example/src/controller/web/web_controller.cpp
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o: example/src/controller/test/test_controller.cpp
+	@echo compiling.release example/src/controller/test/test_controller.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o example/src/controller/test/test_controller.cpp
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o: example/src/controller/user/dto/user_dto.impl_dto.cpp
+	@echo compiling.release example/src/controller/user/dto/user_dto.impl_dto.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o example/src/controller/user/dto/user_dto.impl_dto.cpp
+
+build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o: example/src/controller/user/user_controller.cpp
+	@echo compiling.release example/src/controller/user/user_controller.cpp
+	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user
+	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o example/src/controller/user/user_controller.cpp
 
 example2: bin/example2
 bin/example2: lib/linux/x86_64/release/libhttp_server.a build/obj/linux/x86_64/release/example2/linux/x86_64/release/example2/src/main.cpp.o
@@ -54,10 +110,10 @@ build/obj/linux/x86_64/release/example2/linux/x86_64/release/example2/src/main.c
 	$(VV)$(example2_CXX) -c $(example2_CXXFLAGS) -o build/obj/linux/x86_64/release/example2/linux/x86_64/release/example2/src/main.cpp.o example2/src/main.cpp
 
 http_server: lib/linux/x86_64/release/libhttp_server.a
-lib/linux/x86_64/release/libhttp_server.a: build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/request.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/param_get.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/param_check.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/helper.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_cookie.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/response.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/status/base.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/router.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/config.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_method.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/multipart_parser.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/content_type.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/mime.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/io.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/md5.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/xxh64.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/thread.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/memmem.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/isprint.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/trim.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/convert/convert_number.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/convert/convert_case.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/format_time.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/url_code.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/gmt_time.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/path.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_server.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/session.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/string_view.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/listener.cpp.o
+lib/linux/x86_64/release/libhttp_server.a: build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/request.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/param_get.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/param_check.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/helper.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_cookie.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/response.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/status/base.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/router.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/config.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_method.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/multipart_parser.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/content_type.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/mime.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/io.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/md5.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/thread.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/memmem.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/isprint.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/trim.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/convert/convert_number.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/convert/convert_case.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/format_time.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/url_code.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/gmt_time.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/path.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_server.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/logger.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/session.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/string_view.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/listener.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_writer.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_reader.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_value.cpp.o
 	@echo linking.release libhttp_server.a
 	@mkdir -p lib/linux/x86_64/release
-	$(VV)$(http_server_AR) $(http_server_ARFLAGS) lib/linux/x86_64/release/libhttp_server.a build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/request.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/param_get.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/param_check.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/helper.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_cookie.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/response.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/status/base.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/router.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/config.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_method.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/multipart_parser.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/content_type.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/mime.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/io.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/md5.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/xxh64.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/thread.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/memmem.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/isprint.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/trim.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/convert/convert_number.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/convert/convert_case.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/format_time.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/url_code.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/gmt_time.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/path.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_server.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/session.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/string_view.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/listener.cpp.o
+	$(VV)$(http_server_AR) $(http_server_ARFLAGS) lib/linux/x86_64/release/libhttp_server.a build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/request.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/param_get.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/param_check.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/helper/helper.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_cookie.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/response.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/status/base.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/router.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/config.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_method.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/multipart_parser.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/content_type.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/mime.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/io.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/md5.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/thread.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/memmem.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/isprint.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/trim.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/convert/convert_number.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/convert/convert_case.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/format_time.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/url_code.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/gmt_time.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/path.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_server.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/logger.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/session.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/string_view.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/listener.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_writer.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_reader.cpp.o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_value.cpp.o
 
 build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/request.cpp.o: src/server/request.cpp
 	@echo compiling.release src/server/request.cpp
@@ -134,11 +190,6 @@ build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/
 	@mkdir -p build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash
 	$(VV)$(http_server_CXX) -c $(http_server_CXXFLAGS) -o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/md5.cpp.o src/server/util/hash/md5.cpp
 
-build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/xxh64.cpp.o: src/server/util/hash/xxh64.cpp
-	@echo compiling.release src/server/util/hash/xxh64.cpp
-	@mkdir -p build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash
-	$(VV)$(http_server_CXX) -c $(http_server_CXXFLAGS) -o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/xxh64.cpp.o src/server/util/hash/xxh64.cpp
-
 build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/thread.cpp.o: src/server/util/thread.cpp
 	@echo compiling.release src/server/util/thread.cpp
 	@mkdir -p build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util
@@ -194,6 +245,11 @@ build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_
 	@mkdir -p build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server
 	$(VV)$(http_server_CXX) -c $(http_server_CXXFLAGS) -o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_server.cpp.o src/server/http_server.cpp
 
+build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/logger.cpp.o: src/server/logger.cpp
+	@echo compiling.release src/server/logger.cpp
+	@mkdir -p build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server
+	$(VV)$(http_server_CXX) -c $(http_server_CXXFLAGS) -o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/logger.cpp.o src/server/logger.cpp
+
 build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/session.cpp.o: src/server/session.cpp
 	@echo compiling.release src/server/session.cpp
 	@mkdir -p build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server
@@ -209,58 +265,36 @@ build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/liste
 	@mkdir -p build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server
 	$(VV)$(http_server_CXX) -c $(http_server_CXXFLAGS) -o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/listener.cpp.o src/server/listener.cpp
 
-example: bin/example
-bin/example: lib/linux/x86_64/release/libhttp_server.a build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o
-	@echo linking.release example
-	@mkdir -p bin
-	$(VV)$(example_LD) -o bin/example build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o $(example_LDFLAGS)
+build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_writer.cpp.o: third_party/jsoncpp/json_writer.cpp
+	@echo compiling.release third_party/jsoncpp/json_writer.cpp
+	@mkdir -p build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp
+	$(VV)$(http_server_CXX) -c $(http_server_CXXFLAGS) -o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_writer.cpp.o third_party/jsoncpp/json_writer.cpp
 
-build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o: example/src/app/app.cpp
-	@echo compiling.release example/src/app/app.cpp
-	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app
-	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o example/src/app/app.cpp
+build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_reader.cpp.o: third_party/jsoncpp/json_reader.cpp
+	@echo compiling.release third_party/jsoncpp/json_reader.cpp
+	@mkdir -p build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp
+	$(VV)$(http_server_CXX) -c $(http_server_CXXFLAGS) -o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_reader.cpp.o third_party/jsoncpp/json_reader.cpp
 
-build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o: example/src/manager/user_manager.cpp
-	@echo compiling.release example/src/manager/user_manager.cpp
-	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager
-	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o example/src/manager/user_manager.cpp
+build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_value.cpp.o: third_party/jsoncpp/json_value.cpp
+	@echo compiling.release third_party/jsoncpp/json_value.cpp
+	@mkdir -p build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp
+	$(VV)$(http_server_CXX) -c $(http_server_CXXFLAGS) -o build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_value.cpp.o third_party/jsoncpp/json_value.cpp
 
-build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o: example/src/routes.cpp
-	@echo compiling.release example/src/routes.cpp
-	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src
-	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o example/src/routes.cpp
+clean:  clean_example clean_example2 clean_http_server
 
-build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o: example/src/main.cpp
-	@echo compiling.release example/src/main.cpp
-	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src
-	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o example/src/main.cpp
-
-build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o: example/src/controller/server/server_controller.cpp
-	@echo compiling.release example/src/controller/server/server_controller.cpp
-	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server
-	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o example/src/controller/server/server_controller.cpp
-
-build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o: example/src/controller/web/web_controller.cpp
-	@echo compiling.release example/src/controller/web/web_controller.cpp
-	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web
-	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o example/src/controller/web/web_controller.cpp
-
-build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o: example/src/controller/test/test_controller.cpp
-	@echo compiling.release example/src/controller/test/test_controller.cpp
-	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test
-	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o example/src/controller/test/test_controller.cpp
-
-build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o: example/src/controller/user/dto/user_dto.impl_dto.cpp
-	@echo compiling.release example/src/controller/user/dto/user_dto.impl_dto.cpp
-	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto
-	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o example/src/controller/user/dto/user_dto.impl_dto.cpp
-
-build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o: example/src/controller/user/user_controller.cpp
-	@echo compiling.release example/src/controller/user/user_controller.cpp
-	@mkdir -p build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user
-	$(VV)$(example_CXX) -c $(example_CXXFLAGS) -o build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o example/src/controller/user/user_controller.cpp
-
-clean:  clean_example2 clean_http_server clean_example
+clean_example:  clean_http_server
+	@rm -rf bin/example
+	@rm -rf bin/example.sym
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/status/status_code.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o
 
 clean_example2:  clean_http_server
 	@rm -rf bin/example2
@@ -285,7 +319,6 @@ clean_http_server:
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/mime.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/io.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/md5.cpp.o
-	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/hash/xxh64.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/thread.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/memmem.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/string/isprint.cpp.o
@@ -297,20 +330,11 @@ clean_http_server:
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/gmt_time.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/util/path.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/http_server.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/logger.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/session.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/string_view.cpp.o
 	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/src/server/listener.cpp.o
-
-clean_example:  clean_http_server
-	@rm -rf bin/example
-	@rm -rf bin/example.sym
-	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/app/app.cpp.o
-	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/manager/user_manager.cpp.o
-	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/routes.cpp.o
-	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/main.cpp.o
-	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/server/server_controller.cpp.o
-	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/web/web_controller.cpp.o
-	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/test/test_controller.cpp.o
-	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/dto/user_dto.impl_dto.cpp.o
-	@rm -rf build/obj/linux/x86_64/release/example/linux/x86_64/release/example/src/controller/user/user_controller.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_writer.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_reader.cpp.o
+	@rm -rf build/obj/linux/x86_64/release/http_server/linux/x86_64/release/third_party/jsoncpp/json_value.cpp.o
 

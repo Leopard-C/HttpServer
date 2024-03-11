@@ -26,30 +26,17 @@ sudo cp -r boost /usr/local/boost/boost_1.73.0/x86_64/include
 sudo cp -r stage/lib /usr/local/boost/boost_1.73.0/x86_64
 ```
 
-## 2 编译子模块
-
-```shell
-# 克隆项目，并拉取子模块
-git clone https://github.com/Leopard-C/HttpServer
-git submodule update --init --recursive
-```
-
-+ `third_party/jsoncpp`
-+ `third_party/spdlog-wrapper`
-
-按照子模块的 `README.md` 文档中的方法，编译两个子模块。
-
-## 3 编译`HttpServer`静态库及示例程序
+## 2 编译`HttpServer`静态库及示例程序
 
 可以通过`make`或`xmake`两种方式进行编译。
 
-### 3.1 `make`
+### 2.1 `make`
 
 ```shell
 make -j
 ```
 
-### 3.2 `xmake`【推荐】
+### 2.2 `xmake`【推荐】
 
 修改`xmake.lua`中`boost`库的配置。
 
@@ -78,9 +65,9 @@ bin/example
 
 ---
 
-## 4 交叉编译
+## 3 交叉编译
 
-支持交叉编译，例如在`x86_64`机器上编译`aarch64`架构机器中可执行程序。首先需要交叉编译依赖库(boost, third_party/jsoncpp, third_party/spdlog-wrapper)，然后执行如下命令进行编译：
+支持交叉编译，例如在`x86_64`机器上编译`aarch64`架构机器中可执行程序。首先需要交叉编译依赖库(boost)，然后执行如下命令进行编译：
 
 ```shell
 xmake f --mode=release --arch=aarch64    # 默认--arch=x86_64

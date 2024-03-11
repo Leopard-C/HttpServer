@@ -1,13 +1,13 @@
 /**
- * @file form_item.h
+ * @file form_param.h
  * @brief HTTP请求体multipart/form-data.
  * @author Leopard-C (leopard.c@outlook.com)
  * @date 2023-11-29
  * 
  * @copyright Copyright (c) 2023-present, Jinbao Chen.
  */
-#ifndef IC_SERVER_FORM_ITEM_H_
-#define IC_SERVER_FORM_ITEM_H_
+#ifndef IC_SERVER_FORM_PARAM_H_
+#define IC_SERVER_FORM_PARAM_H_
 #include <string>
 #include "string_view.h"
 
@@ -17,7 +17,7 @@ namespace server {
 /**
  * @brief 通过`Content-Type: multipart/form-data`上传的表单中的某项.
  */
-class FormItem {
+class FormParam {
 public:
     /**
      * @brief 是否是文件.
@@ -69,4 +69,4 @@ private:
 } // namespace server
 } // namespace ic
 
-#endif // IC_SERVER_FORM_ITEM_H_
+#endif // IC_SERVER_FORM_PARAM_H_

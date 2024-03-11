@@ -12,6 +12,7 @@
 #include <functional>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <jsoncpp/json/value.h>
 #include "http_method.h"
 
@@ -58,9 +59,6 @@ public:
 public:
     /** 支持的HTTP请求方法(如果支持多种方法，使用或运算，如 HttpMethod::kGET | HttpMethod::kPOST) */
     int methods = HttpMethod::kNotSupport;
-
-    /** 路由ID */
-    uint64_t id;
 
     /** 程序运行期间命中该路由的次数 */
     std::atomic_uint64_t hit_count{0};
@@ -138,8 +136,8 @@ public:
     void set_cb_invalid_method(Route::ResponseCallback cb);
 
     const HttpServer* svr() const { return svr_; }
-    const std::map<uint64_t, Route*>& routes() const { return routes_; }
-    const std::map<uint64_t, StaticRoute*>& static_routes() const { return static_routes_; }
+    const std::unordered_map<std::string, Route*>& routes() const { return routes_; }
+    const std::unordered_map<std::string, StaticRoute*>& static_routes() const { return static_routes_; }
     const std::vector<RegexRoute*>& regex_routes() const { return regex_routes_; }
 
     /**
@@ -150,7 +148,7 @@ public:
     /**
      * @brief 获取路由.
      */
-    const Route* GetRoute(uint64_t path_id) const;
+    const Route* GetRoute(const std::string& path) const;
 
 private:
     bool CheckRoute(Route* route) const;
@@ -159,10 +157,10 @@ private:
     HttpServer* svr_{nullptr};
 
     /** 所有路由 */
-    std::map<uint64_t, Route*> routes_;
+    std::unordered_map<std::string, Route*> routes_;
 
     /** 静态路由 */
-    std::map<uint64_t, StaticRoute*> static_routes_;
+    std::unordered_map<std::string, StaticRoute*> static_routes_;
 
     /** 正则表达式路由 */
     std::vector<RegexRoute*> regex_routes_;

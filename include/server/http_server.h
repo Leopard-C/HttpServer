@@ -16,6 +16,7 @@
 #include <thread>
 #include <jsoncpp/json/value.h>
 #include "config.h"
+#include "logger.h"
 
 namespace boost {
 namespace asio {
@@ -27,6 +28,7 @@ namespace ic {
 namespace server {
 
 class Listener;
+class Route;
 class Router;
 class Session;
 class Request;
@@ -45,8 +47,8 @@ public:
     size_t thread_id;
     /** 当前线程正在处理的请求的ID */
     int64_t request_id;
-    /** 请求的路径ID */
-    uint64_t path_id;
+    /** 当前请求命中的路由 */
+    const Route* route;
     /** 开始处理请求时间 */
     tp start;
     /** 结束处理请求时间 */
@@ -65,35 +67,38 @@ public:
     friend class Listener;
     friend class Session;
 
-    using Callback = std::function<bool(Request&, Response&)>;
-
-    HttpServer(const HttpServerConfig& config);
+    /**
+     * @brief 构造函数.
+     * @param config 服务器配置参数
+     * @param logger 日志记录器，为空则使用默认的日志记录器
+     */
+    HttpServer(const HttpServerConfig& config, std::shared_ptr<ILogger> logger = nullptr);
     ~HttpServer();
 
 public:
     /**
      * @brief 设置请求拦截器：解析body内容之前调用.
      */
-    void set_cb_before_parse_body(Callback cb) { cb_before_parse_body_ = cb; }
+    void set_cb_before_parse_body(std::function<bool(Request&, Response&)> cb) { cb_before_parse_body_ = cb; }
 
     /**
      * @brief 设置请求拦截器：解析body内容之后，处理请求之前调用.
      */
-    void set_cb_before_handle_request(Callback cb) { cb_before_handle_request_ = cb; }
+    void set_cb_before_handle_request(std::function<bool(Request&, Response&)> cb) { cb_before_handle_request_ = cb; }
 
     /**
      * @brief 设置响应拦截器：返回响应内容之前调用.
      */
-    void set_cb_before_send_response(Callback cb) { cb_before_send_response_ = cb; }
+    void set_cb_before_send_response(std::function<bool(Request&, Response&)> cb) { cb_before_send_response_ = cb; }
 
     const HttpServerConfig& config() const { return config_; }
+    std::shared_ptr<ILogger> logger() const { return logger_; }
     std::shared_ptr<Router> router() const { return router_; }
     int64_t current_request_id() { return current_request_id_.fetch_add(1); }
     void set_current_request_id(int64_t id) { current_request_id_ = id; }
     std::map<size_t, ThreadInfo> thread_infos();
 
     Json::Value DumpThreadInfos();
-    uint64_t XXH64(const std::string& str) const;
 
     /**
      * @brief 开始监听.
@@ -132,6 +137,7 @@ private:
 
 private:
     HttpServerConfig config_;
+    std::shared_ptr<ILogger> logger_;
     std::atomic_int64_t current_request_id_{-1};
     std::shared_ptr<boost::asio::io_context> ioc_;
     std::shared_ptr<Listener> listener_;
@@ -141,9 +147,9 @@ private:
     std::mutex mutex_for_thread_infos_;
     std::map<size_t, ThreadInfo*> thread_infos_;
 
-    Callback cb_before_parse_body_;
-    Callback cb_before_handle_request_;
-    Callback cb_before_send_response_;
+    std::function<bool(Request&, Response&)> cb_before_parse_body_;
+    std::function<bool(Request&, Response&)> cb_before_handle_request_;
+    std::function<bool(Request&, Response&)> cb_before_send_response_;
 };
 
 } // namespace server

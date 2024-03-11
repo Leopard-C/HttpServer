@@ -1,5 +1,4 @@
 #include "multipart_parser.h"
-#include <log/logger.h>
 
 #undef IMD
 #define IMD "Invalid multipart data. "
@@ -13,8 +12,8 @@ static constexpr size_t STR_LEN_ContentDisposition = 19;
 static const char* STR_ContentType = "content-type";
 static constexpr size_t STR_LEN_ContentType = 12;
 
-MultipartParser::MultipartParser(const std::string& body)
-    : body_{ body.data(), body.size() }
+MultipartParser::MultipartParser(const std::string& body, std::shared_ptr<ILogger> logger)
+    : body_{ body.data(), body.size() }, logger_(logger)
 {
 }
 
@@ -23,22 +22,22 @@ MultipartParser::MultipartParser(StringView body)
 {
 }
 
-bool MultipartParser::Parse(const std::string& boundary, std::multimap<std::string, const FormItem*>* result) {
+bool MultipartParser::Parse(const std::string& boundary, std::multimap<std::string, const FormParam*>* result) {
     result->clear();
 
     std::vector<Part> parts;
     if (!SplitToParts(boundary, &parts)) {
-        LError(IMD"SplitToParts failed");
+        logger_->Error(LOG_CTX, IMD"SplitToParts failed");
         return false;
     }
 
     for (const auto& part : parts) {
-        FormItem* form_item = new FormItem();
-        if (!Parse_Part(part, form_item)) {
-            delete form_item;
+        FormParam* value = new FormParam();
+        if (!Parse_Part(part, value)) {
+            delete value;
             return false;
         }
-        result->emplace(form_item->name(), form_item);
+        result->emplace(value->name(), value);
     }
 
     return true;
@@ -121,7 +120,7 @@ bool MultipartParser::SplitToParts(const std::string& boundary, std::vector<Part
 /**
  * @brief 解析一个part.
  */
-bool MultipartParser::Parse_Part(const Part& part, FormItem* form_item) const {
+bool MultipartParser::Parse_Part(const Part& part, FormParam* form_param) const {
     /*
         ------WebKitFormBoundary7MA4YWxkTrZu0gW
         Content-Disposition: form-data; name="description"
@@ -141,32 +140,32 @@ bool MultipartParser::Parse_Part(const Part& part, FormItem* form_item) const {
     for (const auto& header_line : part.header_lines) {
         if (!has_content_disposition && header_line.CompareNoCase(STR_ContentDisposition, STR_LEN_ContentDisposition) == 0) { // Content-Disposition
             has_content_disposition = true;
-            if (!Parse_Part_ContentDisposition(header_line, form_item)) {
-                LError(IMD"Parse Content-Disposition failed");
+            if (!Parse_Part_ContentDisposition(header_line, form_param)) {
+                logger_->Error(LOG_CTX, IMD"Parse Content-Disposition failed");
                 return false;
             }
         }
         else if (!has_content_type && header_line.CompareNoCase(STR_ContentType, STR_LEN_ContentType) == 0) {  // Content-Type
             has_content_type = true;
-            if (!Parse_Part_ContentType(header_line, form_item)) {
-                LError(IMD"Parse Content-Type failed");
+            if (!Parse_Part_ContentType(header_line, form_param)) {
+                logger_->Error(LOG_CTX, IMD"Parse Content-Type failed");
                 return false;
             }
         }
         else {
-            LError(IMD"Header line in some parts of multipart/form-data is invalid");
+            logger_->Error(LOG_CTX, IMD"Header line in some parts of multipart/form-data is invalid");
             return false;
         }
     }
 
-    form_item->set_content(part.content);
+    form_param->set_content(part.content);
     return true;
 }
 
 /**
  * @brief 解析Content-Disposition.
  */
-bool MultipartParser::Parse_Part_ContentDisposition(StringView header_line, FormItem* form_item) const {
+bool MultipartParser::Parse_Part_ContentDisposition(StringView header_line, FormParam* form_param) const {
     // Content-Disposition: form-data; name="xxx"
     // Content-Disposition: form-data; name="xxx"; filename="yyy"
     // Content-Disposition: form-data; filename="yyy"; name="xxx";
@@ -205,18 +204,18 @@ bool MultipartParser::Parse_Part_ContentDisposition(StringView header_line, Form
     /* 提取name、filename */
     for (size_t i = 0; i < keys.size(); ++i) {
         if (keys[i].CompareNoCase("name") == 0) {
-            form_item->set_name(values[i].ToString());
+            form_param->set_name(values[i].ToString());
         }
         if (keys[i].CompareNoCase("filename") == 0) {
-            form_item->set_is_file(true);
-            form_item->set_filename(values[i].ToString());
+            form_param->set_is_file(true);
+            form_param->set_filename(values[i].ToString());
         }
         else {
             // ignore
         }
     }
-    if (form_item->name().empty()) {
-        LError("Content-Disposition.name can not be empty");
+    if (form_param->name().empty()) {
+        logger_->Error(LOG_CTX, "Content-Disposition.name can not be empty");
         return false;
     }
 
@@ -226,7 +225,7 @@ bool MultipartParser::Parse_Part_ContentDisposition(StringView header_line, Form
 /**
  * @brief 解析Content-Type.
  */
-bool MultipartParser::Parse_Part_ContentType(StringView header_line, FormItem* form_item) const {
+bool MultipartParser::Parse_Part_ContentType(StringView header_line, FormParam* form_param) const {
     // Content-Type: text/plain
     // Content-Type: application/octet-stream
     // Content-Type: text/plain; charset=utf-8
@@ -236,7 +235,7 @@ bool MultipartParser::Parse_Part_ContentType(StringView header_line, FormItem* f
     }
     // Content-Type: text/plain; charset=utf-8
     size_t semicolon = header_line.Find(start + 1, ";", 1);
-    form_item->set_content_type(header_line.SubStr(start + 1, semicolon - start - 1).Trim().ToString());
+    form_param->set_content_type(header_line.SubStr(start + 1, semicolon - start - 1).Trim().ToString());
     if (semicolon == std::string::npos) {
         return true;
     }
@@ -271,7 +270,7 @@ bool MultipartParser::Parse_Part_ContentType(StringView header_line, FormItem* f
     /* 提取charset */
     for (size_t i = 0; i < keys.size(); ++i) {
         if (keys[i].CompareNoCase("charset") == 0) {
-            form_item->set_charset(values[i].ToString());
+            form_param->set_charset(values[i].ToString());
         }
         else {
             // ignore

@@ -1,14 +1,14 @@
 #include "server/http_server.h"
+#include "server/logger.h"
 #include "server/request.h"
+#include "server/request_raw.h"
 #include "server/router.h"
 #include "server/util/format_time.h"
-#include "server/util/hash/xxh64.h"
 #include "server/util/path.h"
 #include "server/util/thread.h"
 #include "listener.h"
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <log/logger.h>
 
 namespace ic {
 namespace server {
@@ -31,17 +31,15 @@ static const std::string s_bin_dir = util::path::get_bin_dir();
 *******************************************************************/
 
 ThreadInfo::ThreadInfo(HttpServer* svr) :
-    active(false), count(0), request_id(-1), path_id(0), thread_id(util::thread_id()),
+    active(false), count(0), request_id(-1), route(nullptr), thread_id(util::thread_id()),
     start(s_time0), finish(s_time0), svr_(svr)
 {
 }
 
 Json::Value ThreadInfo::ToJson(tp now/* = std::chrono::system_clock::now()*/) const {
-    auto route = svr_->router()->GetRoute(path_id);
     Json::Value node;
     node["self"] = (this->thread_id == util::thread_id());  /* 是否是当前请求 */
     node["thread_id"] = thread_id;
-    node["path_id"] = std::to_string(path_id);
     node["path"] = route ? route->path : std::string();
     node["count"] = count;
     node["active"] = active;
@@ -64,11 +62,14 @@ Json::Value ThreadInfo::ToJson(tp now/* = std::chrono::system_clock::now()*/) co
 ** 
 *******************************************************************/
 
-HttpServer::HttpServer(const HttpServerConfig& config) :
-    config_(config), listener_(),
+HttpServer::HttpServer(const HttpServerConfig& config, std::shared_ptr<ILogger> logger/* = nullptr*/) :
+    config_(config), logger_(logger), listener_(),
     ioc_(std::make_shared<net::io_context>(config.num_threads())),
     router_(std::make_shared<Router>(this))
 {
+    if (!logger_) {
+        logger_ = std::make_shared<ConsoleLogger>(LogLevel::kInfo, LogLevel::kWarn);
+    }
 }
 
 HttpServer::~HttpServer() {
@@ -99,16 +100,12 @@ Json::Value HttpServer::DumpThreadInfos() {
     return data;
 }
 
-uint64_t HttpServer::XXH64(const std::string& str) const {
-    return util::hash::xxh64(str, config_.xxh64_seed());
-}
-
 bool HttpServer::Listen() {
     beast::error_code ec;
     const auto address = net::ip::make_address(config_.ip(), ec);
     if (ec) {
-        LError("make_address failed: {}", ec.message());
-        LError("Listen on {}:{} failed", config_.ip(), config_.port());
+        logger_->Error(LOG_CTX, "Make_address failed: %s", ec.message().c_str());
+        logger_->Error(LOG_CTX, "Listen on %s:%u failed", config_.ip().c_str(), config_.port());
         return false;
     }
     listener_ = std::make_shared<Listener>(this, tcp::endpoint{ address, (unsigned short)config_.port() });
@@ -122,11 +119,11 @@ void HttpServer::Start() {
     unsigned int num_threads = config_.num_threads();
     unsigned int max_num_threads = std::thread::hardware_concurrency() * 20;
     if (num_threads < 1 || num_threads > max_num_threads) {
-        LError("HttpServerConfig.num_threads({}) shoule be in range: [1, {}]", num_threads, max_num_threads);
+        logger_->Error(LOG_CTX, "HttpServerConfig.num_threads(%u) shoule be in range: [1, %u]", num_threads, max_num_threads);
         return;
     }
 
-    LInfo("HttpServer started!");
+    logger_->Info(LOG_CTX, "HttpServer started!");
 
     /* 启动所有线程 */
     worker_threads_.clear();
@@ -140,12 +137,12 @@ void HttpServer::Start() {
 
     /* 等待所有线程退出 */
     for (unsigned int i = 0; i < num_threads - 1; ++i) {
-        LInfo("Waiting for thread [{}/{}] ...", i+2, num_threads);
+        logger_->Info(LOG_CTX, "Waiting for thread [%u/%u] ...", i+2, num_threads);
         worker_threads_[i].join();
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    LInfo("HttpServer stopped!");
+    logger_->Info(LOG_CTX, "HttpServer stopped!");
 }
 
 void HttpServer::RunIoContext() {
@@ -154,19 +151,19 @@ void HttpServer::RunIoContext() {
         std::lock_guard<std::mutex> lck(mutex_for_thread_infos_);
         thread_infos_.emplace(tid, new ThreadInfo(this));
     }
-    LInfo("ioc run, thread id: {}", tid);
+    logger_->Info(LOG_CTX, "ioc run, thread id: %" PRIu64, (uint64_t)tid);
     ioc_->run();
-    LInfo("ioc stop, thread id: {}", tid);
+    logger_->Info(LOG_CTX, "ioc stop, thread id: %" PRIu64, (uint64_t)tid);
 }
 
 /**
  * @brief 停止服务器（非阻塞）.
  */
 void HttpServer::Stop() {
-    LInfo("Waiting for all threads to exit ...");
-    LInfo("Waiting for thread [{}/{}] ...", 1, config_.num_threads());
-    //LInfo("thread infos:\n{}", DumpThreadInfos().toStyledString());
-    LInfo("ioc is stopping ...");
+    logger_->Info(LOG_CTX, "Waiting for all threads to exit ...");
+    logger_->Info(LOG_CTX, "Waiting for thread [%u/%u] ...", 1, config_.num_threads());
+    //logger_->Info(LOG_CTX, "thread infos:\n%s", DumpThreadInfos().toStyledString().c_str());
+    logger_->Info(LOG_CTX, "ioc is stopping ...");
     std::thread t([this]{
         if (!ioc_->stopped()) {
             ioc_->stop();
@@ -200,9 +197,9 @@ ThreadInfo* HttpServer::GetThreadInfo(size_t tid) {
 void HttpServer::StartRequest(Request& req) {
     static thread_local ThreadInfo* ti = GetThreadInfo(util::thread_id());
     if (ti) {
-        ti->request_id = req.id();
-        ti->path_id = req.path_id();
         ti->active = true;
+        ti->request_id = req.id();
+        ti->route = req.route();
         ti->start = req.arrive_timepoint();
         ti->finish = s_time0;
         ti->count++;

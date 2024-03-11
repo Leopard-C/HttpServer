@@ -572,7 +572,7 @@ class DtoParser:
     ''' DTO解析器 '''
     def __init__(self, dto_dir: str):
         self.cache_files_modify_time: Dict[str, int] = {} # { filename: modify_time }
-        self.dtos_dict: Dict[str, List[Dto]] = {}  # { filename: dtos }
+        self.dtos_dict: Dict[str, List[Dto]] = {}         # { filename: dto[] }
         self.cache_file: str = tempfile.gettempdir() + '/server-assistant_dto-parser-' + hashlib.md5(os.path.abspath(dto_dir).encode()).hexdigest()
         self.__LoadCacheFile()
 
@@ -700,7 +700,7 @@ def ExecCMD_ParseController(args):
         return 1
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Assistant for http-server')
+    parser = argparse.ArgumentParser(description='Assistant for icHttpServer')
     subparsers = parser.add_subparsers(dest='command')
 
     # 命令1：parse-controller
@@ -708,7 +708,7 @@ if __name__ == '__main__':
     parser_cmd_parse_controller.add_argument('controller_dir', type=str, help='controller directory')
     parser_cmd_parse_controller.add_argument('output_file', type=str, help='output filepath of routes registration')
     parser_cmd_parse_controller.add_argument('-p', '--prefix', type=str, required=False, default='', help='prefix of include path')
-    parser_cmd_parse_controller.add_argument('-y', '--yes',    action='store_true', help='overwrite the existing file')
+    parser_cmd_parse_controller.add_argument('-y', '--yes', action='store_true', help='overwrite the existing file')
 
     # 命令2：
     # ...

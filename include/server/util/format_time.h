@@ -31,6 +31,13 @@ std::string format_time(time_t tp, const char* fmt = "%Y-%m-%d %H:%M:%S");
 std::string format_time(const std::chrono::system_clock::time_point& tp, const char* fmt = "%Y-%m-%d %H:%M:%S");
 
 /**
+ * @brief 格式化时间，精确到毫秒.
+ * 
+ * @details 例如：2021-10-10 20:08:08.123
+ */
+std::string format_time_ms(const std::chrono::system_clock::time_point& tp, const char* fmt = "%Y-%m-%d %H:%M:%S");
+
+/**
  * @brief 格式化时间，精确到微秒.
  * 
  * @details 例如：2021-10-10 20:08:08.123456

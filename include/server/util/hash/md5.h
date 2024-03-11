@@ -21,6 +21,7 @@ namespace hash {
  * @details 同md5_upper
  * 
  * @param  str 输入字符串
+ * @param  length 输入字符串长度
  * @return std::string 长度为32字符的哈希值(大写)
  */
 std::string md5(const char* str, size_t length);

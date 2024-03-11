@@ -42,21 +42,7 @@ xcopy /E /I /Y stage\lib D:\CPP_INCLUDE\boost_1.73.0\lib
 + `link=static`: 生成静态库`.lib`，不生成`.dll`
 + `runtime-link=shared`: 动态链接C++运行时库
 
-## 2 编译子模块
-
-```shell
-# 克隆项目，并拉取子模块
-git clone https://github.com/Leopard-C/HttpServer
-git submodule update --init --recursive
-```
-
-+ `third_party/jsoncpp`
-+ `third_party/spdlog-wrapper`
-
-按照子模块的 `README.md` 文档中的方法，编译两个子模块。
-
-
-## 3 编译`HttpServer`静态库及示例程序
+## 2 编译`HttpServer`静态库及示例程序
 
 使用`Visual Studio 2019`软件打开`http_server.sln`项目文件，修改`boost`库头文件路径和库文件路径。
 

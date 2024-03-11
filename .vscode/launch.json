@@ -25,7 +25,7 @@
         // 调试server-assistant.py脚本
         {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/server-assistant/server-assistant.py",
             "args": ["parse-controller", "${workspaceFolder}/example/src/controller", "${workspaceFolder}/example/src/routes.cpp", "-p", "controller", "-y"],

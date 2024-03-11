@@ -1,9 +1,9 @@
 #include "server/router.h"
 #include "server/http_server.h"
+#include "server/logger.h"
 #include "server/request.h"
 #include "server/response.h"
 #include "server/status/base.h"
-#include <log/logger.h>
 
 namespace ic {
 namespace server {
@@ -42,13 +42,13 @@ void Route::Invoke(Request& req, Response& res) const {
 Router::Router(HttpServer* svr) : svr_(svr) {
     cb_invalid_path_ = [](Request& req, Response& res) {
         Json::Value root;
-        root["code"] = status::base::kInvalidPath;
+        root["code"] = status::kInvalidPath;
         root["msg"] = "Invalid request path";
         res.SetJsonBody(root);
     };
     cb_invalid_method_ = [](Request& req, Response& res) {
         Json::Value root;
-        root["code"] = status::base::kInvalidMethod;
+        root["code"] = status::kInvalidMethod;
         root["msg"] = "Invalid http method";
         res.SetJsonBody(root);
     };
@@ -68,9 +68,9 @@ bool Router::AddStaticRoute(StaticRoute* route) {
     if (!CheckRoute(route)) {
         return false;
     }
-    LDebug("Add static route: {:>4} {}", route->GetMethodsString(), route->path);
-    routes_.emplace(route->id, route);
-    static_routes_.emplace(route->id, route);
+    svr_->logger()->Debug(LOG_CTX, "Add static route: %4s %s", route->GetMethodsString().c_str(), route->path.c_str());
+    routes_.emplace(route->path, route);
+    static_routes_.emplace(route->path, route);
     return true;
 }
 
@@ -107,8 +107,8 @@ bool Router::AddRegexRoute(RegexRoute* route) {
     if (!CheckRoute(route)) {
         return false;
     }
-    LDebug("Add  regex route: {:>4} {}", route->GetMethodsString(), route->path);
-    routes_.emplace(route->id, route);
+    svr_->logger()->Debug(LOG_CTX, "Add  regex route: %4s %s", route->GetMethodsString().c_str(), route->path.c_str());
+    routes_.emplace(route->path, route);
     regex_routes_.emplace_back(route);
     return true;
 }
@@ -127,7 +127,7 @@ bool Router::AddRegexRoute(const std::string& path, int methods,
         return true;
     }
     catch (const REGEX_NAMESPACE::regex_error& ex) {
-        LError("Invalid regex pattern: {}, can not add to router. {}", path, ex.what());
+        svr_->logger()->Error(LOG_CTX, "Invalid regex pattern: %s, can not add to router. %s", path.c_str(), ex.what());
         return false;
     }
 }
@@ -146,7 +146,7 @@ bool Router::AddRegexRoute(const std::string& path, int methods,
         return true;
     }
     catch (const REGEX_NAMESPACE::regex_error& ex) {
-        LError("Invalid regex pattern: {}, can not add to router. {}", path, ex.what());
+        svr_->logger()->Error(LOG_CTX, "Invalid regex pattern: %s, can not add to router. %s", path.c_str(), ex.what());
         return false;
     }
 }
@@ -168,23 +168,16 @@ void Router::set_cb_invalid_method(Route::ResponseCallback cb) {
  */
 bool Router::CheckRoute(Route* route) const {
     if (route->path.empty()) {
-        LError("Empty path, can not add to router");
+        svr_->logger()->Error(LOG_CTX, "Empty path, can not add to router");
         return false;
     }
     if (!(route->methods & 0x1ff)) {
-        LError("Invalid http methods, can not add to router");
+        svr_->logger()->Error(LOG_CTX, "Invalid http methods, can not add to router");
         return false;
     }
-    route->id = svr_->XXH64(route->path);
-    auto iter = routes_.find(route->id);
+    auto iter = routes_.find(route->path);
     if (iter != routes_.end()) {
-        if (iter->second->path == route->path) {
-            LError("Duplicate path: {}, can not add to router", route->path);
-        }
-        else {
-            LCritical("Duplicate xxh64 hash value. path1: {}, path2: {}, hash: {}",
-                      iter->second->path, route->path, route->id);
-        }
+        svr_->logger()->Error(LOG_CTX, "Duplicate path: %s, can not add to router", route->path.c_str());
         return false;
     }
     return true;
@@ -193,8 +186,8 @@ bool Router::CheckRoute(Route* route) const {
 /**
  * @brief 获取路由.
  */
-const Route* Router::GetRoute(uint64_t path_id) const {
-    auto find_iter = routes_.find(path_id);
+const Route* Router::GetRoute(const std::string& path) const {
+    auto find_iter = routes_.find(path);
     if (find_iter != routes_.end()) {
         return find_iter->second;
     }
@@ -207,7 +200,7 @@ const Route* Router::GetRoute(uint64_t path_id) const {
 bool Router::HitRoute(Request& req, Response& res) const {
     /* 检查是否有匹配的路由 */
     Route* route = nullptr;
-    auto iter = static_routes_.find(req.path_id());
+    auto iter = static_routes_.find(req.path());
     if (iter != static_routes_.end()) {
         route = iter->second;
     }
@@ -235,7 +228,7 @@ bool Router::HitRoute(Request& req, Response& res) const {
             }
         }
         catch (const std::exception& ex) {
-            LError("regex_match error, path: {}, err_msg: {}", req.path(), ex.what());
+            svr_->logger()->Error(LOG_CTX, "regex_match error, path: %s, err_msg: %s", req.path().c_str(), ex.what());
             cb_invalid_path_(req, res);
             return false;
         }

@@ -30,6 +30,7 @@ public:
 
 private:
     void ProcessReadError(beast::error_code ec);
+    void ProcessWriteError(beast::error_code ec);
     bool PreHandleRequest();
     void HandleRequest();
     void SendResponse();

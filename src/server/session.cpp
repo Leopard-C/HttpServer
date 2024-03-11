@@ -1,11 +1,11 @@
 #include "session.h"
 #include "server/http_server.h"
+#include "server/logger.h"
 #include "server/request_raw.h"
 #include "server/router.h"
-#include <chrono>
+#include "server/util/format_time.h"
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>
-#include <log/logger.h>
 
 namespace ic {
 namespace server {
@@ -13,11 +13,13 @@ namespace server {
 Session::Session(tcp::socket&& socket, HttpServer* svr)
     : svr_(svr), stream_(std::move(socket))
 {
-    LDebug("New session");
+    svr_->logger()->Debug(LOG_CTX, "New session from %s:%u",
+        stream_.socket().remote_endpoint().address().to_string().c_str(),
+        (unsigned int)stream_.socket().remote_endpoint().port());
 }
 
 Session::~Session() {
-    LDebug("Destroy session");
+    svr_->logger()->Debug(LOG_CTX, "Destroy session");
 }
 
 void Session::Run() {
@@ -28,7 +30,6 @@ void Session::Run() {
 }
 
 void Session::DoRead() {
-    LTrace("DoRead ({})", stream_.socket().native_handle());
     parser_ = std::make_shared<http::request_parser<http::string_body>>();
     parser_->eager(true);
     /* 限制body大小 */
@@ -46,7 +47,6 @@ void Session::DoRead() {
 }
 
 void Session::OnRead(beast::error_code ec, size_t bytes_transferred) {
-    LTrace("OnRead ({})", stream_.socket().native_handle());
     res_ = std::make_shared<Response>(svr_);
 
     boost::ignore_unused(bytes_transferred);
@@ -70,27 +70,24 @@ void Session::OnRead(beast::error_code ec, size_t bytes_transferred) {
 }
 
 void Session::ProcessReadError(beast::error_code ec) {
-    LTrace("OnRead error, {}", ec.message());
     if (ec == beast::error::timeout) {
-        return;
+        svr_->logger()->Debug(LOG_CTX, "OnRead error, %s", ec.message().c_str());
     }
     else if (ec == http::error::end_of_stream) {
-        return DoClose();
+        DoClose();
     }
     else if (ec == http::error::body_limit) {
-        LError("Body limit");
+        svr_->logger()->Error(LOG_CTX, "Body limit");
         res_->SetStringBody(413, "body limit exceeded", "text/plain");
         close_ = true;  /* 返回413后关闭连接，不然会出现 http:error::bad_method 错误 */
-        return SendResponse();
+        SendResponse();
     }
     else {
-        LError("OnRead error, {}", ec.message());
-        return;
+        svr_->logger()->Error(LOG_CTX, "OnRead error, %s", ec.message().c_str());
     }
 }
 
 void Session::OnWrite(bool close, beast::error_code ec, size_t bytes_transferred) {
-    LTrace("OnWrite ({})", stream_.socket().native_handle());
     boost::ignore_unused(bytes_transferred);
     if (string_res_) {
         string_res_.reset();
@@ -102,8 +99,7 @@ void Session::OnWrite(bool close, beast::error_code ec, size_t bytes_transferred
         file_res_.reset();
     }
     if (ec) {
-        LError("OnWrite error, {}", ec.message());
-        return;
+        return ProcessWriteError(ec);
     }
     if (close || close_) {
         return DoClose();
@@ -111,12 +107,20 @@ void Session::OnWrite(bool close, beast::error_code ec, size_t bytes_transferred
     DoRead();
 }
 
+void Session::ProcessWriteError(beast::error_code ec) {
+    if (ec == beast::error::timeout) {
+        svr_->logger()->Debug(LOG_CTX, "OnWrite error, %s", ec.message().c_str());
+    }
+    else {
+        svr_->logger()->Error(LOG_CTX, "OnRead error, %s", ec.message().c_str());
+    }
+}
+
 void Session::DoClose() {
-    LTrace("DoClose ({})", stream_.socket().native_handle());
     beast::error_code ec;
     stream_.socket().shutdown(tcp::socket::shutdown_both, ec);
     if (ec) {
-        LError("Socket.ShutdownBoth failed, {}", ec.message());
+        svr_->logger()->Error(LOG_CTX, "Socket.ShutdownBoth failed, %s", ec.message().c_str());
     }
 }
 
@@ -135,15 +139,15 @@ bool Session::PreHandleRequest() {
     }
 
     /* 解析body */
-    if (!req_->ParseBody()) {
-        req_->LogAccess();
+    bool ok = req_->ParseBody();
+    if (svr_->config().log_access_verbose()) {
+        req_->LogAccessVerbose();
+    }
+    if (!ok) {
         res_->SetBadRequest("Bad request!");
-        LError("Bad request. Parse request body failed");
+        svr_->logger()->Error(LOG_CTX, "Bad request. Parse request body failed");
         return false;
     }
-
-    /* 打印日志 */
-    req_->LogAccess();
 
     /* 请求拦截器(2) */
     if (svr_->cb_before_handle_request_ && !svr_->cb_before_handle_request_(*req_, *res_)) {
@@ -183,6 +187,7 @@ void Session::SendFileBodyResponse() {
         res_->SetStringBody(404U); // return 404 Not Found
         return SendStringBodyResponse();
     }
+
     file_res_ = std::make_shared<http::response<http::file_body>>();
     file_res_->keep_alive(res_->keep_alive_);
     file_res_->result(res_->status_code_);
@@ -191,6 +196,17 @@ void Session::SendFileBodyResponse() {
         file_res_->set(p.first, p.second);
     }
     file_res_->prepare_payload();
+
+    /* 打印请求日志 */
+    if (svr_->config().log_access()) {
+        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s -- %u %" PRIu64 " %s",
+            to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
+            req_->client_real_ip_.c_str(), res_->status_code_, file.size(),
+            util::format_duration(req_->time_consumed_total_).c_str()
+        );
+    }
+
+    /* 发送响应内容 */
     file_serializer_ = std::make_shared<http::response_serializer<http::file_body>>(*file_res_);
     http::async_write(
         stream_,
@@ -211,6 +227,17 @@ void Session::SendStringBodyResponse() {
     for (const auto& p : res_->headers_) {
         string_res_->set(p.first, p.second);
     }
+
+    /* 打印请求日志 */
+    if (svr_->config().log_access()) {
+        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s -- %u %" PRIu64 " %s",
+            to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
+            req_->client_real_ip_.c_str(), res_->status_code_, (uint64_t)string_res_->body().size(),
+            util::format_duration(req_->time_consumed_total_).c_str()
+        );
+    }
+
+    /* 发送响应内容 */
     http::async_write(
         stream_,
         *string_res_,

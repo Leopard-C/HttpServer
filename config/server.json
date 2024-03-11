@@ -2,9 +2,9 @@
     "ip": "0.0.0.0",
     "port": 8099,
     "num_threads": 4,
-    "xxh64_seed": 1001,
     "version": "1.0.0",
     "tcp_stream_timeout_ms": 15000,
     "body_limit": 11534334,
-    "log_access_verbose": true
+    "log_access": true,
+    "log_access_verbose": false
 }

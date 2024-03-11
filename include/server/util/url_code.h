@@ -18,6 +18,7 @@ namespace util {
  * @brief URL编码.
  * 
  * @param  str 输入字符串
+ * @param  len 输入字符串长度
  * @return std::string 编码结果
  */
 std::string url_encode(const char* str, size_t len);
@@ -26,6 +27,7 @@ std::string url_encode(const char* str, size_t len);
  * @brief URL解码.
  * 
  * @param[in]  str 输入字符串
+ * @param[in]  len 输入字符串长度
  * @param[out] result 解码结果
  * @retval true  成功
  * @retval false 失败

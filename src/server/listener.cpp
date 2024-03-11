@@ -2,7 +2,6 @@
 #include "session.h"
 #include "server/http_server.h"
 #include <boost/asio/strand.hpp>
-#include <log/logger.h>
 
 namespace ic {
 namespace server {
@@ -17,29 +16,30 @@ bool Listener::Run() {
 
     acceptor_.open(endpoint_.protocol(), ec);
     if (ec) {
-        LError("acceptor open protocol failed, {}", ec.message());
+        svr_->logger()->Error(LOG_CTX, "acceptor open protocol failed, %s", ec.message().c_str());
         return false;
     }
 
     acceptor_.set_option(net::socket_base::reuse_address(true), ec);
     if (ec) {
-        LError("reuse address failed, {}", ec.message());
+        svr_->logger()->Error(LOG_CTX, "reuse address failed, %s", ec.message().c_str());
         return false;
     }
 
     acceptor_.bind(endpoint_, ec);
     if (ec) {
-        LError("Bind address {}:{} failed", endpoint_.address().to_string(), endpoint_.port());
+        svr_->logger()->Error(LOG_CTX, "bind address %s:%u failed",
+            endpoint_.address().to_string().c_str(), (unsigned int)endpoint_.port());
         return false;
     }
 
     acceptor_.listen(net::socket_base::max_listen_connections, ec);
     if (ec) {
-        LError("Listen failed, max_listen_connections:{}", int(net::socket_base::max_listen_connections));
+        svr_->logger()->Error(LOG_CTX, "listen failed, max_listen_connections:%d", (int)net::socket_base::max_listen_connections);
         return false;
     }
 
-    LInfo("Listening on {}:{} ...", endpoint_.address().to_string(), endpoint_.port());
+    svr_->logger()->Info(LOG_CTX, "Listening on %s:%u ...", endpoint_.address().to_string().c_str(), (unsigned int)endpoint_.port());
     DoAccept();
     return true;
 }
@@ -53,11 +53,11 @@ void Listener::DoAccept() {
 
 void Listener::OnAccept(beast::error_code ec, tcp::socket socket) {
     if (!acceptor_.is_open()) {
-        LCritical("Acceptor is not opened");
+        svr_->logger()->Error(LOG_CTX, "Acceptor is not opened");
         return;
     }
     if (ec) {
-        LCritical("OnAccept error, {}", ec.message());
+        svr_->logger()->Error(LOG_CTX, "OnAccept error, %s", ec.message().c_str());
         return;
     }
     std::make_shared<Session>(std::move(socket), svr_)->Run();

@@ -21,10 +21,13 @@
  *       + GET_BODY_PARAM_STR(_default, ...)       // (1)application/x-www-form-urlencoded
  *       + ...
  * 
- *       + GET_JSON_PARAM_STR(_default, ...)       // (2)application/json
+ *       + GET_FORM_PARAM_STR(_default, ...)       // (2)multipart/form-data
  *       + ...
  * 
- *       + GET_BODY_PARAM_STR_EX(_default, ...)    // 自动选择(1)或(2)，即接口同时支持这两种类型的请求
+ *       + GET_JSON_PARAM_STR(_default, ...)       // (3)application/json
+ *       + ...
+ * 
+ *       + GET_BODY_PARAM_STR_EX(_default, ...)    // 自动选择(1)或(2)或(3)，即接口同时支持这三种类型的请求
  *       + ...
  * 
  *    使用示例:
@@ -44,6 +47,7 @@
 
 #define GET_URL_PARAM_STR(_default, ...)         __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_url_param_str, std::string, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_STR(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_str, std::string, _default, __VA_ARGS__)
+#define GET_FORM_PARAM_STR(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_form_param_str, std::string, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_STR(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_str, std::string, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_STR_ARRAY(_default, ...)  __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_str_array, std::vector<std::string>, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_STR_EX(_default, ...)     __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_str_ex, std::string, _default, __VA_ARGS__)
@@ -52,6 +56,8 @@
 #define GET_URL_PARAM_STR_UPPER(_default, ...)         __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_url_param_str_upper, std::string, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_STR_LOWER(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_str_lower, std::string, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_STR_UPPER(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_str_upper, std::string, _default, __VA_ARGS__)
+#define GET_FORM_PARAM_STR_LOWER(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_form_param_str_lower, std::string, _default, __VA_ARGS__)
+#define GET_FORM_PARAM_STR_UPPER(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_form_param_str_upper, std::string, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_STR_LOWER(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_str_lower, std::string, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_STR_UPPER(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_str_upper, std::string, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_STR_LOWER_ARRAY(_default, ...)  __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_str_lower_array, std::vector<std::string>, _default, __VA_ARGS__)
@@ -61,36 +67,42 @@
 
 #define GET_URL_PARAM_BOOL(_default, ...)         __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_url_param_bool, bool, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_BOOL(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_bool, bool, _default, __VA_ARGS__)
+#define GET_FORM_PARAM_BOOL(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_form_param_bool, bool, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_BOOL(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_bool, bool, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_BOOL_ARRAY(_default, ...)  __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_bool_array, std::vector<int32_t>, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_BOOL_EX(_default, ...)     __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_bool_ex, bool, _default, __VA_ARGS__)
 
 #define GET_URL_PARAM_INT(_default, ...)         __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_url_param_int, int32_t, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_INT(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_int, int32_t, _default, __VA_ARGS__)
+#define GET_FORM_PARAM_INT(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_form_param_int, int32_t, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_INT(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_int, int32_t, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_INT_ARRAY(_default, ...)  __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_int_array, std::vector<int32_t>, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_INT_EX(_default, ...)     __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_int_ex, int32_t, _default, __VA_ARGS__)
 
 #define GET_URL_PARAM_UINT(_default, ...)         __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_url_param_uint, uint32_t, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_UINT(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_uint, uint32_t, _default, __VA_ARGS__)
+#define GET_FORM_PARAM_UINT(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_form_param_uint, uint32_t, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_UINT(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_uint, uint32_t, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_UINT_ARRAY(_default, ...)  __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_uint_array, std::vector<uint32_t>, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_UINT_EX(_default, ...)     __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_uint_ex, uint32_t, _default, __VA_ARGS__)
 
 #define GET_URL_PARAM_INT64(_default, ...)         __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_url_param_int64, int64_t, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_INT64(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_int64, int64_t, _default, __VA_ARGS__)
+#define GET_FORM_PARAM_INT64(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_form_param_int64, int64_t, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_INT64(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_int64, int64_t, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_INT64_ARRAY(_default, ...)  __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_int64_array, std::vector<int64_t>, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_INT64_EX(_default, ...)     __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_int64_ex, int64_t, _default, __VA_ARGS__)
 
 #define GET_URL_PARAM_UINT64(_default, ...)         __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_url_param_uint64, uint64_t, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_UINT64(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_uint64, uint64_t, _default, __VA_ARGS__)
+#define GET_FORM_PARAM_UINT64(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_form_param_uint64, uint64_t, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_UINT64(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_uint64, uint64_t, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_UINT64_ARRAY(_default, ...)  __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_uint64_array, std::vector<uint64_t>, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_UINT64_EX(_default, ...)     __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_uint64_ex, uint64_t, _default, __VA_ARGS__)
 
 #define GET_URL_PARAM_DOUBLE(_default, ...)         __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_url_param_double, double, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_DOUBLE(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_double, double, _default, __VA_ARGS__)
+#define GET_FORM_PARAM_DOUBLE(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_form_param_double, double, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_DOUBLE(_default, ...)        __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_double, double, _default, __VA_ARGS__)
 #define GET_JSON_PARAM_DOUBLE_ARRAY(_default, ...)  __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_json_param_double_array, std::vector<double>, _default, __VA_ARGS__)
 #define GET_BODY_PARAM_DOUBLE_EX(_default, ...)     __IC_MACRO_VFUNC(__GET_PARAM_TYPE, __get_body_param_double_ex, double, _default, __VA_ARGS__)
@@ -102,6 +114,7 @@ namespace helper {
 
 bool __get_url_param_str(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
 bool __get_body_param_str(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
+bool __get_form_param_str(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
 bool __get_json_param_str(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
 bool __get_json_param_str_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<std::string>& value, const std::vector<std::string>& default_value);
 bool __get_body_param_str_ex(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
@@ -110,6 +123,8 @@ bool __get_url_param_str_lower(Request& req, Response& res, Json::Value& root, c
 bool __get_url_param_str_upper(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
 bool __get_body_param_str_lower(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
 bool __get_body_param_str_upper(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
+bool __get_form_param_str_lower(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
+bool __get_form_param_str_upper(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
 bool __get_json_param_str_lower(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
 bool __get_json_param_str_upper(Request& req, Response& res, Json::Value& root, const std::string& name, std::string& value, const std::string& default_value);
 bool __get_json_param_str_lower_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<std::string>& value, const std::vector<std::string>& default_value);
@@ -119,36 +134,43 @@ bool __get_body_param_str_upper_ex(Request& req, Response& res, Json::Value& roo
 
 bool __get_url_param_bool(Request& req, Response& res, Json::Value& root, const std::string& name, bool& value, bool default_value);
 bool __get_body_param_bool(Request& req, Response& res, Json::Value& root, const std::string& name, bool& value, bool default_value);
+bool __get_form_param_bool(Request& req, Response& res, Json::Value& root, const std::string& name, bool& value, bool default_value);
 bool __get_json_param_bool(Request& req, Response& res, Json::Value& root, const std::string& name, bool& value, bool default_value);
+// use std::vector<int32_t> instead of std::vector<bool>
 bool __get_json_param_bool_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<int32_t>& value, const std::vector<int32_t>& default_value);
 bool __get_body_param_bool_ex(Request& req, Response& res, Json::Value& root, const std::string& name, bool& value, bool default_value);
 
 bool __get_url_param_int(Request& req, Response& res, Json::Value& root, const std::string& name, int32_t& value, int32_t default_value);
 bool __get_body_param_int(Request& req, Response& res, Json::Value& root, const std::string& name, int32_t& value, int32_t default_value);
+bool __get_form_param_int(Request& req, Response& res, Json::Value& root, const std::string& name, int32_t& value, int32_t default_value);
 bool __get_json_param_int(Request& req, Response& res, Json::Value& root, const std::string& name, int32_t& value, int32_t default_value);
 bool __get_json_param_int_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<int32_t>& value, const std::vector<int32_t>& default_value);
 bool __get_body_param_int_ex(Request& req, Response& res, Json::Value& root, const std::string& name, int32_t& value, int32_t default_value);
 
 bool __get_url_param_uint(Request& req, Response& res, Json::Value& root, const std::string& name, uint32_t& value, uint32_t default_value);
 bool __get_body_param_uint(Request& req, Response& res, Json::Value& root, const std::string& name, uint32_t& value, uint32_t default_value);
+bool __get_form_param_uint(Request& req, Response& res, Json::Value& root, const std::string& name, uint32_t& value, uint32_t default_value);
 bool __get_json_param_uint(Request& req, Response& res, Json::Value& root, const std::string& name, uint32_t& value, uint32_t default_value);
 bool __get_json_param_uint_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<uint32_t>& value, const std::vector<uint32_t>& default_value);
 bool __get_body_param_uint_ex(Request& req, Response& res, Json::Value& root, const std::string& name, uint32_t& value, uint32_t default_value);
 
 bool __get_url_param_int64(Request& req, Response& res, Json::Value& root, const std::string& name, int64_t& value, int64_t default_value);
 bool __get_body_param_int64(Request& req, Response& res, Json::Value& root, const std::string& name, int64_t& value, int64_t default_value);
+bool __get_form_param_int64(Request& req, Response& res, Json::Value& root, const std::string& name, int64_t& value, int64_t default_value);
 bool __get_json_param_int64(Request& req, Response& res, Json::Value& root, const std::string& name, int64_t& value, int64_t default_value);
 bool __get_json_param_int64_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<int64_t>& value, const std::vector<int64_t>& default_value);
 bool __get_body_param_int64_ex(Request& req, Response& res, Json::Value& root, const std::string& name, int64_t& value, int64_t default_value);
 
 bool __get_url_param_uint64(Request& req, Response& res, Json::Value& root, const std::string& name, uint64_t& value, uint64_t default_value);
 bool __get_body_param_uint64(Request& req, Response& res, Json::Value& root, const std::string& name, uint64_t& value, uint64_t default_value);
+bool __get_form_param_uint64(Request& req, Response& res, Json::Value& root, const std::string& name, uint64_t& value, uint64_t default_value);
 bool __get_json_param_uint64(Request& req, Response& res, Json::Value& root, const std::string& name, uint64_t& value, uint64_t default_value);
 bool __get_json_param_uint64_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<uint64_t>& value, const std::vector<uint64_t>& default_value);
 bool __get_body_param_uint64_ex(Request& req, Response& res, Json::Value& root, const std::string& name, uint64_t& value, uint64_t default_value);
 
 bool __get_url_param_double(Request& req, Response& res, Json::Value& root, const std::string& name, double& value, double default_value);
 bool __get_body_param_double(Request& req, Response& res, Json::Value& root, const std::string& name, double& value, double default_value);
+bool __get_form_param_double(Request& req, Response& res, Json::Value& root, const std::string& name, double& value, double default_value);
 bool __get_json_param_double(Request& req, Response& res, Json::Value& root, const std::string& name, double& value, double default_value);
 bool __get_json_param_double_array(Request& req, Response& res, Json::Value& root, const std::string& name, std::vector<double>& value, const std::vector<double>& default_value);
 bool __get_body_param_double_ex(Request& req, Response& res, Json::Value& root, const std::string& name, double& value, double default_value);

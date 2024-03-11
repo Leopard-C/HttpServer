@@ -27,10 +27,10 @@ public:
      * @details   "ip": "0.0.0.0",
      * @details   "port": 8099,
      * @details   "num_threads": 2,
-     * @details   "xxh64_seed": 268435455,
      * @details   "version": "1.0.0",
      * @details   "tcp_stream_timeout_ms": 15000,
      * @details   "body_limit": 11534334,
+     * @details   "log_access": true
      * @details   "log_access_verbose": false
      * @details }
      */
@@ -38,8 +38,10 @@ public:
 
     /**
      * @brief 将配置写入json文件.
+     * 
+     * @param filename 文件名称，如果为空，将使用调用`ReadFromFile`时传递的`filename`.
      */
-    bool WriteToFile() const;
+    bool WriteToFile(std::string filename = "") const;
 
     /**
      * @brief 写入json对象中.
@@ -50,19 +52,20 @@ public:
     unsigned int num_threads() const { return num_threads_; }
     unsigned int port() const { return port_; }
     const std::string& ip() const { return ip_; }
+    bool log_access() const { return log_access_; }
     bool log_access_verbose() const { return log_access_verbose_; }
     unsigned int tcp_stream_timeout_ms() const { return tcp_stream_timeout_ms_; }
     uint64_t body_limit() const { return body_limit_; }
-    uint64_t xxh64_seed() const { return xxh64_seed_; }
     const std::string& version() const { return version_; }
 
     void set_num_threads(unsigned int num_threads) { num_threads_ = num_threads; }
     void set_port(unsigned int port) { port_ = port; }
     void set_ip(const std::string& ip) { ip_ = ip; }
+    void set_address(const std::string& ip, unsigned int port) { ip_ = ip; port_ = port; }
+    void set_log_access(bool log_access) { log_access_ = log_access; }
     void set_log_access_verbose(bool verbose) { log_access_verbose_ = verbose; }
     void set_tcp_stream_timeout_ms(unsigned int timeout_ms) { tcp_stream_timeout_ms_ = timeout_ms; }
     void set_body_limit(uint64_t body_limit) { body_limit_ = body_limit; }
-    void set_xxh64_seed(uint64_t seed) { xxh64_seed_ = seed; }
     void set_version(const std::string& version) { version_ = version; }
 
 private:
@@ -76,7 +79,12 @@ private:
     std::string ip_{"0.0.0.0"};
 
     /**
-     * @brief 日志记录时，是否记录详细信息.
+     * @brief 是否打印用户请求.
+     */
+    bool log_access_{true};
+
+    /**
+     * @brief 是否记录详细的用户请求信息.
      *
      * @details 建议调试时才设为true，正式环境设为false
      */
@@ -87,9 +95,6 @@ private:
 
     /** body大小限制(单位:字节)，默认11MB */
     uint64_t body_limit_{1024 * 1024 * 11};
-
-    /** XXH64摘要算法种子值 */
-    uint64_t xxh64_seed_{0xfffffff};
 
     /** HTTP Server版本号 */
     std::string version_{"1.0.0"};

@@ -105,7 +105,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>..\include;..\third_party\jsoncpp\include;..\third_party\jsoncpp\include\jsoncpp;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,7 +127,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>..\include;..\third_party\jsoncpp\include;..\third_party\jsoncpp\include\jsoncpp;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -150,7 +150,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>..\include;..\third_party\jsoncpp\include;..\third_party\jsoncpp\include\jsoncpp;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,7 +172,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>..\include;..\third_party\jsoncpp\include;..\third_party\jsoncpp\include\jsoncpp;..\third_party\spdlog-wrapper\spdlog\include;..\third_party\spdlog-wrapper\spdlog-wrapper\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -188,11 +188,22 @@
   <ItemGroup>
     <None Include="..\README.md" />
     <None Include=".editorconfig" />
+    <None Include="jsoncpp\json_valueiterator.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\jsoncpp\json\allocator.h" />
+    <ClInclude Include="..\include\jsoncpp\json\assertions.h" />
+    <ClInclude Include="..\include\jsoncpp\json\config.h" />
+    <ClInclude Include="..\include\jsoncpp\json\forwards.h" />
+    <ClInclude Include="..\include\jsoncpp\json\json.h" />
+    <ClInclude Include="..\include\jsoncpp\json\json_features.h" />
+    <ClInclude Include="..\include\jsoncpp\json\reader.h" />
+    <ClInclude Include="..\include\jsoncpp\json\value.h" />
+    <ClInclude Include="..\include\jsoncpp\json\version.h" />
+    <ClInclude Include="..\include\jsoncpp\json\writer.h" />
     <ClInclude Include="..\include\server\config.h" />
     <ClInclude Include="..\include\server\content_type.h" />
-    <ClInclude Include="..\include\server\form_item.h" />
+    <ClInclude Include="..\include\server\form_param.h" />
     <ClInclude Include="..\include\server\helper\helper.h" />
     <ClInclude Include="..\include\server\helper\param_check.h" />
     <ClInclude Include="..\include\server\helper\param_get.h" />
@@ -200,6 +211,7 @@
     <ClInclude Include="..\include\server\http_cookie.h" />
     <ClInclude Include="..\include\server\http_method.h" />
     <ClInclude Include="..\include\server\http_server.h" />
+    <ClInclude Include="..\include\server\logger.h" />
     <ClInclude Include="..\include\server\request.h" />
     <ClInclude Include="..\include\server\request_raw.h" />
     <ClInclude Include="..\include\server\response.h" />
@@ -211,22 +223,23 @@
     <ClInclude Include="..\include\server\util\format_time.h" />
     <ClInclude Include="..\include\server\util\gmt_time.h" />
     <ClInclude Include="..\include\server\util\hash\md5.h" />
-    <ClInclude Include="..\include\server\util\hash\xxh64.h" />
     <ClInclude Include="..\include\server\util\io.h" />
     <ClInclude Include="..\include\server\util\mime.h" />
     <ClInclude Include="..\include\server\util\path.h" />
     <ClInclude Include="..\include\server\util\string\isprint.h" />
     <ClInclude Include="..\include\server\util\string\memmem.h" />
-    <ClInclude Include="..\include\server\util\string\split.h" />
-    <ClInclude Include="..\include\server\util\string\split_key_value.h" />
     <ClInclude Include="..\include\server\util\string\trim.h" />
     <ClInclude Include="..\include\server\util\thread.h" />
     <ClInclude Include="..\include\server\util\url_code.h" />
+    <ClInclude Include="jsoncpp\json_tool.h" />
     <ClInclude Include="server\listener.h" />
     <ClInclude Include="server\multipart_parser.h" />
     <ClInclude Include="server\session.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="jsoncpp\json_reader.cpp" />
+    <ClCompile Include="jsoncpp\json_value.cpp" />
+    <ClCompile Include="jsoncpp\json_writer.cpp" />
     <ClCompile Include="server\config.cpp" />
     <ClCompile Include="server\content_type.cpp" />
     <ClCompile Include="server\helper\helper.cpp" />
@@ -236,6 +249,7 @@
     <ClCompile Include="server\http_method.cpp" />
     <ClCompile Include="server\http_server.cpp" />
     <ClCompile Include="server\listener.cpp" />
+    <ClCompile Include="server\logger.cpp" />
     <ClCompile Include="server\multipart_parser.cpp" />
     <ClCompile Include="server\request.cpp" />
     <ClCompile Include="server\response.cpp" />
@@ -248,7 +262,6 @@
     <ClCompile Include="server\util\format_time.cpp" />
     <ClCompile Include="server\util\gmt_time.cpp" />
     <ClCompile Include="server\util\hash\md5.cpp" />
-    <ClCompile Include="server\util\hash\xxh64.cpp" />
     <ClCompile Include="server\util\io.cpp" />
     <ClCompile Include="server\util\mime.cpp" />
     <ClCompile Include="server\util\path.cpp" />

@@ -1,5 +1,4 @@
 #include "server/util/path.h"
-#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
@@ -59,7 +58,7 @@ std::string get_bin_filename() {
 }
 
 /**
- * @brief 获取可执行文件目录.
+ * @brief 获取可执行文件目录(以斜杠'/'结尾).
  */
 std::string get_bin_dir() {
     std::string bin_filepath = get_bin_filepath();
@@ -88,53 +87,36 @@ std::string format_dir(const std::string& dir) {
 }
 
 /**
- * @brief 格式化目录路径为Windows格式（反斜杠）.
- * 
- * @details 分隔符全部替换为'\'，且以'\'结尾.
- */
-std::string format_dir_windows(const std::string& dir) {
-#ifdef _WIN32
-    std::string _dir = format_path(dir);
-    if (!_dir.empty() && _dir.back() != '\\') {
-        _dir += '\\';
-    }
-    return _dir;
-#else
-    return dir;
-#endif
-}
-
-/**
  * @brief 格式化路径为UNIX格式（正斜杠）.
  */
-std::string format_path(const std::string& dir) {
+std::string format_path(const std::string& path) {
 #ifdef _WIN32
-    std::string _dir = dir;
-    for (char& c : _dir) {
+    std::string _path = path;
+    for (char& c : _path) {
         if (c == '\\') {
             c = '/';
         }
     }
-    return _dir;
+    return _path;
 #else
-    return dir;
+    return path;
 #endif
 }
 
 /**
  * @brief 格式化路径为Windows格式（反斜杠）.
  */
-std::string format_path_windows(const std::string& dir) {
+std::string format_path_windows(const std::string& path) {
 #ifdef _WIN32
-    std::string _dir = dir;
-    for (char& c : _dir) {
+    std::string _path = path;
+    for (char& c : _path) {
         if (c == '/') {
             c = '\\';
         }
     }
-    return _dir;
+    return _path;
 #else
-    return dir;
+    return path;
 #endif
 }
 

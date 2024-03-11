@@ -1,10 +1,9 @@
 #include "server/config.h"
 #include <fstream>
 #include <jsoncpp/json/json.h>
-#include <log/logger.h>
 
 #define ERROR_KEY(key) \
-    LError("Invalid key @[{}] in configuration file '{}'", key, filename);\
+    fprintf(stderr, "Invalid key @[%s] in configuration file '%s'", key, filename.c_str());\
     return false
 
 #define CHECK_STRING(node, key, value) \
@@ -50,24 +49,24 @@ bool HttpServerConfig::ReadFromFile(const std::string& filename) {
     filename_ = filename;
     std::ifstream ifs(filename);
     if (!ifs) {
-        LError("Open json file '{}' failed", filename);
+        fprintf(stderr, "Open json file '%s' failed", filename.c_str());
         return false;
     }
 
     Json::Value root;
     Json::Reader reader;
     if (!reader.parse(ifs, root, false)) {
-        LError("Parse json file '{}' failed", filename);
+        fprintf(stderr, "Parse json file '%s' failed", filename.c_str());
         return false;
     }
 
     CHECK_UINT(root, "num_threads", num_threads_);
     CHECK_UINT(root, "port", port_);
     CHECK_STRING(root, "ip", ip_);
+    CHECK_BOOL(root, "log_access", log_access_);
     CHECK_BOOL(root, "log_access_verbose", log_access_verbose_);
     CHECK_UINT(root, "tcp_stream_timeout_ms", tcp_stream_timeout_ms_);
     CHECK_UINT64(root, "body_limit", body_limit_);
-    CHECK_UINT64(root, "xxh64_seed", xxh64_seed_);
     CHECK_STRING(root, "version", version_);
 
     if (port_ > 65535) {
@@ -82,12 +81,21 @@ bool HttpServerConfig::ReadFromFile(const std::string& filename) {
 
 /**
  * @brief 将配置写入json文件.
+ * 
+ * @param filename 文件名称，如果为空，将使用调用`ReadFromFile`时传递的`filename`.
  */
-bool HttpServerConfig::WriteToFile() const {
+bool HttpServerConfig::WriteToFile(std::string filename/* = ""*/) const {
+    if (filename.empty()) {
+        if (filename_.empty()) {
+            fprintf(stderr, "Filename is empty");
+            return false;
+        }
+        filename = filename_;
+    }
     std::string content = ToJson().toStyledString();
-    std::ofstream ofs(filename_);
+    std::ofstream ofs(filename);
     if (!ofs) {
-        LError("Open file failed. '{}'", filename_);
+        fprintf(stderr, "Open file failed. '%s'", filename.c_str());
         return false;
     }
     ofs << content;
@@ -105,7 +113,6 @@ Json::Value HttpServerConfig::ToJson() const {
     root["log_access_verbose"] = log_access_verbose_;
     root["tcp_stream_timeout_ms"] = tcp_stream_timeout_ms_;
     root["body_limit"] = body_limit_;
-    root["xxh64_seed"] = xxh64_seed_;
     root["version"] = version_;
     return root;
 }

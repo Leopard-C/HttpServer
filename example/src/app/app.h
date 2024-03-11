@@ -15,11 +15,6 @@ public:
 
 private:
     /**
-     * @brief 初始化日志环境.
-     */
-    bool InitLogger();
-
-    /**
      * @brief 初始化HttpServer.
      */
     bool InitHttpServer();

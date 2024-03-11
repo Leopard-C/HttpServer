@@ -4,7 +4,6 @@
 #  include <signal.h>
 #  include <unistd.h>
 #endif
-#include <log/logger.h>
 #include "app/app.h"
 #include "singleton/singleton.h"
 

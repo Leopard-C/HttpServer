@@ -6,6 +6,7 @@
 #include <server/util/path.h>
 #include <server/util/io.h>
 #include "dto/user_dto.h"
+#include "status/status_code.h"
 #include "manager/user_manager.h"
 #include "singleton/singleton.h"
 
@@ -24,7 +25,7 @@ void UserController::Login(Request& req, Response& res) {
     auto user_mgr = ic::Singleton<UserManager>::GetInstance();
     std::string token;
     if (!user_mgr->Login(dto.uid, dto.password_md5, 600, &token)) {
-        RETURN_CODE(ic::server::status::base::kWrongUserOrPassword);
+        RETURN_CODE(ic::server::status::kWrongUserOrPassword);
     }
 
     /* 将token写入cookie中，之后的请求会自动携带 */
@@ -93,16 +94,16 @@ void UserController::UploadAvatar(Request& req, Response& res) {
     API_INIT();
     using namespace ic::server;
 
-    const FormItem* item = req.GetFormItem("image");
-    if (!item) {
+    const FormParam* image = req.GetFormParam("image");
+    if (!image) {
         RETURN_MISSING_PARAM("image");
     }
-    if (!item->is_file()) {
+    if (!image->is_file()) {
         RETURN_INVALID_PARAM_MSG("param [image] is not a file object");
     }
 
-    std::string md5 = util::hash::md5_lower(item->content().data(), item->content().size());
-    std::string ext = util::path::get_ext(item->filename());
+    std::string md5 = util::hash::md5_lower(image->content().data(), image->content().size());
+    std::string ext = util::path::get_ext(image->filename());
     if (ext.empty()) {
         RETURN_INVALID_PARAM_MSG("filename is invalid");
     }
@@ -112,8 +113,8 @@ void UserController::UploadAvatar(Request& req, Response& res) {
     std::string filename = md5 + ext;
     std::string filepath = dir + filename;
     util::path::create_dir(dir, true);
-    if (!util::io::write_all(filepath, item->content().data(), item->content().size())) {
-        LError("Write content to file '{}' failed", filepath);
+    if (!util::io::write_all(filepath, image->content().data(), image->content().size())) {
+        req.svr()->logger()->Error(LOG_CTX, "Write content to file '%s' failed", filepath.c_str());
         RETURN_INTERNAL_SERVER_ERROR_MSG("write content to file failed");
     }
 

@@ -1,7 +1,6 @@
 #include "user_manager.h"
 #include <fstream>
 #include <jsoncpp/json/json.h>
-#include <log/logger.h>
 #include <server/http_server.h>
 #include <server/util/convert/convert_case.h>
 #include <server/util/hash/md5.h>
@@ -56,50 +55,41 @@ bool UserManager::Init() {
 
 bool UserManager::LoadUserInfoFromFile() {
     std::lock_guard<std::mutex> lck(mutex_);
-    bool ok = false;
-    do {
-        bool is_admin_exist = false;
-        std::ifstream ifs(user_data_file_);
-        if (ifs) {
-            Json::Reader reader;
-            Json::Value root;
-            if (!reader.parse(ifs, root, false) || !root.isArray()) {
-                break;
-            }
-            for (unsigned int i = 0; i < root.size(); ++i) {
-                User* user = new User();
-                user->FromJson(root[i]);
-                if (user->uid == "admin") {
-                    is_admin_exist = true;
-                }
-                users_[user->uid] = user;
-            }
-            ifs.close();
+    bool is_admin_exist = false;
+    std::ifstream ifs(user_data_file_);
+    if (ifs) {
+        Json::Reader reader;
+        Json::Value root;
+        if (!reader.parse(ifs, root, false) || !root.isArray()) {
+            return false;
         }
-
-        if (!is_admin_exist) {
-            User* admin = new User();
-            admin->uid = "admin";
-            admin->password = ic::server::util::hash::md5_lower("123456");
-            admin->gender = 1;
-            admin->nickname = "管理员";
-            admin->province = 19;
-            admin->job = 3;
-            admin->sign = "凡是过往，皆为序章";
-            admin->avatar = "99eaabaa1fa6af540f8c9e929fccdcfc.jpg";
-            users_[admin->uid] = admin;
-            if (!WriteUserInfoToFile()) {
-                break;
+        for (unsigned int i = 0; i < root.size(); ++i) {
+            User* user = new User();
+            user->FromJson(root[i]);
+            if (user->uid == "admin") {
+                is_admin_exist = true;
             }
+            users_[user->uid] = user;
         }
-
-        ok = true;
-    } while (false);
-
-    if (!ok) {
-        LError("read file '{}' failed", user_data_file_);
-        return false;
+        ifs.close();
     }
+
+    if (!is_admin_exist) {
+        User* admin = new User();
+        admin->uid = "admin";
+        admin->password = ic::server::util::hash::md5_lower("123456");
+        admin->gender = 1;
+        admin->nickname = "管理员";
+        admin->province = 19;
+        admin->job = 3;
+        admin->sign = "凡是过往，皆为序章";
+        admin->avatar = "99eaabaa1fa6af540f8c9e929fccdcfc.jpg";
+        users_[admin->uid] = admin;
+        if (!WriteUserInfoToFile()) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -114,7 +104,6 @@ bool UserManager::WriteUserInfoToFile() {
     fw.omitEndingLineFeed();
     std::ofstream ofs(user_data_file_);
     if (!ofs) {
-        LError("write file '{}' failed", user_data_file_);
         return false;
     }
     ofs << fw.write(root);

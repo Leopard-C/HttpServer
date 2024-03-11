@@ -23,8 +23,6 @@
 + Boost 1.73.0
 + [Boost.Asio](https://github.com/boostorg/asio), [Boost.Beast](https://github.com/boostorg/beast), [Boost.Regex](https://github.com/boostorg/regex)（可选，性能比 std::regex 性能高些）
 + [Leopard-C/jsoncpp](https://github.com/Leopard-C/jsoncpp) （修改自[open-source-parsers/jsoncpp](https://github.com/open-source-parsers/jsoncpp)）
-+ [gabime/spdlog](https://github.com/gabime/spdlog)
-+ [Leopard-C/spdlog-wrapper](https://github.com/Leopard-C/spdlog-wrapper)
 
 
 ## 3. 功能要点
@@ -44,12 +42,17 @@
     + `application/json`
     + `multipart/form-data`
 
+通过`server-assistant/server-assistant.py`脚本，配合`include/server/helper/...`，可以实现以下扩展功能：
+
++ 控制器模式：通过特定的`doxygen`格式注释，实现自动收集路由定义。
++ 数据传输对象`DTO`：自动生成序列化、反序列化代码。
++ 参数检查和取值。
+
 
 ## 4. 简单使用
 
 ```cpp
 // main.cpp
-#include <log/logger.h>
 #include <server/http_server.h>
 #include <server/router.h>
 #include <server/request.h>
@@ -58,45 +61,42 @@
 using namespace ic::server;
 
 int main() {
-    // 1. 初始化日志
-    ic::log::LoggerConfig logger_config;
-    if (!logger_config.ReadFromFile(HttpServer::GetBinDir() + "../config/log.ini")) {
-        return 1;
-    }
-    ic::log::Logger::SetConfig(logger_config);
+    // 1. 初始化HTTP服务器
+    HttpServerConfig config;
+    config.set_address("0.0.0.0", 8099);
+    config.set_num_threads(4);                // 4个工作线程
+    config.set_log_access(true);              // 打印请求日志
+    config.set_log_access_verbose(false);     // 不打印详细日志（调试时可开启）
+    config.set_tcp_stream_timeout_ms(15000);  // 超时时间15s
+    config.set_body_limit(11 * 1024 * 1024);  // 请求内容大小限制11MB
+    HttpServer svr(config);
 
-    // 2. 初始化HTTP服务器
-    HttpServerConfig server_config;
-    if (!server_config.ReadFromFile(HttpServer::GetBinDir() + "../config/server.json")) {
-        return 1;
-    }
-    HttpServer svr(server_config);
-
-    // 3. 注册路由(可以使用普通函数、类的静态函数、lambda函数)
+    // 2. 注册路由(可以使用普通函数、类的静态函数、lambda函数)
     auto router = svr.router();
-    // 3.1 GET请求
+    // 2.1 GET请求
     router->AddStaticRoute("/echo", HttpMethod::kGET, [](Request& req, Response& res){
         std::string text = req.GetUrlParam("text");
         res.SetStringBody(text, "text/plain");
     });
-    // 3.2 POST和OPTIONS请求
+    // 2.2 POST和OPTIONS请求
     router->AddStaticRoute("/user/register", HttpMethod::kPOST | HttpMethod::kOPTIONS, [](Request& req, Response& res){
         if (req.method() == HttpMethod::kOPTIONS) {
             res.SetHeader("Access-Control-Allow-Origin", "*");
-            return res.SetStringBody(204);
+            res.SetStringBody(204);
+            return;
         }
         std::string username = req.GetBodyParam("username");
         std::string password = req.GetBodyParam("password");
         // ...
         res.SetStringBody("OK", "text/plain");
     });
-    // 3.3 正则路由，响应文件
+    // 2.3 正则路由，响应文件流
     router->AddRegexRoute("/img/(.*)", HttpMethod::kGET, [](Request& req, Response& res){
         std::string uri = req.GetRouteRegexMatch(0);
         std::string filename = HttpServer::GetBinDir() + "../data/web/img/" + uri;
         res.SetFileBody(filename);
     });
-    // 3.4 响应application/json
+    // 2.4 响应application/json
     router->AddStaticRoute("/server/stop", HttpMethod::kGET, [](Request& req, Json::Value& res){
         req.svr()->Stop();
         res["code"] = 0;
@@ -104,7 +104,7 @@ int main() {
         res["data"]["time"] = time(NULL);
     });
 
-    // 4. 启动服务器
+    // 3. 启动服务器
     if (svr.Listen()) {
         svr.Start();
     }
@@ -172,14 +172,14 @@ bool register_routes(std::shared_ptr<ic::server::Router> router) {
 }
 ```
 
-详情请参考脚本说明文档 [`server-assistant/README.md`](server-assistant/README.md)，以及 [`example/README.md`](example/README.md)。
+详情请参考脚本说明文档 [server-assistant/README.md](server-assistant/README.md)，以及 [example/README.md](example/README.md)。
 
 ## 6. 检查并获取请求参数(URL参数、Body参数等)
 
 主要有三种方式：
 
 + 【基础】通过`Request`类的`GetUrlParam()`, `GetBodyParam()`, `GetJsonParam()`方法获取参数值，并手动进行类型转换。
-+ 【推荐】通过宏`GET_URL_PARAM_INT(param1, param2, ...)`, `GET_BODY_PARAM_xxx(...)`获取参数值，会自动进行类型转换
++ 【推荐】通过宏`CHECK_URL_PARAM_INT(param1, param2, ...)`, `CHECK_BODY_PARAM_xxx(...)`获取参数值，会自动进行类型转换
     + 支持`std::string`, `bool`, `int32_t`, `uint32_t`, `int64_t`, `uint64_t`, `double`类型。
 + 【推荐】通过`DTO (Data Transfer Object)`方式获取参数值，只需在结构体或类中引入引入宏`DTO_IN`或`DTO_OUT`，即可通过脚本自动生成序列化、反序列化代码。
 
@@ -212,7 +212,7 @@ const Json::Value& value1 = req.GetJsonParam("value1");
 
 // Body参数(multipart/form-data)
 // 通过 req.content_type().IsMultipartFormData() 判断该是否该内容类型
-const FormItem* value1 = req.GetFormItem("value1");
+const FormParam* value1 = req.GetFormParam("value1");
 // 如果参数不存在则value1为空指针
 value1->is_file()
 value1->filename();
@@ -249,13 +249,16 @@ GET_URL_PARAM_INT(default_value, param1, param2, ..., paramN);    // int32_t
 GET_URL_PARAM_xxx(default_value, param1, param2, ..., paramN);
 
 // 相应的，还有从body参数中取值的宏
-CHECK_BODY_PARAM_xxx()
+CHECK_BODY_PARAM_xxx()  // (1) ContentType: application/x-www-form-urlencoded
 GET_BODY_PARAM_xxx()
 
-CHECK_JSON_PARAM_xxx()
+CHECK_JSON_PARAM_xxx()  // (2) ContentType: application/json
 GET_JSON_PARAM_xxx()
 
-CHECK_BODY_PARAM_xxx_EX()
+CHECK_FORM_PARAM_xxx()  // (3) ContentType: multipart/form-data
+GET_FORM_PARAM_xxx()
+
+CHECK_BODY_PARAM_xxx_EX()  // 自动判断上述3种内容类型 (1)(2)(3)
 GET_BODY_PARAM_xxx_EX()
 ```
 
@@ -287,7 +290,7 @@ void Login(Request& req, Response& res) {
         RETURN_OK();
     }
     else {
-        RETURN_CODE_MSG(status::base::kWrongUserOrPassword, "用户名或密码错误");
+        RETURN_CODE_MSG(status::kWrongUserOrPassword, "用户名或密码错误");
     }
 }
 ```
@@ -368,6 +371,8 @@ struct LoginDto {
 
 ## END
 
+> Author: [Leopard-C](https://github.com/Leopard-C)
+>
 > GitHub: [Leopard-C/HttpServer](https://github.com/Leopard-C/HttpServer)
 >
 > Email: <leopard.c@outlook.com>
