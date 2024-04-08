@@ -173,7 +173,7 @@ $(function(){
 });
 
 function GetAvatarImgUrl(filename) {
-  return '/api/User/avatar/' + filename.substring(0, 2) + '/' + filename;
+  return U('api/User/avatar/' + filename.substring(0, 2) + '/' + filename);
 }
 
 function GetAvatarFileName() {

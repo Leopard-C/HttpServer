@@ -10,7 +10,7 @@
  */
 void WebController::Index(Request& req, Response& res) {
     req.GetCookie("Authorization");
-    res.SetHeader("Location", "/web/index.html");
+    res.SetHeader("Location", "web/index.html");
     res.SetStringBody(301);
 }
 

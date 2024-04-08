@@ -1,4 +1,20 @@
 
+window.APP_BASE_URI = GetAppBaseUri();
+
+function GetAppBaseUri() {
+  let path = window.location.pathname;
+  path = path.substring(0, path.lastIndexOf('/'));
+  path = path.substring(0, path.lastIndexOf('/'));
+  return path + '/';
+}
+
+function U(path) {
+  if (path.length > 0 && path[0] == '/') {
+    path = path.substring(1);
+  }
+  return window.APP_BASE_URI + path;
+}
+
 function _check_response(res, success_0, success_not_0) {
   if (!('code' in res)) {
     return;
@@ -8,7 +24,7 @@ function _check_response(res, success_0, success_not_0) {
   }
   else {
     if (res.code == 1001) {  /* AUTH FAILED */
-      window.location.href = '/web/login.html';
+      window.location.href = U('web/login.html');
       return;
     }
     if (success_not_0) {
@@ -37,7 +53,7 @@ function _check_error(textStatus, error) {
  */
 function __api_get(url, success, error) {
   $.ajax({
-    url: url,
+    url: U(url),
     type: 'GET',
     dataType: 'json',
     timeout: 5000,
@@ -64,7 +80,7 @@ function _api_get(url, success_0, success_not_0, error) {
  */
 function __api_post_json(url, json_body, success, error) {
   $.ajax({
-    url: url,
+    url: U(url),
     type: 'POST',
     contentType: 'application/json',
     data: JSON.stringify(json_body),
@@ -90,7 +106,7 @@ function _api_post_json(url, json_body, success_0, success_not_0, error) {
  */
 function __api_post_form(url, form_data, success, error) {
   $.ajax({
-    url: url,
+    url: U(url),
     type: 'POST',
     data: form_data,
     processData: false,

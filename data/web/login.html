@@ -49,7 +49,7 @@ function onLogin() {
     setTimeout(function(){
       $('input[name=username]').val('');
       $('input[name=password]').val('');
-      location.href = "/web/index.html";
+      location.href = U('web/index.html');
     }, 1000);
   }, function(code, msg, data){
     if (code == 1003) {
