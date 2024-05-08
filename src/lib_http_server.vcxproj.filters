@@ -56,12 +56,6 @@
     <Filter Include="src\server\util\convert">
       <UniqueIdentifier>{c97503e9-8682-48cd-ac4f-7ca3ed5dbd97}</UniqueIdentifier>
     </Filter>
-    <Filter Include="third_party">
-      <UniqueIdentifier>{14b138a5-3b1e-4cd5-b479-a62d4917ce03}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="third_party\jsoncpp">
-      <UniqueIdentifier>{6674d8af-3786-410e-b2a9-759aedd46650}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include\jsoncpp">
       <UniqueIdentifier>{5ddc5219-0afd-4dab-b9c2-949c9a083145}</UniqueIdentifier>
     </Filter>

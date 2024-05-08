@@ -38,9 +38,12 @@ const char* to_string_short(LogLevel level) {
     std::string msg(INIT_BUFF_LEN, '\0');\
     int len = vsnprintf(&msg[0], INIT_BUFF_LEN + 1, format, args_copy);\
     va_end(args_copy);\
-    if (len > INIT_BUFF_LEN) {\
+    if (len <= INIT_BUFF_LEN) {\
+        msg.erase(len);\
+    }\
+    else {\
         msg.resize(len, '\0');\
-        vsnprintf(&msg[0], len + 1, format, args);\
+        vsnprintf(&msg[0], (size_t)len + 1, format, args);\
     }\
     va_end(args);\
     Log(level, context, msg)
