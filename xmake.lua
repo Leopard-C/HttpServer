@@ -2,21 +2,8 @@ add_rules("mode.debug", "mode.release", "mode.releasedbg")
 set_policy("build.warning", true)
 set_languages("c99", "cxx11")
 
-add_cxflags("-Wreturn-type", "-Wsign-compare", "-Wunused-variable", "-Wswitch")
-add_cxflags("-Wno-deprecated-declarations")
-
--- arm64编译工具链
-toolchain("aarch64")
-    set_kind("standalone")
-    set_toolset("cc", "aarch64-linux-gnu-gcc")
-    set_toolset("cxx", "aarch64-linux-gnu-g++")
-    set_toolset("ar", "aarch64-linux-gnu-ar")
-    set_toolset("ld", "aarch64-linux-gnu-g++")
-toolchain_end()
-
-if is_arch("aarch64") then
-    set_toolchains("aarch64")
-end
+add_cxflags("-Wreturn-type", "-Wsign-compare", "-Wunused-variable", "-Wswitch", "-Werror")
+add_cxflags("-Wno-unused-result", "-Wno-deprecated-declarations", "-Wno-unused-parameter")
 
 -- boost库依赖配置
 add_includedirs("/usr/local/boost/boost_1.73.0/$(arch)/include")

@@ -63,15 +63,4 @@ bin/example
 
 浏览器地址栏输入 [`http://127.0.0.1:8099/`](http://127.0.0.1:8099/) 访问。关于示例程序，请参考说明文档 [`example/README.md`](example/README.md)
 
----
-
-## 3 交叉编译
-
-支持交叉编译，例如在`x86_64`机器上编译`aarch64`架构机器中可执行程序。首先需要交叉编译依赖库(boost)，然后执行如下命令进行编译：
-
-```shell
-xmake f --mode=release --arch=aarch64    # 默认--arch=x86_64
-xmake
-```
-
 ## END
