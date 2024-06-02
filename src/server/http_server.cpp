@@ -30,9 +30,9 @@ static const std::string s_bin_dir = util::path::get_bin_dir();
 ** 
 *******************************************************************/
 
-ThreadInfo::ThreadInfo(HttpServer* svr) :
+ThreadInfo::ThreadInfo() :
     active(false), count(0), request_id(-1), route(nullptr), thread_id(util::thread_id()),
-    start(s_time0), finish(s_time0), svr_(svr)
+    start(s_time0), finish(s_time0)
 {
 }
 
@@ -149,7 +149,7 @@ void HttpServer::RunIoContext() {
     size_t tid = util::thread_id();
     {
         std::lock_guard<std::mutex> lck(mutex_for_thread_infos_);
-        thread_infos_.emplace(tid, new ThreadInfo(this));
+        thread_infos_.emplace(tid, new ThreadInfo());
     }
     logger_->Info(LOG_CTX, "ioc run, thread id: %" PRIu64, (uint64_t)tid);
     ioc_->run();

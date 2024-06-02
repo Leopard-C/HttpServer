@@ -39,24 +39,22 @@ using tp = std::chrono::system_clock::time_point;
 
 class ThreadInfo {
 public:
-    ThreadInfo(HttpServer* svr);
+    ThreadInfo();
     Json::Value ToJson(tp now = std::chrono::system_clock::now()) const;
     /** 当前线程是否被激活(正在处理请求) */
-    bool active;
+    bool active = false;
     /** 当前线程ID */
-    size_t thread_id;
+    size_t thread_id = 0;
     /** 当前线程正在处理的请求的ID */
-    int64_t request_id;
+    int64_t request_id = 0;
     /** 当前请求命中的路由 */
-    const Route* route;
+    const Route* route = nullptr;
     /** 开始处理请求时间 */
     tp start;
     /** 结束处理请求时间 */
     tp finish;
     /** 当前线程总共处理的请求数量 */
-    uint64_t count;
-private:
-    const HttpServer* svr_{nullptr};
+    uint64_t count = 0;
 };
 
 /**

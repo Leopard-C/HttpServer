@@ -157,12 +157,12 @@ public:
     /**
      * @brief 获取本次请求携带的所有cookie.
      */
-    const std::multimap<std::string, std::string>& cookies();
+    const std::multimap<std::string, std::string>& cookies() const { return cookies_; }
 
     /**
      * @brief 获取本次请求的某项cookie.
      */
-    const std::string& GetCookie(const std::string& name, bool* exist = nullptr);
+    const std::string& GetCookie(const std::string& name, bool* exist = nullptr) const;
 
     /**
      * @brief 正则路由的匹配项.
@@ -280,10 +280,10 @@ private:
     std::string path_;
 
     /** 当前请求命中的路由 */
-    const Route* route_{nullptr};
+    Route* route_{nullptr};
 
     /** 当前请求所在的线程信息 */
-    const ThreadInfo* thread_info_{nullptr};
+    ThreadInfo* thread_info_{nullptr};
 
     /** 内容类型 */
     ContentType content_type_;
@@ -295,9 +295,6 @@ private:
 
     /** 自定义信息，程序内修改和使用 */
     Json::Value custom_data_;
-
-    /** cookie是否已经解析 */
-    bool cookie_parsed_{false};
 
     /** cookie */
     std::multimap<std::string, std::string> cookies_;

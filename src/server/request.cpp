@@ -116,22 +116,7 @@ std::string Request::GetUserAgent() const {
     return to_string(raw_->operator[](http::field::user_agent));
 }
 
-/**
- * @brief 获取本次请求携带的所有cookie.
- */
-const std::multimap<std::string, std::string>& Request::cookies() {
-    if (!cookie_parsed_) {
-        ParseCookie();
-        cookie_parsed_ = true;
-    }
-    return cookies_;
-}
-
-const std::string& Request::GetCookie(const std::string& name, bool* exist/* = nullptr*/) {
-    if (!cookie_parsed_) {
-        ParseCookie();
-        cookie_parsed_ = true;
-    }
+const std::string& Request::GetCookie(const std::string& name, bool* exist/* = nullptr*/) const {
     auto it = cookies_.find(name);
     bool _exist = (it != cookies_.end());
     exist && (*exist = _exist);
@@ -243,6 +228,9 @@ void Request::ParseBasic() {
     // 4. content type
     auto content_type = raw_->operator[](http::field::content_type);
     content_type_.Parse(StringView(content_type.data(), content_type.size()));
+
+    // 5. cookie
+    ParseCookie();
 }
 
 /**

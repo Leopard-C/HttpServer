@@ -244,6 +244,7 @@ bool Router::HitRoute(Request& req, Response& res) const {
     route->hit_count.fetch_add(1);
 
     req.route_ = route;
+    req.thread_info_->route = route;
     return true;
 }
 
