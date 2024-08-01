@@ -21,31 +21,61 @@ namespace path {
 /**
  * @brief 获取可执行文件(完整)路径.
  */
-std::string get_bin_filepath() {
-    char bin_filename[512] = { 0 };
+static std::string s_get_bin_filepath() {
 #ifdef _WIN32
+    char bin_filename[512] = { 0 };
     int n = GetModuleFileNameA(NULL, bin_filename, 511);
     for (int i = 0; i < n; ++i) {
         if (bin_filename[i] == '\\') {
             bin_filename[i] = '/';
         }
     }
+    bin_filename[n] = '\0';
+    return bin_filename;
 #else
+    char bin_filename[512] = { 0 };
     int n = readlink("/proc/self/exe", bin_filename, 511);
     if (n < 0) {
         printf("get exe filename failed. errno: %d. message: %s\n", errno, strerror(errno));
         exit(999);
     }
-#endif
     bin_filename[n] = '\0';
     return bin_filename;
+#endif
+}
+
+/**
+ * @brief 获取可执行文件(完整)路径(UTF8编码).
+ */
+static std::string s_get_bin_filepath_utf8() {
+#ifdef _WIN32
+    WCHAR bin_filename[512] = { 0 };
+    int n = GetModuleFileNameW(NULL, bin_filename, 511);
+    int n2 = WideCharToMultiByte(CP_UTF8, 0, bin_filename, n, NULL, 0, NULL, NULL);
+    std::string bin_filename_utf8(n2, 0);
+    WideCharToMultiByte(CP_UTF8, 0, bin_filename, n, &bin_filename_utf8[0], n2, NULL, NULL);
+    for (int i = 0; i < n2; ++i) {
+        if (bin_filename_utf8[i] == '\\') {
+            bin_filename_utf8[i] = '/';
+        }
+    }
+    return bin_filename_utf8;
+#else
+    char bin_filename[512] = { 0 };
+    int n = readlink("/proc/self/exe", bin_filename, 511);
+    if (n < 0) {
+        printf("get exe filename failed. errno: %d. message: %s\n", errno, strerror(errno));
+        exit(999);
+    }
+    bin_filename[n] = '\0';
+    return bin_filename;
+#endif
 }
 
 /**
  * @brief 获取可执行文件名称.
  */
-std::string get_bin_filename() {
-    std::string bin_filepath = get_bin_filepath();
+static std::string s_get_bin_filename(const std::string& bin_filepath) {
     auto pos = bin_filepath.rfind('/');
     if (pos == std::string::npos) {
         printf("Won't get here. get_bin_filename() error.\n");
@@ -60,8 +90,7 @@ std::string get_bin_filename() {
 /**
  * @brief 获取可执行文件目录(以斜杠'/'结尾).
  */
-std::string get_bin_dir() {
-    std::string bin_filepath = get_bin_filepath();
+static std::string s_get_bin_dir(const std::string& bin_filepath) {
     auto pos = bin_filepath.rfind('/');
     if (pos == std::string::npos) {
         printf("Won't get here. get_bin_dir() error.\n");
@@ -71,6 +100,36 @@ std::string get_bin_dir() {
     else {
         return bin_filepath.substr(0, pos + 1);
     }
+}
+
+const std::string& get_bin_filepath() {
+    static std::string s_bin_filepath = s_get_bin_filepath();
+    return s_bin_filepath;
+}
+
+const std::string& get_bin_filepath_utf8() {
+    static std::string s_bin_filepath_utf8 = s_get_bin_filepath_utf8();
+    return s_bin_filepath_utf8;
+}
+
+const std::string& get_bin_filename() {
+    static std::string s_bin_filename = s_get_bin_filename(get_bin_filepath());
+    return s_bin_filename;
+}
+
+const std::string& get_bin_filename_utf8() {
+    static std::string s_bin_filename_utf8 = s_get_bin_filename(get_bin_filepath_utf8());
+    return s_bin_filename_utf8;
+}
+
+const std::string& get_bin_dir() {
+    static std::string s_bin_dir = s_get_bin_dir(get_bin_filepath());
+    return s_bin_dir;
+}
+
+const std::string& get_bin_dir_utf8() {
+    static std::string s_bin_dir_utf8 = s_get_bin_dir(get_bin_filepath_utf8());
+    return s_bin_dir_utf8;
 }
 
 /**

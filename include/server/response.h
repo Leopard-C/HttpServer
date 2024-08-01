@@ -75,10 +75,10 @@ public:
     void SetJsonBody(unsigned int status_code, const Json::Value& root);
 
     /**
-     * @brief 响应文件内容.
+     * @brief 响应文件内容(文件路径UTF8编码).
      */
-    bool SetFileBody(const std::string& filename, const std::string& content_type = "");
-    bool SetFileBody(unsigned int status_code, const std::string& filename, const std::string& content_type = "");
+    void SetFileBody(const std::string& filepath, const std::string& content_type = "");
+    void SetFileBody(unsigned int status_code, const std::string& filepath, const std::string& content_type = "");
 
     void SetBadRequest(const std::string& why = "Bad Request!");
 
@@ -91,7 +91,7 @@ private:
     bool is_file_body_{false};
     unsigned int status_code_{200U};
     std::string string_body_;
-    std::string filename_;  // file body
+    std::string filepath_;  // file body, utf-8 encoded
     std::multimap<std::string, std::string> headers_;
 };
 

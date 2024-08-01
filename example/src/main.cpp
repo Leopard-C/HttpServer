@@ -1,3 +1,12 @@
+/* Visual Leak Detector 内存泄露检测工具  */
+#ifdef _WIN32
+#  define _USE_VLD 0
+#  if _USE_VLD == 1
+#    pragma comment(lib, "D:/CPP_INCLUDE/vld-2.5.1/shared/x64/lib/vld.lib")
+#    include <D:/CPP_INCLUDE/vld-2.5.1/shared/x64/include/vld.h>
+#  endif // _USE_VLD
+#endif // _WIN32
+
 #ifdef _WIN32
 #  include <Windows.h>
 #else
@@ -34,7 +43,7 @@ static BOOL ConsoleCtrlHandler(DWORD fwdCtrlType) {
 static void CatchCtrlC(int sig) {
     StopApplication();
 }
-#endif
+#endif // _WIN32
 
 int main() {
     srand((unsigned int)time(NULL));

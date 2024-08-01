@@ -18,12 +18,6 @@ namespace server {
  */
 static const std::chrono::system_clock::time_point s_time0 = std::chrono::system_clock::from_time_t(0);
 
-/**
- * @brief 二进制程序所在目录.
- */
-static const std::string s_bin_dir = util::path::get_bin_dir();
-
-
 /*******************************************************************
 **
 **                          ThreadInfo
@@ -223,7 +217,14 @@ void HttpServer::FinishRequest(Request& req) {
  * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾.
  */
 const std::string& HttpServer::GetBinDir() {
-    return s_bin_dir;
+    return util::path::get_bin_dir();
+}
+
+/**
+ * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾，UTF8编码.
+ */
+const std::string& HttpServer::GetBinDirUtf8() {
+    return util::path::get_bin_dir_utf8();
 }
 
 } // namespace server

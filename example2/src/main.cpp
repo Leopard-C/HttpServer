@@ -39,7 +39,7 @@ int main() {
     // 2.3 正则路由，响应文件
     router->AddRegexRoute("/img/(.*)", HttpMethod::kGET, [](Request& req, Response& res){
         std::string uri = req.GetRouteRegexMatch(0);
-        std::string filename = HttpServer::GetBinDir() + "../data/web/img/" + uri;
+        std::string filename = HttpServer::GetBinDirUtf8() + "../data/web/img/" + uri;
         res.SetFileBody(filename);
     });
     // 2.4 响应application/json

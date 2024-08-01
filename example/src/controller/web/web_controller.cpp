@@ -21,7 +21,7 @@ void WebController::Index(Request& req, Response& res) {
  * @method GET
  */
 void WebController::Favicon(Request& req, Response& res) {
-    std::string filename = ic::server::HttpServer::GetBinDir() + "../data/web/img/favicon.ico";
+    std::string filename = ic::server::HttpServer::GetBinDirUtf8() + "../data/web/img/favicon.ico";
     res.SetFileBody(filename);
 }
 
@@ -33,8 +33,6 @@ void WebController::Favicon(Request& req, Response& res) {
  */
 void WebController::GetResource(Request& req, Response& res) {
     std::string uri = req.GetRouteRegexMatch(0);
-    std::string filename = ic::server::HttpServer::GetBinDir() + "../data/web/" + uri;
-    if (!res.SetFileBody(filename)) {
-        res.SetStringBody(404, "<h2>404 Not Found</h2>", "text/html");
-    }
+    std::string filename = ic::server::HttpServer::GetBinDirUtf8() + "../data/web/" + uri;
+    res.SetFileBody(filename);
 }

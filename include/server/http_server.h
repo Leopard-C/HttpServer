@@ -126,6 +126,11 @@ public:
      */
     static const std::string& GetBinDir();
 
+    /**
+     * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾，UTF8编码.
+     */
+    static const std::string& GetBinDirUtf8();
+
 private:
     void RunIoContext();
     ThreadInfo* GetThreadInfo(size_t tid);

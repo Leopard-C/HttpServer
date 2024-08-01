@@ -19,17 +19,32 @@ namespace path {
 /**
  * @brief 获取可执行文件(完整)路径.
  */
-std::string get_bin_filepath();
+const std::string& get_bin_filepath();
+
+/**
+ * @brief 获取可执行文件(完整)路径(UTF8编码).
+ */
+const std::string& get_bin_filepath_utf8();
 
 /**
  * @brief 获取可执行文件名称.
  */
-std::string get_bin_filename();
+const std::string& get_bin_filename();
+
+/**
+ * @brief 获取可执行文件名称(UTF8编码).
+ */
+const std::string& get_bin_filename_utf8();
 
 /**
  * @brief 获取可执行文件目录(以斜杠'/'结尾).
  */
-std::string get_bin_dir();
+const std::string& get_bin_dir();
+
+/**
+ * @brief 获取可执行文件目录(以斜杠'/'结尾，UTF8编码).
+ */
+const std::string& get_bin_dir_utf8();
 
 /**
  * @brief 格式化目录路径为UNIX格式（正斜杠）.

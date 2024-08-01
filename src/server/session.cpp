@@ -182,7 +182,7 @@ void Session::SendResponse() {
 void Session::SendFileBodyResponse() {
     http::file_body::value_type file;
     beast::error_code ec;
-    file.open(res_->filename_.c_str(), beast::file_mode::read, ec);
+    file.open(res_->filepath_.c_str(), beast::file_mode::read, ec);  /* filepath_是UTF8编码 */
     if (ec) {
         res_->SetStringBody(404U); // return 404 Not Found
         return SendStringBodyResponse();

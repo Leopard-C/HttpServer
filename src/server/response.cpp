@@ -66,30 +66,21 @@ void Response::SetJsonBody(unsigned int status_code, const Json::Value& root) {
     return SetStringBody(status_code, fw.write(root), "application/json; charset=utf-8");
 }
 
-bool Response::SetFileBody(const std::string& filename, const std::string& content_type/* = "text/plain"*/) {
-    return SetFileBody(200U, filename, content_type);
+void Response::SetFileBody(const std::string& filepath, const std::string& content_type/* = "text/plain"*/) {
+    SetFileBody(200U, filepath, content_type);
 }
 
-bool Response::SetFileBody(unsigned int status_code, const std::string& filename, const std::string& content_type/* = "text/plain"*/) {
-    /* 查看文件是否存在 */
-    if (!util::path::is_path_exist(filename)) {
-        svr_->logger()->Error(LOG_CTX, "File '%s' is not exist", filename.c_str());
-        SetStringBody(404U, "Not Found!", "text/plain");
-        return false;
-    }
-
+void Response::SetFileBody(unsigned int status_code, const std::string& filepath, const std::string& content_type/* = "text/plain"*/) {
     /* MIME类型 */
     if (content_type.empty()) {
-        std::string ext = util::path::get_ext(filename);
+        std::string ext = util::path::get_ext(filepath);
         SetContentType(util::get_mimetype(ext));
     }
     else {
         SetContentType(content_type);
     }
-
-    filename_ = filename;
+    filepath_ = filepath;
     is_file_body_ = true;
-    return true;
 }
 
 void Response::SetBadRequest(const std::string& why/* = "Bad Request!"*/) {

@@ -109,7 +109,7 @@ void UserController::UploadAvatar(Request& req, Response& res) {
     }
 
     /* 写入服务器本地文件 */
-    std::string dir = HttpServer::GetBinDir() + "../data/system/avatar/" + md5.substr(0, 2) + "/";
+    std::string dir = HttpServer::GetBinDirUtf8() + "../data/system/avatar/" + md5.substr(0, 2) + "/";
     std::string filename = md5 + ext;
     std::string filepath = dir + filename;
     util::path::create_dir(dir, true);
@@ -133,8 +133,6 @@ void UserController::GetAvatarImage(Request& req, Response& res) {
     std::string dir = req.GetRouteRegexMatch(0);
     std::string filename = req.GetRouteRegexMatch(1);
     //std::string ext = req.GetRouteRegexMatch(2);
-    std::string filepath = ic::server::HttpServer::GetBinDir() + "../data/system/avatar/" + dir + "/" + filename;
-    if (!res.SetFileBody(filepath)) {
-        res.SetStringBody(404, "<h2>404 Not Found</h2>", "text/html");
-    }
+    std::string filepath = ic::server::HttpServer::GetBinDirUtf8() + "../data/system/avatar/" + dir + "/" + filename;
+    res.SetFileBody(filepath);
 }
