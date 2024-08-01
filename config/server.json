@@ -3,6 +3,7 @@
     "port": 8099,
     "num_threads": 4,
     "version": "1.0.0",
+    "reuse_address": true,
     "tcp_stream_timeout_ms": 15000,
     "body_limit": 11534334,
     "log_access": true,

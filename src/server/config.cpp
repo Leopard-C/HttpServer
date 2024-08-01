@@ -63,6 +63,7 @@ bool HttpServerConfig::ReadFromFile(const std::string& filename) {
     CHECK_UINT(root, "num_threads", num_threads_);
     CHECK_UINT(root, "port", port_);
     CHECK_STRING(root, "ip", ip_);
+    CHECK_BOOL(root, "reuse_address", reuse_address_);
     CHECK_BOOL(root, "log_access", log_access_);
     CHECK_BOOL(root, "log_access_verbose", log_access_verbose_);
     CHECK_UINT(root, "tcp_stream_timeout_ms", tcp_stream_timeout_ms_);
@@ -110,6 +111,8 @@ Json::Value HttpServerConfig::ToJson() const {
     root["num_threads"] = num_threads_;
     root["ip"] = ip_;
     root["port"] = port_;
+    root["reuse_address"] = reuse_address_;
+    root["log_access"] = log_access_;
     root["log_access_verbose"] = log_access_verbose_;
     root["tcp_stream_timeout_ms"] = tcp_stream_timeout_ms_;
     root["body_limit"] = body_limit_;

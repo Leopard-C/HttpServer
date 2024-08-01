@@ -65,6 +65,7 @@ int main() {
     HttpServerConfig config;
     config.set_address("0.0.0.0", 8099);
     config.set_num_threads(4);                // 4个工作线程
+    config.set_reuse_address(true);           // 允许复用地址
     config.set_log_access(true);              // 打印请求日志
     config.set_log_access_verbose(false);     // 不打印详细日志（调试时可开启）
     config.set_tcp_stream_timeout_ms(15000);  // 超时时间15s

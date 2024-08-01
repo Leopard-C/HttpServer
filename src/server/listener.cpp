@@ -20,7 +20,7 @@ bool Listener::Run() {
         return false;
     }
 
-    acceptor_.set_option(net::socket_base::reuse_address(true), ec);
+    acceptor_.set_option(net::socket_base::reuse_address(svr_->config().reuse_address()), ec);
     if (ec) {
         svr_->logger()->Error(LOG_CTX, "reuse address failed, %s", ec.message().c_str());
         return false;

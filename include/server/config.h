@@ -28,6 +28,7 @@ public:
      * @details   "port": 8099,
      * @details   "num_threads": 2,
      * @details   "version": "1.0.0",
+     * @details   "reuse_address": true,
      * @details   "tcp_stream_timeout_ms": 15000,
      * @details   "body_limit": 11534334,
      * @details   "log_access": true
@@ -52,6 +53,7 @@ public:
     unsigned int num_threads() const { return num_threads_; }
     unsigned int port() const { return port_; }
     const std::string& ip() const { return ip_; }
+    bool reuse_address() const { return reuse_address_; }
     bool log_access() const { return log_access_; }
     bool log_access_verbose() const { return log_access_verbose_; }
     unsigned int tcp_stream_timeout_ms() const { return tcp_stream_timeout_ms_; }
@@ -62,6 +64,7 @@ public:
     void set_port(unsigned int port) { port_ = port; }
     void set_ip(const std::string& ip) { ip_ = ip; }
     void set_address(const std::string& ip, unsigned int port) { ip_ = ip; port_ = port; }
+    void set_reuse_address(bool reuse_address) { reuse_address_ = reuse_address; }
     void set_log_access(bool log_access) { log_access_ = log_access; }
     void set_log_access_verbose(bool verbose) { log_access_verbose_ = verbose; }
     void set_tcp_stream_timeout_ms(unsigned int timeout_ms) { tcp_stream_timeout_ms_ = timeout_ms; }
@@ -77,6 +80,11 @@ private:
 
     /** IP地址 */
     std::string ip_{"0.0.0.0"};
+
+    /**
+     * @brief 是否复用地址.
+     */
+    bool reuse_address_{true};
 
     /**
      * @brief 是否打印用户请求.
