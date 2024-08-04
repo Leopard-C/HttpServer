@@ -25,7 +25,7 @@ bool Application::Init() {
 }
 
 void Application::Run() {
-    if (server_ && server_->Listen()) {
+    if (server_) {
         server_->Start();
     }
 }

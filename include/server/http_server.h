@@ -11,11 +11,14 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
-#include <map>
 #include <mutex>
+#include <set>
 #include <thread>
+#include <vector>
 #include <jsoncpp/json/value.h>
-#include "config.h"
+#include "content_type.h"
+#include "http_server_config.h"
+#include "http_method.h"
 #include "logger.h"
 
 namespace boost {
@@ -37,24 +40,39 @@ class HttpServer;
 
 using tp = std::chrono::system_clock::time_point;
 
-class ThreadInfo {
-public:
-    ThreadInfo();
-    Json::Value ToJson(tp now = std::chrono::system_clock::now()) const;
-    /** 当前线程是否被激活(正在处理请求) */
-    bool active = false;
-    /** 当前线程ID */
-    size_t thread_id = 0;
-    /** 当前线程正在处理的请求的ID */
-    int64_t request_id = 0;
-    /** 当前请求命中的路由 */
-    const Route* route = nullptr;
-    /** 开始处理请求时间 */
-    tp start;
-    /** 结束处理请求时间 */
-    tp finish;
-    /** 当前线程总共处理的请求数量 */
-    uint64_t count = 0;
+/**
+ * @brief HTTP服务器快照结果.
+ */
+struct SnapshotResult {
+    struct RequestInfo {
+        int64_t id = -1;
+        HttpMethod method;
+        ContentType content_type;
+        const Route* route = nullptr;
+        tp arrive_timepoint;
+        std::string path;
+        std::string client_ip;
+        std::string client_real_ip;
+    };
+
+    /** 创建时间 */
+    tp create_time;
+
+    /** 当前会话数量 */
+    uint32_t curr_num_sessions = 0;
+    /** 当前工作线程数量 */
+    uint32_t curr_num_worker_threads = 0;
+
+    /** 总计创建的会话数量 */
+    uint64_t total_num_sessions = 0;
+    /** 总计处理的请求数量 */
+    uint64_t total_num_requests = 0;
+
+    /** 正在处理的请求 */
+    std::vector<RequestInfo> handling_request;
+
+    /** 转为JSON对象 */
+    Json::Value ToJson() const;
 };
 
 /**
@@ -71,7 +89,7 @@ public:
      * @param logger 日志记录器，为空则使用默认的日志记录器
      */
     HttpServer(const HttpServerConfig& config, std::shared_ptr<ILogger> logger = nullptr);
-    ~HttpServer();
+    virtual ~HttpServer();
 
 public:
     /**
@@ -90,37 +108,48 @@ public:
     void set_cb_before_send_response(std::function<bool(Request&, Response&)> cb) { cb_before_send_response_ = cb; }
 
     const HttpServerConfig& config() const { return config_; }
+    int64_t current_request_id() { return current_request_id_.fetch_add(1); }
+    void set_current_request_id(int64_t id) { current_request_id_.store(id); }
     std::shared_ptr<ILogger> logger() const { return logger_; }
     std::shared_ptr<Router> router() const { return router_; }
-    int64_t current_request_id() { return current_request_id_.fetch_add(1); }
-    void set_current_request_id(int64_t id) { current_request_id_ = id; }
-    std::map<size_t, ThreadInfo> thread_infos();
-
-    Json::Value DumpThreadInfos();
+    bool should_stop() const { return should_stop_; }
 
     /**
-     * @brief 开始监听.
-     * 
-     * @retval true 监听成功
-     * @retval false 监听失败（如无效的端口、端口被占用等原因）
+     * @brief 启动服务器.
      */
-    bool Listen();
+    bool Start();
 
     /**
-     * @brief 启动服务器（阻塞当前线程）.
+     * @brief 启动服务器(异步).
      */
-    void Start();
+    bool StartAsync();
 
     /**
-     * @brief 停止服务器（非阻塞）.
+     * @brief 停止服务器.
      */
     void Stop();
+
+    /**
+     * @brief 停止服务器(异步).
+     */
+    void StopAsync();
+
+    /**
+     * @brief 等待服务器停止.
+     */
+    void WaitForStop() const;
 
     /**
      * @brief 判断服务器是否已停止.
      */
     bool Stopped() const;
 
+    /**
+     * @brief 创建快照.
+     */
+    SnapshotResult CreateSnapshot();
+
+public:
     /**
      * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾.
      */
@@ -132,23 +161,52 @@ public:
     static const std::string& GetBinDirUtf8();
 
 private:
-    void RunIoContext();
-    ThreadInfo* GetThreadInfo(size_t tid);
+    /**
+     * @brief 创建新的工作线程.
+     */
+    void NewWorkerThreads(uint32_t n);
 
-    void StartRequest(Request& req);
-    void FinishRequest(Request& req);
+    /**
+     * @brief 工作线程.
+     */
+    void ThreadFunc_Worker();
+
+    /**
+     * @brief 管理者线程.
+     */
+    void ThreadFunc_Manager();
+
+    void OnNewSession();
+    void OnDestroySession();
+
+    void OnStartRequest(Request* req);
+    void OnFinishRequest(Request* req);
 
 private:
     HttpServerConfig config_;
-    std::shared_ptr<ILogger> logger_;
     std::atomic_int64_t current_request_id_{-1};
-    std::shared_ptr<boost::asio::io_context> ioc_;
-    std::shared_ptr<Listener> listener_;
-    std::shared_ptr<Router> router_;
-    std::vector<std::thread> worker_threads_;
 
-    std::mutex mutex_for_thread_infos_;
-    std::map<size_t, ThreadInfo*> thread_infos_;
+    std::shared_ptr<ILogger> logger_;
+    std::shared_ptr<boost::asio::io_context> ioc_;
+    std::shared_ptr<Router> router_;
+    std::vector<std::shared_ptr<Listener>> listeners_;
+
+    std::mutex mutex_server_state_;
+    bool is_running_;
+    bool should_stop_;
+
+    /** 当前会话数量 */
+    std::atomic_uint32_t curr_num_sessions_;
+    /** 当前工作线程数量 */
+    std::atomic_uint32_t curr_num_worker_threads_;
+
+    /** 总计创建的会话数量 */
+    std::atomic_uint64_t total_num_sessions_;
+    /** 总计处理的请求数量 */
+    std::atomic_uint64_t total_num_requests_;
+
+    std::mutex mutex_requests_;
+    std::set<Request*> handling_requests_;
 
     std::function<bool(Request&, Response&)> cb_before_parse_body_;
     std::function<bool(Request&, Response&)> cb_before_handle_request_;

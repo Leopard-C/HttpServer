@@ -11,8 +11,9 @@ bool register_routes(std::shared_ptr<ic::server::Router> router) {
     bool ret = true;
 
     // controller/server/server_controller.h
-    ret &= router->AddStaticRoute("/api/Server/DumpThreadInfos", HttpMethod::kPOST, ServerController::DumpThreadInfos, "获取所有线程信息.", {{"AdminOnly", "1"}, {"Authorization", "1"}});
+    ret &= router->AddStaticRoute("/api/Server/GetEndpoints", HttpMethod::kPOST, ServerController::GetEndpoints, "获取监听地址.", {{"AdminOnly", "1"}, {"Authorization", "1"}});
     ret &= router->AddStaticRoute("/api/Server/Shutdown", HttpMethod::kPOST, ServerController::Shutdown, "关闭服务器.", {{"AdminOnly", "1"}, {"Authorization", "1"}});
+    ret &= router->AddStaticRoute("/api/Server/Snapshot", HttpMethod::kPOST, ServerController::Snapshot, "获取服务器快照.", {{"AdminOnly", "1"}, {"Authorization", "1"}});
 
     // controller/test/test_controller.h
     ret &= router->AddStaticRoute("/api/Test/TestEmpty", HttpMethod::kGET, TestController::TestEmpty, "空请求，用于压力测试.", {{"Authorization", "0"}});

@@ -51,6 +51,7 @@ int main() {
     /* 1. 创建并初始化应用程序 */
     auto application = ic::Singleton<Application>::Instance();
     if (!application->Init()) {
+        ic::Singleton<Application>::DesInstance();
         return 1;
     }
 

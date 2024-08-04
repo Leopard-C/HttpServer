@@ -11,22 +11,19 @@ namespace ic {
 namespace server {
 
 Session::Session(tcp::socket&& socket, HttpServer* svr)
-    : svr_(svr), stream_(std::move(socket))
+    : svr_(svr), stream_(std::move(socket)), remote_endpoint_(stream_.socket().remote_endpoint())
 {
-    svr_->logger()->Debug(LOG_CTX, "New session from %s:%u",
-        stream_.socket().remote_endpoint().address().to_string().c_str(),
-        (unsigned int)stream_.socket().remote_endpoint().port());
+    svr_->logger()->Debug(LOG_CTX, "New session from %s:%hu", remote_endpoint_.address().to_string().c_str(), remote_endpoint_.port());
+    svr_->OnNewSession();
 }
 
 Session::~Session() {
-    svr_->logger()->Debug(LOG_CTX, "Destroy session");
+    svr_->logger()->Debug(LOG_CTX, "Destroy session %s:%hu", remote_endpoint_.address().to_string().c_str(), remote_endpoint_.port());
+    svr_->OnDestroySession();
 }
 
 void Session::Run() {
-    net::dispatch(
-        stream_.get_executor(),
-        beast::bind_front_handler(&Session::DoRead, shared_from_this())
-    );
+    net::dispatch(stream_.get_executor(), beast::bind_front_handler(&Session::DoRead, shared_from_this()));
 }
 
 void Session::DoRead() {
@@ -34,7 +31,7 @@ void Session::DoRead() {
     parser_->eager(true);
     /* 限制body大小 */
     uint64_t body_limit = svr_->config().body_limit();
-    parser_->body_limit(body_limit > 0 ? body_limit : 1024 * 1024 * 10);   /* 默认限制大小10MB */
+    parser_->body_limit(body_limit > 0 ? body_limit : (uint64_t)1024 * 1024 * 10);   /* 默认限制大小10MB */
     /* TCP连接超时(keep-alive最长时间) */
     unsigned int tcp_stream_timeout_ms = svr_->config().tcp_stream_timeout_ms();
     if (tcp_stream_timeout_ms > 0) {
@@ -46,10 +43,9 @@ void Session::DoRead() {
     http::async_read(stream_, buffer_, *parser_, beast::bind_front_handler(&Session::OnRead, shared_from_this()));
 }
 
-void Session::OnRead(beast::error_code ec, size_t bytes_transferred) {
+void Session::OnRead(beast::error_code ec, size_t/* bytes_transferred*/) {
     res_ = std::make_shared<Response>(svr_);
 
-    boost::ignore_unused(bytes_transferred);
     if (ec) {
         return ProcessReadError(ec);
     }
@@ -60,12 +56,13 @@ void Session::OnRead(beast::error_code ec, size_t bytes_transferred) {
     auto client_ip = stream_.socket().remote_endpoint().address();
     req_ = std::make_shared<Request>(svr_, req_raw, client_ip.to_string());
 
-    svr_->StartRequest(*req_);
+    svr_->OnStartRequest(req_.get());
     if (PreHandleRequest()) {
         HandleRequest();
     }
-    svr_->FinishRequest(*req_);
+    svr_->OnFinishRequest(req_.get());
 
+    req_->time_consumed_total_ = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - req_->arrive_timepoint());
     SendResponse();
 }
 
@@ -87,8 +84,7 @@ void Session::ProcessReadError(beast::error_code ec) {
     }
 }
 
-void Session::OnWrite(bool close, beast::error_code ec, size_t bytes_transferred) {
-    boost::ignore_unused(bytes_transferred);
+void Session::OnWrite(bool close, beast::error_code ec, size_t/* bytes_transferred*/) {
     if (string_res_) {
         string_res_.reset();
     }

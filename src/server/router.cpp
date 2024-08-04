@@ -28,6 +28,18 @@ std::string Route::GetMethodsString() const {
     return str;
 }
 
+Json::Value Route::ToJson() const {
+    Json::Value root;
+    root["methods"] = GetMethodsString();
+    root["hit_counts"] = (uint64_t)hit_count;
+    root["path"] = path;
+    root["description"] = description;
+    for (const auto& config : configuration) {
+        root["configuration"][config.first] = config.second;
+    }
+    return root;
+}
+
 void Route::Invoke(Request& req, Response& res) const {
     if (response_callback_) {
         response_callback_(req, res);
@@ -244,7 +256,6 @@ bool Router::HitRoute(Request& req, Response& res) const {
     route->hit_count.fetch_add(1);
 
     req.route_ = route;
-    req.thread_info_->route = route;
     return true;
 }
 

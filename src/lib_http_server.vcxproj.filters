@@ -67,7 +67,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\server\config.h">
+    <ClInclude Include="..\include\server\http_server_config.h">
       <Filter>include\server</Filter>
     </ClInclude>
     <ClInclude Include="..\include\server\content_type.h">
@@ -201,7 +201,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="server\config.cpp">
+    <ClCompile Include="server\http_server_config.cpp">
       <Filter>src\server</Filter>
     </ClCompile>
     <ClCompile Include="server\content_type.cpp">

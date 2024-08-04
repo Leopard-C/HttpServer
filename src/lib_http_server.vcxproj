@@ -201,7 +201,7 @@
     <ClInclude Include="..\include\jsoncpp\json\value.h" />
     <ClInclude Include="..\include\jsoncpp\json\version.h" />
     <ClInclude Include="..\include\jsoncpp\json\writer.h" />
-    <ClInclude Include="..\include\server\config.h" />
+    <ClInclude Include="..\include\server\http_server_config.h" />
     <ClInclude Include="..\include\server\content_type.h" />
     <ClInclude Include="..\include\server\form_param.h" />
     <ClInclude Include="..\include\server\helper\helper.h" />
@@ -240,7 +240,7 @@
     <ClCompile Include="jsoncpp\json_reader.cpp" />
     <ClCompile Include="jsoncpp\json_value.cpp" />
     <ClCompile Include="jsoncpp\json_writer.cpp" />
-    <ClCompile Include="server\config.cpp" />
+    <ClCompile Include="server\http_server_config.cpp" />
     <ClCompile Include="server\content_type.cpp" />
     <ClCompile Include="server\helper\helper.cpp" />
     <ClCompile Include="server\helper\param_check.cpp" />

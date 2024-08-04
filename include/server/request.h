@@ -20,7 +20,6 @@
 namespace ic {
 namespace server {
 
-class ThreadInfo;
 class HttpServer;
 class RequestRaw;
 class Session;
@@ -74,11 +73,6 @@ public:
      * @brief 当前请求命中的路由对象.
      */
     const Route* route() const { return route_; }
-
-    /**
-     * @brief 当前请求所在的线程信息.
-     */
-    const ThreadInfo* thread_info() const { return thread_info_; }
 
     /**
      * @brief 获取内容类型.
@@ -281,9 +275,6 @@ private:
 
     /** 当前请求命中的路由 */
     Route* route_{nullptr};
-
-    /** 当前请求所在的线程信息 */
-    ThreadInfo* thread_info_{nullptr};
 
     /** 内容类型 */
     ContentType content_type_;

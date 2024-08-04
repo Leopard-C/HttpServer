@@ -1,13 +1,13 @@
 /**
- * @file config.h
+ * @file http_server_config.h
  * @brief HTTP服务器配置.
  * @author Leopard-C (leopard.c@outlook.com)
  * @date 2023-11-29
  *
  * @copyright Copyright (c) 2023-present, Jinbao Chen.
  */
-#ifndef IC_SERVER_CONFIG_H_
-#define IC_SERVER_CONFIG_H_
+#ifndef IC_SERVER_HTTP_SERVER_CONFIG_H_
+#define IC_SERVER_HTTP_SERVER_CONFIG_H_
 #include <string>
 #include <jsoncpp/json/value.h>
 
@@ -19,20 +19,33 @@ namespace server {
  */
 class HttpServerConfig {
 public:
+    struct Endpoint {
+        Endpoint() : Endpoint("0.0.0.0", 8099, true) {}
+        Endpoint(const std::string& ip, unsigned short port, bool reuse_address) : ip(ip), port(port), reuse_address(reuse_address) {}
+        std::string ip;
+        unsigned short port;
+        bool reuse_address;
+    };
+
     /**
      * @brief 从json文件读取配置.
      *
      * @details 配置文件示例
      * @details {
-     * @details   "ip": "0.0.0.0",
-     * @details   "port": 8099,
-     * @details   "num_threads": 2,
+     * @details   "min_num_threads": 2,
+     * @details   "max_num_threads": 8,
      * @details   "version": "1.0.0",
-     * @details   "reuse_address": true,
      * @details   "tcp_stream_timeout_ms": 15000,
      * @details   "body_limit": 11534334,
      * @details   "log_access": true
-     * @details   "log_access_verbose": false
+     * @details   "log_access_verbose": false,
+     * @details   "endpoints": [
+     * @details     {
+     * @details       "ip": "0.0.0.0",
+     * @details       "port": 8099,
+     * @details       "reuse_address": true
+     * @details     }
+     * @details   ] 
      * @details }
      */
     bool ReadFromFile(const std::string& filename);
@@ -50,21 +63,20 @@ public:
     Json::Value ToJson() const;
 
 public:
-    unsigned int num_threads() const { return num_threads_; }
-    unsigned int port() const { return port_; }
-    const std::string& ip() const { return ip_; }
-    bool reuse_address() const { return reuse_address_; }
+    unsigned int min_num_threads() const { return min_num_threads_; }
+    unsigned int max_num_threads() const { return max_num_threads_; }
+    const std::vector<Endpoint>& endpoints() const { return endpoints_; }
+    std::vector<Endpoint>& endpoints() { return endpoints_; }
     bool log_access() const { return log_access_; }
     bool log_access_verbose() const { return log_access_verbose_; }
     unsigned int tcp_stream_timeout_ms() const { return tcp_stream_timeout_ms_; }
     uint64_t body_limit() const { return body_limit_; }
     const std::string& version() const { return version_; }
 
-    void set_num_threads(unsigned int num_threads) { num_threads_ = num_threads; }
-    void set_port(unsigned int port) { port_ = port; }
-    void set_ip(const std::string& ip) { ip_ = ip; }
-    void set_address(const std::string& ip, unsigned int port) { ip_ = ip; port_ = port; }
-    void set_reuse_address(bool reuse_address) { reuse_address_ = reuse_address; }
+    void set_min_num_threads(unsigned int min_num_threads) { min_num_threads_ = min_num_threads; }
+    void set_max_num_threads(unsigned int max_num_threads) { max_num_threads_ = max_num_threads; }
+    void add_endpoint(const Endpoint& endpoint) { endpoints_.push_back(endpoint); }
+    void add_endpoint(const std::string& ip, unsigned short port, bool reuse_address = true) { endpoints_.emplace_back(ip, port, reuse_address); }
     void set_log_access(bool log_access) { log_access_ = log_access; }
     void set_log_access_verbose(bool verbose) { log_access_verbose_ = verbose; }
     void set_tcp_stream_timeout_ms(unsigned int timeout_ms) { tcp_stream_timeout_ms_ = timeout_ms; }
@@ -72,19 +84,14 @@ public:
     void set_version(const std::string& version) { version_ = version; }
 
 private:
-    /** 线程数量 */
-    unsigned int num_threads_{2};
+    /** 线程数量最小值 */
+    unsigned int min_num_threads_{2};
 
-    /** 监听端口号 */
-    unsigned int port_{8099};
+    /** 线程数量最大值 */
+    unsigned int max_num_threads_{8};
 
-    /** IP地址 */
-    std::string ip_{"0.0.0.0"};
-
-    /**
-     * @brief 是否复用地址.
-     */
-    bool reuse_address_{true};
+    /** 监听地址 */
+    std::vector<Endpoint> endpoints_;
 
     /**
      * @brief 是否打印用户请求.
@@ -115,4 +122,4 @@ private:
 } // namespace server
 } // namespace ic
 
-#endif // IC_SERVER_CONFIG_H_
+#endif // IC_SERVER_HTTP_SERVER_CONFIG_H_

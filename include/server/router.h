@@ -54,6 +54,7 @@ public:
     virtual bool is_static() const = 0;
     bool is_regex() const { return !is_static(); }
     std::string GetMethodsString() const;
+    Json::Value ToJson() const;
     void Invoke(Request& req, Response& res) const;
 
 public:
