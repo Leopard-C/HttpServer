@@ -18,6 +18,7 @@ bool Listener::Run(const std::string& ip, unsigned short port, bool reuse_addres
         svr_->logger()->Error(LOG_CTX, "Invalid address %s", ip.c_str());
         return false;
     }
+
     tcp::endpoint endpoint(address, port);
 
     acceptor_.open(endpoint.protocol(), ec);

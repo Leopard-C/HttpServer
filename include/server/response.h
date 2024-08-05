@@ -91,7 +91,7 @@ private:
     bool is_file_body_{false};
     unsigned int status_code_{200U};
     std::string string_body_;
-    std::string filepath_;  // file body, utf-8 encoded
+    std::string filepath_;  // Response file body. The path must be utf-8 encoded.
     std::multimap<std::string, std::string> headers_;
 };
 

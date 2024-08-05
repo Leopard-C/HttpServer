@@ -31,7 +31,7 @@ std::string Route::GetMethodsString() const {
 Json::Value Route::ToJson() const {
     Json::Value root;
     root["methods"] = GetMethodsString();
-    root["hit_counts"] = (uint64_t)hit_count;
+    root["hit_count"] = (uint64_t)hit_count;
     root["path"] = path;
     root["description"] = description;
     for (const auto& config : configuration) {

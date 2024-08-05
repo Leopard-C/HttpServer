@@ -58,6 +58,11 @@ public:
     HttpMethod method() const { return method_; }
 
     /**
+     * @brief 当前请求所在线程ID.
+     */
+    size_t thread_id() const { return thread_id_; }
+
+    /**
      * @brief 当前请求对应的ID.
      * 
      * @details 服务器运行期间唯一.
@@ -242,8 +247,8 @@ private:
     void ParseUrlParams(const char* str, size_t len);
 
 private:
-    RequestRaw* raw_{nullptr};
     HttpServer* svr_{nullptr};
+    RequestRaw* raw_{nullptr};
 
     /**
      * @brief 客户端地址.
@@ -267,8 +272,11 @@ private:
     /** 请求方法 */
     HttpMethod method_{HttpMethod::kNotSupport};
 
+    /** 该请求所在线程ID */
+    size_t thread_id_;
+
     /** 本次请求的ID(全局唯一) */
-    int64_t id_{-1};
+    int64_t id_;
 
     /** 请求路径，如/user/getInfo */
     std::string path_;

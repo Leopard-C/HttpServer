@@ -13,6 +13,7 @@ bool register_routes(std::shared_ptr<ic::server::Router> router) {
     // controller/server/server_controller.h
     ret &= router->AddStaticRoute("/api/Server/GetEndpoints", HttpMethod::kPOST, ServerController::GetEndpoints, "获取监听地址.", {{"AdminOnly", "1"}, {"Authorization", "1"}});
     ret &= router->AddStaticRoute("/api/Server/Shutdown", HttpMethod::kPOST, ServerController::Shutdown, "关闭服务器.", {{"AdminOnly", "1"}, {"Authorization", "1"}});
+    ret &= router->AddStaticRoute("/api/Server/Sleep", HttpMethod::kPOST, ServerController::Sleep, "睡眠几秒钟，模拟耗时请求.", {{"AdminOnly", "1"}, {"Authorization", "1"}});
     ret &= router->AddStaticRoute("/api/Server/Snapshot", HttpMethod::kPOST, ServerController::Snapshot, "获取服务器快照.", {{"AdminOnly", "1"}, {"Authorization", "1"}});
 
     // controller/test/test_controller.h

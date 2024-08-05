@@ -1,6 +1,6 @@
 {
     "min_num_threads": 2,
-    "max_num_threads": 8,
+    "max_num_threads": 16,
     "version": "1.0.0",
     "tcp_stream_timeout_ms": 15000,
     "body_limit": 11534334,

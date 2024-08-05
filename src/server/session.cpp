@@ -108,7 +108,7 @@ void Session::ProcessWriteError(beast::error_code ec) {
         svr_->logger()->Debug(LOG_CTX, "OnWrite error, %s", ec.message().c_str());
     }
     else {
-        svr_->logger()->Error(LOG_CTX, "OnRead error, %s", ec.message().c_str());
+        svr_->logger()->Error(LOG_CTX, "OnWrite error, %s", ec.message().c_str());
     }
 }
 
@@ -178,7 +178,7 @@ void Session::SendResponse() {
 void Session::SendFileBodyResponse() {
     http::file_body::value_type file;
     beast::error_code ec;
-    file.open(res_->filepath_.c_str(), beast::file_mode::read, ec);  /* filepath_是UTF8编码 */
+    file.open(res_->filepath_.c_str(), beast::file_mode::read, ec);  /* `filepath_`是UTF8编码 */
     if (ec) {
         res_->SetStringBody(404U); // return 404 Not Found
         return SendStringBodyResponse();

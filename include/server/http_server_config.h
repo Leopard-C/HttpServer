@@ -27,6 +27,9 @@ public:
         bool reuse_address;
     };
 
+    HttpServerConfig() = default;
+    ~HttpServerConfig() = default;
+
     /**
      * @brief 从json文件读取配置.
      *

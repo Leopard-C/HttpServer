@@ -42,6 +42,7 @@ Json::Value SnapshotResult::ToJson() const {
     v_handling_requests.resize(0);
     for (const auto& request : handling_request) {
         Json::Value v_handling_request;
+        v_handling_request["thread_id"] = request.thread_id;
         v_handling_request["id"] = request.id;
         v_handling_request["method"] = to_string(request.method);
         v_handling_request["content_type"] = request.content_type.ToString();
@@ -50,6 +51,10 @@ Json::Value SnapshotResult::ToJson() const {
         v_handling_request["route"] = request.route->ToJson();
         v_handling_request["client_ip"] = request.client_ip;
         v_handling_request["client_real_ip"] = request.client_real_ip;
+        /* 是否是当前请求 */
+        v_handling_request["is_self"] = (util::thread_id() == request.thread_id);
+        /* 已经耗时(秒) */
+        v_handling_request["elapsed_seconds"] = std::chrono::duration_cast<std::chrono::microseconds>(create_time - request.arrive_timepoint).count() / 1000000.0;
         v_handling_requests.append(v_handling_request);
     }
     return root;
@@ -113,20 +118,21 @@ bool HttpServer::StartAsync() {
         }
 
         /* 启动监听器 */
-        for (size_t i = 0; i < config_.endpoints().size(); ++i) {
-            auto& endpoint = config_.endpoints()[i];
+        auto& endpoints = config_.endpoints();
+        for (size_t i = 0; i < endpoints.size(); ++i) {
             auto listener = std::make_shared<Listener>(this);
-            if (!listener->Run(endpoint.ip, endpoint.port, endpoint.reuse_address)) {
-                logger_->Error(LOG_CTX, "Listen on %s:%hu failed", endpoint.ip.c_str(), endpoint.port);
+            if (!listener->Run(endpoints[i].ip, endpoints[i].port, endpoints[i].reuse_address)) {
+                logger_->Error(LOG_CTX, "Listener start failed");
                 listeners_.clear();
                 return false;
             }
             listeners_.push_back(listener);
         }
-        for (size_t i = 0; i < config_.endpoints().size(); ++i) {
-            auto& endpoint = config_.endpoints()[i];
-            auto& listener = listeners_[i];
-            endpoint.port = listener->acceptor().local_endpoint().port();
+        for (size_t i = 0; i < endpoints.size(); ++i) {
+            /* 如果配置的端口为0，会任意选择一个可用端口，需要获取到该端口 */
+            if (endpoints[i].port == 0) {
+                endpoints[i].port = listeners_[i]->acceptor().local_endpoint().port();
+            }
         }
 
         is_running_ = true;
@@ -158,6 +164,7 @@ void HttpServer::Stop() {
  * @brief 停止服务器(异步).
  */
 void HttpServer::StopAsync() {
+    std::lock_guard<std::mutex> lck(mutex_server_state_);
     if (is_running_ && !should_stop_) {
         should_stop_ = true;
         logger_->Info(LOG_CTX, "Waiting for all worker threads to exit ...");
@@ -196,6 +203,7 @@ SnapshotResult HttpServer::CreateSnapshot() {
         SnapshotResult::RequestInfo req_info;
         snapshot.handling_request.reserve(handling_requests_.size());
         for (Request* req : handling_requests_) {
+            req_info.thread_id = req->thread_id();
             req_info.id = req->id();
             req_info.method = req->method();
             req_info.content_type = req->content_type();
@@ -207,6 +215,9 @@ SnapshotResult HttpServer::CreateSnapshot() {
             snapshot.handling_request.push_back(req_info);
         }
     }
+    std::sort(snapshot.handling_request.begin(), snapshot.handling_request.end(), [](SnapshotResult::RequestInfo& a, SnapshotResult::RequestInfo& b) {
+        return a.arrive_timepoint < b.arrive_timepoint;
+    });
     return snapshot;
 }
 
@@ -276,6 +287,9 @@ void HttpServer::ThreadFunc_Manager() {
                     /* 扩容为1.5倍, 单次最多32个线程, 且扩容后总线程数量不能超过最大限制 */
                     unsigned int inc_num_threads = s_clamp(curr_num_worker_threads_ / 2, 1U, std::min(32U, config_.max_num_threads() - curr_num_worker_threads_));
                     NewWorkerThreads(inc_num_threads);
+                    if (curr_num_worker_threads_ == config_.max_num_threads()) {
+                        logger_->Debug(LOG_CTX, "Number of worker threads has reached the peak");
+                    }
                 }
             }
         }
@@ -283,6 +297,7 @@ void HttpServer::ThreadFunc_Manager() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     is_running_ = false;
+    logger_->Info(LOG_CTX, "HttpServer stopped!");
 }
 
 /**

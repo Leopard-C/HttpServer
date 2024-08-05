@@ -36,6 +36,23 @@ void ServerController::GetEndpoints(Request& req, Response& res) {
     RETURN_OK();
 }
 
+
+/**
+ * @brief 睡眠几秒钟，模拟耗时请求.
+ * 
+ * @route  /api/Server/Sleep
+ * @method POST
+ * @config Authorization(1)
+ * @config AdminOnly(1)
+ */
+void ServerController::Sleep(Request& req, Response& res) {
+    API_INIT();
+    CHECK_BODY_PARAM_UINT_EX(seconds);
+    seconds = seconds <= 15 ? seconds : 15;
+    std::this_thread::sleep_for(std::chrono::seconds(seconds));
+    RETURN_OK();
+}
+
 /**
  * @brief 获取服务器快照.
  * 

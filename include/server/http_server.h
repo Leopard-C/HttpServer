@@ -45,6 +45,7 @@ using tp = std::chrono::system_clock::time_point;
  */
 struct SnapshotResult {
     struct RequestInfo {
+        size_t thread_id = 0;
         int64_t id = -1;
         HttpMethod method;
         ContentType content_type;
