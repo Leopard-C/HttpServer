@@ -34,14 +34,14 @@ bool register_routes(std::shared_ptr<ic::server::Router> router) {
     ret &= router->AddStaticRoute("/api/User/Login", HttpMethod::kPOST, UserController::Login, "登录.", {{"Authorization", "0"}});
     ret &= router->AddStaticRoute("/api/User/UpdateInfo", HttpMethod::kPOST, UserController::UpdateInfo, "更新用户信息.", {{"Authorization", "1"}});
     ret &= router->AddStaticRoute("/api/User/UploadAvatar", HttpMethod::kPOST, UserController::UploadAvatar, "上传用户头像.", {{"Authorization", "1"}});
-    ret &= router->AddRegexRoute("/api/User/avatar/([a-z0-9]{2})/([a-z0-9]{32}\\.(jpg|jpeg|png|gif))", HttpMethod::kGET, UserController::GetAvatarImage, "获取头像，返回二进制图片文件.", {{"Authorization", "1"}});
+    ret &= router->AddRegexRoute("/api/User/avatar/([a-z0-9]{2})/([a-z0-9]{32}\\.(jpg|jpeg|png|gif))", HttpMethod::kGET, UserController::GetAvatarImage, "获取头像，返回二进制图片文件.", {{"Authorization", "1"}}, 0);
 
     // controller/web/web_controller.h
     ret &= router->AddStaticRoute("/", HttpMethod::kGET, WebController::Index, "访问根目录，跳转/web/index.html.", {});
     ret &= router->AddStaticRoute("/index", HttpMethod::kGET, WebController::Index, "访问根目录，跳转/web/index.html.", {});
     ret &= router->AddStaticRoute("/index.html", HttpMethod::kGET, WebController::Index, "访问根目录，跳转/web/index.html.", {});
     ret &= router->AddStaticRoute("/favicon.ico", HttpMethod::kGET, WebController::Favicon, "网站图标.", {});
-    ret &= router->AddRegexRoute("/web/(.+)", HttpMethod::kGET, WebController::GetResource, "网页资源文件(html/js/css/img).", {});
+    ret &= router->AddRegexRoute("/web/(.+)", HttpMethod::kGET, WebController::GetResource, "网页资源文件(html/js/css/img).", {}, -99);
 
     return ret;
 } // end register_routes

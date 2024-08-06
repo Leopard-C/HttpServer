@@ -33,6 +33,7 @@ public:
      * 
      * @route  ~ /web/(.+)
      * @method GET
+     * @priority -99
      */
     static void GetResource(Request& req, Response& res);
 };

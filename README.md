@@ -20,7 +20,7 @@
 ## 2. 依赖
 
 + C++11
-+ Boost 1.73.0
++ Boost 1.73.0 +
 + [Boost.Asio](https://github.com/boostorg/asio), [Boost.Beast](https://github.com/boostorg/beast), [Boost.Regex](https://github.com/boostorg/regex)（可选，性能比 std::regex 性能高些）
 + [Leopard-C/jsoncpp](https://github.com/Leopard-C/jsoncpp) （修改自[open-source-parsers/jsoncpp](https://github.com/open-source-parsers/jsoncpp)）
 
@@ -32,7 +32,7 @@
 + 请求拦截器
 + 响应拦截器
 + 路由管理(静态路由，正则路由)
-+ 工作线程数量设置
++ 工作线程数量设置(动态线程数量)
 + `Keep-Alive`超时时间设置
 + `body`内容大小限制
 + (大)文件响应
@@ -63,9 +63,9 @@ using namespace ic::server;
 int main() {
     // 1. 初始化HTTP服务器
     HttpServerConfig config;
-    config.set_address("0.0.0.0", 8099);
-    config.set_num_threads(4);                // 4个工作线程
-    config.set_reuse_address(true);           // 允许复用地址
+    config.add_endpoint("0.0.0.0", 8099, true);  // 监听地址，支持多个地址
+    config.set_min_num_threads(2);            // 最少2个工作线程
+    config.set_max_num_threads(8);            // 最多8个工作线程
     config.set_log_access(true);              // 打印请求日志
     config.set_log_access_verbose(false);     // 不打印详细日志（调试时可开启）
     config.set_tcp_stream_timeout_ms(15000);  // 超时时间15s
@@ -148,6 +148,7 @@ public:
      * @route  ~ /api/User/avatar/([a-z0-9]{2})/([a-z0-9]{32}\.(jpg|jpeg|png|gif))
      * @method GET
      * @config Authorization(1)
+     * @priority 99
      */
     static void GetAvatarImage(Request& req, Response& res);
 };
@@ -167,7 +168,7 @@ bool register_routes(std::shared_ptr<ic::server::Router> router) {
     // controller/user/user_controller.h
     ret &= router->AddStaticRoute("/api/User/Login", HttpMethod::kPOST, UserController::Login, "登录.", {{"Authorization", "0"}});
     ret &= router->AddStaticRoute("/api/User/UploadAvatar", HttpMethod::kPOST, UserController::UploadAvatar, "上传用户头像.", {{"Authorization", "1"}});
-    ret &= router->AddRegexRoute("/api/User/avatar/([a-z0-9]{2})/([a-z0-9]{32}\\.(jpg|jpeg|png|gif))", HttpMethod::kGET, UserController::GetAvatarImage, "获取头像，返回二进制图片文件.", {{"Authorization", "1"}});
+    ret &= router->AddRegexRoute("/api/User/avatar/([a-z0-9]{2})/([a-z0-9]{32}\\.(jpg|jpeg|png|gif))", HttpMethod::kGET, UserController::GetAvatarImage, "获取头像，返回二进制图片文件.", {{"Authorization", "1"}}, 99);
 
     return ret;
 }

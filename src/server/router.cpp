@@ -79,8 +79,8 @@ bool Router::AddStaticRoute(StaticRoutePtr route) {
     }
     DeleteRoute_WithoutLock(route->path);
     svr_->logger()->Debug(LOG_CTX, "Add static route: %4s %s", route->GetMethodsString().c_str(), route->path.c_str());
-    routes_.emplace(route->path, route);
     static_routes_.emplace(route->path, route);
+    routes_.emplace(route->path, route);
     return true;
 }
 
@@ -112,18 +112,17 @@ bool Router::AddRegexRoute(RegexRoutePtr route) {
     }
     DeleteRoute_WithoutLock(route->path);
     svr_->logger()->Debug(LOG_CTX, "Add  regex route: %4s %s", route->GetMethodsString().c_str(), route->path.c_str());
+    auto iter = std::find_if(regex_routes_.begin(), regex_routes_.end(), [route](RegexRoutePtr rhs) { return rhs->priority < route->priority; });
+    regex_routes_.insert(iter, route);
     routes_.emplace(route->path, route);
-    regex_routes_.emplace_back(route);
     return true;
 }
 
-bool Router::AddRegexRoute(const std::string& path, int methods,
-    std::function<void(Request&, Response&)> callback,
-    const std::string& description/* = ""*/,
-    const std::unordered_map<std::string, std::string>& configuration/* = {}*/)
+bool Router::AddRegexRoute(const std::string& path, int methods, std::function<void(Request&, Response&)> callback,
+    const std::string& description/* = ""*/, const std::unordered_map<std::string, std::string>& configuration/* = {}*/, int priority/* = 0*/)
 {
     try {
-        auto route = std::make_shared<RegexRoute>(path, methods, callback, description, configuration);
+        auto route = std::make_shared<RegexRoute>(path, methods, callback, description, configuration, priority);
         return AddRegexRoute(route);
     }
     catch (const REGEX_NAMESPACE::regex_error& ex) {
@@ -132,13 +131,11 @@ bool Router::AddRegexRoute(const std::string& path, int methods,
     }
 }
 
-bool Router::AddRegexRoute(const std::string& path, int methods,
-    std::function<void(Request&, Json::Value&)> callback,
-    const std::string& description/* = ""*/,
-    const std::unordered_map<std::string, std::string>& configuration/* = {}*/)
+bool Router::AddRegexRoute(const std::string& path, int methods, std::function<void(Request&, Json::Value&)> callback,
+    const std::string& description/* = ""*/, const std::unordered_map<std::string, std::string>& configuration/* = {}*/, int priority/* = 0*/)
 {
     try {
-        auto route = std::make_shared<RegexRoute>(path, methods, callback, description, configuration);
+        auto route = std::make_shared<RegexRoute>(path, methods, callback, description, configuration, priority);
         return AddRegexRoute(route);
     }
     catch (const REGEX_NAMESPACE::regex_error& ex) {

@@ -109,11 +109,14 @@ public:
  */
 class RegexRoute : public Route {
 public:
-    RegexRoute(const std::string& path, int methods, ResponseCallback cb, const std::string& desc, const std::unordered_map<std::string, std::string>& cfg)
-        : Route(path, methods, cb, desc, cfg), regex(path) {}
-    RegexRoute(const std::string& path, int methods, ResponseJsonCallback cb, const std::string& desc, const std::unordered_map<std::string, std::string>& cfg)
-        : Route(path, methods, cb, desc, cfg), regex(path) {}
+    RegexRoute(const std::string& path, int methods, ResponseCallback cb, const std::string& desc, const std::unordered_map<std::string, std::string>& cfg, int priority = 0)
+        : Route(path, methods, cb, desc, cfg), regex(path), priority(priority) {}
+    RegexRoute(const std::string& path, int methods, ResponseJsonCallback cb, const std::string& desc, const std::unordered_map<std::string, std::string>& cfg, int priority = 0)
+        : Route(path, methods, cb, desc, cfg), regex(path), priority(priority) {}
     virtual bool is_static() const override { return false; }
+    /** 匹配优先级(值越大，越优先匹配) */
+    int priority;
+    /** 正则表达式 */
     REGEX_NAMESPACE::regex regex;
 };
 
@@ -152,14 +155,10 @@ public:
      * @brief 添加正则路由，如果已存在则覆盖.
      */
     bool AddRegexRoute(RegexRoutePtr route);
-    bool AddRegexRoute(const std::string& path, int methods,
-        std::function<void(Request&, Response&)> callback,
-        const std::string& description = "",
-        const std::unordered_map<std::string, std::string>& configuration = {});
-    bool AddRegexRoute(const std::string& path, int methods,
-        std::function<void(Request&, Json::Value&)> callback,
-        const std::string& description = "",
-        const std::unordered_map<std::string, std::string>& configuration = {});
+    bool AddRegexRoute(const std::string& path, int methods, std::function<void(Request&, Response&)> callback,
+        const std::string& description = "", const std::unordered_map<std::string, std::string>& configuration = {}, int priority = 0);
+    bool AddRegexRoute(const std::string& path, int methods, std::function<void(Request&, Json::Value&)> callback,
+        const std::string& description = "", const std::unordered_map<std::string, std::string>& configuration = {}, int priority = 0);
 
     /**
      * @brief 删除路由.
