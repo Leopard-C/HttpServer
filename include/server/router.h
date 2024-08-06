@@ -10,14 +10,28 @@
 #define IC_SERVER_ROUTER_H_
 #include <atomic>
 #include <functional>
-#include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <jsoncpp/json/value.h>
 #include "http_method.h"
 
 /**
- * @note 使用Boost.Regex正则表达式库，比标准库的regex性能更好
+ * @brief 是否使用`Boost.shared_mutex`.
+ * @note `std::shared_mutex`是`C++17`才引入的
+ */
+#define IC_SERVER_USE_BOOST_SHARED_MUTEX 1
+
+#if IC_SERVER_USE_BOOST_SHARED_MUTEX == 1
+#  include <boost/thread/lock_types.hpp>
+#  include <boost/thread/shared_mutex.hpp>
+#else
+#  include <shared_mutex>
+#endif
+
+/**
+ * @brief 是否使用`Boost.Regex`.
+ * @note 使用`Boost.Regex`正则表达式库，比`std::regex`性能更好
  */
 #define IC_SERVER_USE_BOOST_REGEX 1
 
@@ -45,9 +59,9 @@ public:
     using ResponseJsonCallback = std::function<void(Request&, Json::Value&)>;
 
 public:
-    Route(const std::string& path, int methods, ResponseCallback cb, const std::string& desc, const std::map<std::string, std::string>& cfg)
+    Route(const std::string& path, int methods, ResponseCallback cb, const std::string& desc, const std::unordered_map<std::string, std::string>& cfg)
         : path(path), description(desc), methods(methods), response_callback_(cb), configuration(cfg) {}
-    Route(const std::string& path, int methods, ResponseJsonCallback cb, const std::string& desc, const std::map<std::string, std::string>& cfg)
+    Route(const std::string& path, int methods, ResponseJsonCallback cb, const std::string& desc, const std::unordered_map<std::string, std::string>& cfg)
         : path(path), description(desc), methods(methods), response_json_callback_(cb), configuration(cfg) {}
     virtual ~Route() = default;
 
@@ -71,7 +85,7 @@ public:
     std::string description;
 
     /** 配置信息(可以用于请求拦截器中，如是否需要鉴权) */
-    std::map<std::string, std::string> configuration;
+    std::unordered_map<std::string, std::string> configuration;
 
 private:
     ResponseCallback response_callback_;
@@ -83,9 +97,9 @@ private:
  */
 class StaticRoute : public Route {
 public:
-    StaticRoute(const std::string& path, int methods, ResponseCallback cb, const std::string& desc, const std::map<std::string, std::string>& cfg)
+    StaticRoute(const std::string& path, int methods, ResponseCallback cb, const std::string& desc, const std::unordered_map<std::string, std::string>& cfg)
         : Route(path, methods, cb, desc, cfg) {}
-    StaticRoute(const std::string& path, int methods, ResponseJsonCallback cb, const std::string& desc, const std::map<std::string, std::string>& cfg)
+    StaticRoute(const std::string& path, int methods, ResponseJsonCallback cb, const std::string& desc, const std::unordered_map<std::string, std::string>& cfg)
         : Route(path, methods, cb, desc, cfg) {}
     virtual bool is_static() const override { return true; }
 };
@@ -95,76 +109,117 @@ public:
  */
 class RegexRoute : public Route {
 public:
-    RegexRoute(const std::string& path, int methods, ResponseCallback cb, const std::string& desc, const std::map<std::string, std::string>& cfg)
+    RegexRoute(const std::string& path, int methods, ResponseCallback cb, const std::string& desc, const std::unordered_map<std::string, std::string>& cfg)
         : Route(path, methods, cb, desc, cfg), regex(path) {}
-    RegexRoute(const std::string& path, int methods, ResponseJsonCallback cb, const std::string& desc, const std::map<std::string, std::string>& cfg)
+    RegexRoute(const std::string& path, int methods, ResponseJsonCallback cb, const std::string& desc, const std::unordered_map<std::string, std::string>& cfg)
         : Route(path, methods, cb, desc, cfg), regex(path) {}
     virtual bool is_static() const override { return false; }
     REGEX_NAMESPACE::regex regex;
 };
 
+using RoutePtr = std::shared_ptr<Route>;
+using StaticRoutePtr = std::shared_ptr<StaticRoute>;
+using RegexRoutePtr = std::shared_ptr<RegexRoute>;
+
+using RouteConstPtr = std::shared_ptr<const Route>;
+using StaticRouteConstPtr = std::shared_ptr<const StaticRoute>;
+using RegexRouteConstPtr = std::shared_ptr<const RegexRoute>;
+
 /**
  * @brief 路由管理器.
  * 
- * @warning 服务器(HttpServer)启动后，不能再修改路由
+ * @note 服务器运行过程中，可以动态新增或删除路由，且线程安全.
  */
 class Router {
 public:
     Router(HttpServer* svr);
     ~Router();
 
-    bool AddStaticRoute(StaticRoute* route);
+    /**
+     * @brief 添加静态路由，如果已存在则覆盖.
+     */
+    bool AddStaticRoute(StaticRoutePtr route);
     bool AddStaticRoute(const std::string& path, int methods,
         std::function<void(Request&, Response&)> callback,
         const std::string& description = "",
-        const std::map<std::string, std::string>& configuration = {});
+        const std::unordered_map<std::string, std::string>& configuration = {});
     bool AddStaticRoute(const std::string& path, int methods,
         std::function<void(Request&, Json::Value&)> callback,
         const std::string& description = "",
-        const std::map<std::string, std::string>& configuration = {});
+        const std::unordered_map<std::string, std::string>& configuration = {});
 
-    bool AddRegexRoute(RegexRoute* route);
+    /**
+     * @brief 添加正则路由，如果已存在则覆盖.
+     */
+    bool AddRegexRoute(RegexRoutePtr route);
     bool AddRegexRoute(const std::string& path, int methods,
         std::function<void(Request&, Response&)> callback,
         const std::string& description = "",
-        const std::map<std::string, std::string>& configuration = {});
+        const std::unordered_map<std::string, std::string>& configuration = {});
     bool AddRegexRoute(const std::string& path, int methods,
         std::function<void(Request&, Json::Value&)> callback,
         const std::string& description = "",
-        const std::map<std::string, std::string>& configuration = {});
+        const std::unordered_map<std::string, std::string>& configuration = {});
 
-    void set_cb_invalid_path(Route::ResponseCallback cb);
-    void set_cb_invalid_method(Route::ResponseCallback cb);
-
-    const HttpServer* svr() const { return svr_; }
-    const std::unordered_map<std::string, Route*>& routes() const { return routes_; }
-    const std::unordered_map<std::string, StaticRoute*>& static_routes() const { return static_routes_; }
-    const std::vector<RegexRoute*>& regex_routes() const { return regex_routes_; }
+    /**
+     * @brief 删除路由.
+     */
+    void DeleteRoute(const std::string& path);
 
     /**
      * @brief 检查请求是否命中已注册的路由.
      */
-    bool HitRoute(Request& req, Response& res) const;
+    bool HitRoute(Request& req, Response& res);
 
     /**
      * @brief 获取路由.
      */
-    const Route* GetRoute(const std::string& path) const;
+    RouteConstPtr GetRoute(const std::string& path);
+
+    std::unordered_map<std::string, RouteConstPtr> routes();
+    std::unordered_map<std::string, StaticRouteConstPtr> static_routes();
+    std::vector<RegexRouteConstPtr> regex_routes();
+
+    const HttpServer* svr() const { return svr_; }
+
+    void set_cb_invalid_path(Route::ResponseCallback cb);
+    void set_cb_invalid_method(Route::ResponseCallback cb);
 
 private:
-    bool CheckRoute(Route* route) const;
+    /**
+     * @brief 检查路由是否有效.
+     */
+    bool CheckRoute(RoutePtr route) const;
+
+    /**
+     * @brief 删除路由(无锁).
+     */
+    void DeleteRoute_WithoutLock(const std::string& path);
 
 private:
-    HttpServer* svr_{nullptr};
+    HttpServer* svr_;
+
+#if IC_SERVER_USE_BOOST_SHARED_MUTEX == 1
+    using SharedMutex = boost::shared_mutex;
+    using ReadLock = boost::shared_lock<boost::shared_mutex>;
+    using WriteLock = boost::unique_lock<boost::shared_mutex>;
+#else
+    using SharedMutex = std::shared_mutex;
+    using ReadLock = std::shared_lock<std::shared_mutex>;
+    using WriteLock = std::unique_lock<std::shared_mutex>;
+#endif
+
+    /** 读写锁 */
+    SharedMutex mutex_;
 
     /** 所有路由 */
-    std::unordered_map<std::string, Route*> routes_;
+    std::unordered_map<std::string, RoutePtr> routes_;
 
     /** 静态路由 */
-    std::unordered_map<std::string, StaticRoute*> static_routes_;
+    std::unordered_map<std::string, StaticRoutePtr> static_routes_;
 
     /** 正则表达式路由 */
-    std::vector<RegexRoute*> regex_routes_;
+    std::vector<RegexRoutePtr> regex_routes_;
 
     /** 路径无效的回调函数 */
     Route::ResponseCallback cb_invalid_path_;

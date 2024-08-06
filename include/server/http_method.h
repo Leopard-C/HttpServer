@@ -26,7 +26,8 @@ enum HttpMethod {
     kCONNECT = 1 << 5,
     kOPTIONS = 1 << 6,
     kTRACE   = 1 << 7,
-    kPATCH   = 1 << 8
+    kPATCH   = 1 << 8,
+    kALL     = kGET | kHEAD | kPOST | kPUT | kDELETE | kCONNECT | kOPTIONS | kTRACE | kPATCH
 };
 
 const char* to_string(HttpMethod method);

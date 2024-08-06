@@ -49,7 +49,7 @@ struct SnapshotResult {
         int64_t id = -1;
         HttpMethod method;
         ContentType content_type;
-        const Route* route = nullptr;
+        std::shared_ptr<const Route> route;
         tp arrive_timepoint;
         std::string path;
         std::string client_ip;

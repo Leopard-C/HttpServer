@@ -77,7 +77,7 @@ public:
     /**
      * @brief 当前请求命中的路由对象.
      */
-    const Route* route() const { return route_; }
+    std::shared_ptr<const Route> route() const { return route_; }
 
     /**
      * @brief 获取内容类型.
@@ -282,7 +282,7 @@ private:
     std::string path_;
 
     /** 当前请求命中的路由 */
-    Route* route_{nullptr};
+    std::shared_ptr<const Route> route_;
 
     /** 内容类型 */
     ContentType content_type_;
