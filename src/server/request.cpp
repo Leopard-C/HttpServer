@@ -284,8 +284,9 @@ void Request::ParseCookie() {
 **********************************************************************************/
 #pragma region PARSE_BODY
 bool Request::ParseBody() {
+    constexpr int methods_allow_body = (HttpMethod::kPOST | HttpMethod::kPUT | HttpMethod::kDELETE | HttpMethod::kPATCH);
     const std::string& body = raw_->body();
-    if (body.empty() || (method_ != HttpMethod::kPOST && method_ != HttpMethod::kPUT && method_ != HttpMethod::kPATCH && method_ != HttpMethod::kDELETE)) {
+    if (body.empty() || !(method_ & methods_allow_body)) {
         return true;
     }
     if (content_type_.IsApplicationXWwwFormUrlEncoded()) {

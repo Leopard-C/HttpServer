@@ -82,6 +82,20 @@ HttpServer::~HttpServer() {
 }
 
 /**
+ * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾.
+ */
+const std::string& HttpServer::GetBinDir() {
+    return util::path::get_bin_dir();
+}
+
+/**
+ * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾，UTF8编码.
+ */
+const std::string& HttpServer::GetBinDirUtf8() {
+    return util::path::get_bin_dir_utf8();
+}
+
+/**
  * @brief 启动服务器.
  */
 bool HttpServer::Start() {
@@ -165,7 +179,7 @@ void HttpServer::Stop() {
  */
 void HttpServer::StopAsync() {
     std::lock_guard<std::mutex> lck(mutex_server_state_);
-    if (is_running_ && !should_stop_) {
+    if (is_running_) {
         should_stop_ = true;
         logger_->Info(LOG_CTX, "Waiting for all worker threads to exit ...");
         ioc_->stop();
@@ -185,7 +199,7 @@ void HttpServer::WaitForStop() const {
  * @brief 判断服务器是否已停止.
  */
 bool HttpServer::Stopped() const {
-    return !is_running_ && ioc_->stopped();
+    return !is_running_;
 }
 
 /**
@@ -225,7 +239,7 @@ SnapshotResult HttpServer::CreateSnapshot() {
  * @brief 创建新的工作线程.
  */
 void HttpServer::NewWorkerThreads(uint32_t n) {
-    for (unsigned int i = 0; i < n; ++i) {
+    for (uint32_t i = 0; i < n; ++i) {
         ++curr_num_worker_threads_;
         std::thread t([this] {
             this->ThreadFunc_Worker();
@@ -243,31 +257,33 @@ void HttpServer::ThreadFunc_Worker() {
 
     /* 上次活跃时间 */
     auto last_active_time = std::chrono::steady_clock::now();
+    /* 是否需要退出当前线程 */
+    bool exit = false;
 
     while (true) {
         size_t n = ioc_->run_for(std::chrono::milliseconds(1000));
-        {
-            std::lock_guard<std::mutex> lck(mutex_server_state_);
-            if (should_stop_) {
-                --curr_num_worker_threads_;
-                break;
-            }
 
-            if (n > 0) {
-                last_active_time = std::chrono::steady_clock::now();
-            }
-            else if (curr_num_worker_threads_ > config_.min_num_threads() && curr_num_worker_threads_ > curr_num_sessions_) {
-                /* 超过一定时间未活跃，结束当前线程 */
-                int64_t dur = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_active_time).count();
-                if (dur > 5000) {
-                    --curr_num_worker_threads_;
-                    break;
-                }
+        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        if (should_stop_) {
+            exit = true;
+        }
+        else if (n > 0) {
+            last_active_time = std::chrono::steady_clock::now();
+        }
+        else if (curr_num_worker_threads_ > config_.min_num_threads() && curr_num_worker_threads_ > curr_num_sessions_) {
+            /* 超过一定时间未活跃，结束当前线程 */
+            int64_t dur = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_active_time).count();
+            if (dur > 5000) {
+                exit = true;
             }
         }
-    } // end while
 
-    logger_->Debug(LOG_CTX, "Worker thread exit. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
+        if (exit) {
+            --curr_num_worker_threads_;
+            logger_->Debug(LOG_CTX, "Worker thread exit. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
+            break;
+        }
+    } // end while
 }
 
 /**
@@ -275,75 +291,45 @@ void HttpServer::ThreadFunc_Worker() {
  */
 void HttpServer::ThreadFunc_Manager() {
     while (true) {
-        {
-            std::lock_guard<std::mutex> lck(mutex_server_state_);
-            if (should_stop_) {
-                if (curr_num_worker_threads_ == 0) {
-                    break;
-                }
-            }
-            else {
-                if (curr_num_sessions_ > curr_num_worker_threads_ && curr_num_worker_threads_ < config_.max_num_threads()) {  /* 触发扩容 */
-                    /* 扩容为1.5倍, 单次最多32个线程, 且扩容后总线程数量不能超过最大限制 */
-                    unsigned int inc_num_threads = s_clamp(curr_num_worker_threads_ / 2, 1U, std::min(32U, config_.max_num_threads() - curr_num_worker_threads_));
-                    NewWorkerThreads(inc_num_threads);
-                    if (curr_num_worker_threads_ == config_.max_num_threads()) {
-                        logger_->Debug(LOG_CTX, "Number of worker threads has reached the peak");
-                    }
-                }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        if (should_stop_) {
+            if (curr_num_worker_threads_ == 0) {
+                break;
             }
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+        else if (curr_num_sessions_ > curr_num_worker_threads_ && curr_num_worker_threads_ < config_.max_num_threads()) {  /* 触发扩容 */
+            /* 扩容为1.5倍, 单次最多32个线程, 且扩容后总线程数量不能超过最大限制 */
+            uint32_t inc_num_threads = s_clamp(curr_num_worker_threads_ / 2U, 1U, std::min(32U, config_.max_num_threads() - curr_num_worker_threads_));
+            NewWorkerThreads(inc_num_threads);
+            if (curr_num_worker_threads_ == config_.max_num_threads()) {
+                logger_->Debug(LOG_CTX, "Number of worker threads has reached the peak");
+            }
+        }
+    } // end while
     is_running_ = false;
     logger_->Info(LOG_CTX, "HttpServer stopped!");
 }
 
-/**
- * @brief 创建新的Session后回调.
- */
 void HttpServer::OnNewSession() {
     ++curr_num_sessions_;
     ++total_num_sessions_;
 }
 
-/**
- * @brief 销毁Session后回调.
- */
 void HttpServer::OnDestroySession() {
     --curr_num_sessions_;
 }
 
-/**
- * @brief 开始处理请求回调.
- */
-void HttpServer::OnStartRequest(Request* req) {
+void HttpServer::OnStartHandlingRequest(Request* req) {
     ++total_num_requests_;
     std::lock_guard<std::mutex> lck(mutex_requests_);
     handling_requests_.emplace(req);
 }
 
-/**
- * @brief 请求处理完成回调.
- */
-void HttpServer::OnFinishRequest(Request* req) {
+void HttpServer::OnFinishHandlingRequest(Request* req) {
     std::lock_guard<std::mutex> lck(mutex_requests_);
     handling_requests_.erase(req);
-}
-
-/**
- * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾.
- */
-const std::string& HttpServer::GetBinDir() {
-    return util::path::get_bin_dir();
-}
-
-/**
- * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾，UTF8编码.
- */
-const std::string& HttpServer::GetBinDirUtf8() {
-    return util::path::get_bin_dir_utf8();
 }
 
 } // namespace server

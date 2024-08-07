@@ -47,7 +47,7 @@ void Session::OnRead(beast::error_code ec, size_t/* bytes_transferred*/) {
     res_ = std::make_shared<Response>(svr_);
 
     if (ec) {
-        return ProcessReadError(ec);
+        return OnReadError(ec);
     }
 
     auto req_raw = (RequestRaw*)(&(parser_->get()));
@@ -56,17 +56,17 @@ void Session::OnRead(beast::error_code ec, size_t/* bytes_transferred*/) {
     auto client_ip = stream_.socket().remote_endpoint().address();
     req_ = std::make_shared<Request>(svr_, req_raw, client_ip.to_string());
 
-    svr_->OnStartRequest(req_.get());
+    svr_->OnStartHandlingRequest(req_.get());
     if (PreHandleRequest()) {
         HandleRequest();
     }
-    svr_->OnFinishRequest(req_.get());
+    svr_->OnFinishHandlingRequest(req_.get());
 
     req_->time_consumed_total_ = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - req_->arrive_timepoint());
     SendResponse();
 }
 
-void Session::ProcessReadError(beast::error_code ec) {
+void Session::OnReadError(beast::error_code ec) {
     if (ec == beast::error::timeout) {
         svr_->logger()->Debug(LOG_CTX, "OnRead error, %s", ec.message().c_str());
     }
@@ -95,7 +95,7 @@ void Session::OnWrite(bool close, beast::error_code ec, size_t/* bytes_transferr
         file_res_.reset();
     }
     if (ec) {
-        return ProcessWriteError(ec);
+        return OnWriteError(ec);
     }
     if (close || close_) {
         return DoClose();
@@ -103,7 +103,7 @@ void Session::OnWrite(bool close, beast::error_code ec, size_t/* bytes_transferr
     DoRead();
 }
 
-void Session::ProcessWriteError(beast::error_code ec) {
+void Session::OnWriteError(beast::error_code ec) {
     if (ec == beast::error::timeout) {
         svr_->logger()->Debug(LOG_CTX, "OnWrite error, %s", ec.message().c_str());
     }

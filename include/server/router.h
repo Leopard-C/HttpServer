@@ -94,6 +94,8 @@ private:
 
 /**
  * @brief 静态路由.
+ * @example /web/index.html
+ * @example /User/GetUserInfo
  */
 class StaticRoute : public Route {
 public:
@@ -106,6 +108,8 @@ public:
 
 /**
  * @brief 正则表达式路由.
+ * @example /web/img/(.+)
+ * @example /User/Space/(\d+)
  */
 class RegexRoute : public Route {
 public:

@@ -94,6 +94,17 @@ public:
 
 public:
     /**
+     * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾.
+     */
+    static const std::string& GetBinDir();
+
+    /**
+     * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾，UTF8编码.
+     */
+    static const std::string& GetBinDirUtf8();
+
+public:
+    /**
      * @brief 设置请求拦截器：解析body内容之前调用.
      */
     void set_cb_before_parse_body(std::function<bool(Request&, Response&)> cb) { cb_before_parse_body_ = cb; }
@@ -150,17 +161,6 @@ public:
      */
     SnapshotResult CreateSnapshot();
 
-public:
-    /**
-     * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾.
-     */
-    static const std::string& GetBinDir();
-
-    /**
-     * @brief 获取二进制程序所在目录，绝对路径，以'/'结尾，UTF8编码.
-     */
-    static const std::string& GetBinDirUtf8();
-
 private:
     /**
      * @brief 创建新的工作线程.
@@ -180,8 +180,8 @@ private:
     void OnNewSession();
     void OnDestroySession();
 
-    void OnStartRequest(Request* req);
-    void OnFinishRequest(Request* req);
+    void OnStartHandlingRequest(Request* req);
+    void OnFinishHandlingRequest(Request* req);
 
 private:
     HttpServerConfig config_;
