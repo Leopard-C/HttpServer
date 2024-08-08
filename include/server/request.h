@@ -20,7 +20,6 @@
 namespace ic {
 namespace server {
 
-class ThreadInfo;
 class HttpServer;
 class RequestRaw;
 class Session;
@@ -59,6 +58,11 @@ public:
     HttpMethod method() const { return method_; }
 
     /**
+     * @brief 当前请求所在线程ID.
+     */
+    size_t thread_id() const { return thread_id_; }
+
+    /**
      * @brief 当前请求对应的ID.
      * 
      * @details 服务器运行期间唯一.
@@ -73,12 +77,7 @@ public:
     /**
      * @brief 当前请求命中的路由对象.
      */
-    const Route* route() const { return route_; }
-
-    /**
-     * @brief 当前请求所在的线程信息.
-     */
-    const ThreadInfo* thread_info() const { return thread_info_; }
+    std::shared_ptr<const Route> route() const { return route_; }
 
     /**
      * @brief 获取内容类型.
@@ -248,8 +247,8 @@ private:
     void ParseUrlParams(const char* str, size_t len);
 
 private:
-    RequestRaw* raw_{nullptr};
     HttpServer* svr_{nullptr};
+    RequestRaw* raw_{nullptr};
 
     /**
      * @brief 客户端地址.
@@ -273,17 +272,17 @@ private:
     /** 请求方法 */
     HttpMethod method_{HttpMethod::kNotSupport};
 
+    /** 该请求所在线程ID */
+    size_t thread_id_;
+
     /** 本次请求的ID(全局唯一) */
-    int64_t id_{-1};
+    int64_t id_;
 
     /** 请求路径，如/user/getInfo */
     std::string path_;
 
     /** 当前请求命中的路由 */
-    Route* route_{nullptr};
-
-    /** 当前请求所在的线程信息 */
-    ThreadInfo* thread_info_{nullptr};
+    std::shared_ptr<const Route> route_;
 
     /** 内容类型 */
     ContentType content_type_;

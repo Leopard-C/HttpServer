@@ -1,5 +1,6 @@
 #ifndef IC_SERVER_LISTENER_H_
 #define IC_SERVER_LISTENER_H_
+#include <vector>
 #include <boost/beast/core.hpp>
 
 namespace ic {
@@ -16,17 +17,21 @@ class HttpServer;
  */
 class Listener : public std::enable_shared_from_this<Listener> {
 public:
-    Listener(HttpServer* svr, tcp::endpoint endpoint);
+    Listener(HttpServer* svr);
+    ~Listener() = default;
 
-    bool Run();
+    bool Run(const std::string& ip, unsigned short port, bool reuse_address);
+
+    bool is_running() const { return is_running_; }
+    const tcp::acceptor& acceptor() const { return acceptor_; }
 
 private:
     void DoAccept();
     void OnAccept(beast::error_code ec, tcp::socket socket);
 
 private:
-    HttpServer* svr_{nullptr};
-    tcp::endpoint endpoint_;
+    HttpServer* svr_;
+    bool is_running_;
     tcp::acceptor acceptor_;
 };
 

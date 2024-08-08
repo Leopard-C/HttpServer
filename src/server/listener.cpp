@@ -6,30 +6,36 @@
 namespace ic {
 namespace server {
 
-Listener::Listener(HttpServer* svr, tcp::endpoint endpoint)
-    : svr_(svr), endpoint_(endpoint), acceptor_(net::make_strand(*(svr->ioc_)))
+Listener::Listener(HttpServer* svr)
+    : svr_(svr), is_running_(false), acceptor_(net::make_strand(*(svr_->ioc_)))
 {
 }
 
-bool Listener::Run() {
+bool Listener::Run(const std::string& ip, unsigned short port, bool reuse_address) {
     beast::error_code ec;
+    net::ip::address address = net::ip::make_address(ip, ec);
+    if (ec) {
+        svr_->logger()->Error(LOG_CTX, "Invalid address %s", ip.c_str());
+        return false;
+    }
 
-    acceptor_.open(endpoint_.protocol(), ec);
+    tcp::endpoint endpoint(address, port);
+
+    acceptor_.open(endpoint.protocol(), ec);
     if (ec) {
         svr_->logger()->Error(LOG_CTX, "acceptor open protocol failed, %s", ec.message().c_str());
         return false;
     }
 
-    acceptor_.set_option(net::socket_base::reuse_address(svr_->config().reuse_address()), ec);
+    acceptor_.set_option(net::socket_base::reuse_address(reuse_address), ec);
     if (ec) {
         svr_->logger()->Error(LOG_CTX, "reuse address failed, %s", ec.message().c_str());
         return false;
     }
 
-    acceptor_.bind(endpoint_, ec);
+    acceptor_.bind(endpoint, ec);
     if (ec) {
-        svr_->logger()->Error(LOG_CTX, "bind address %s:%u failed",
-            endpoint_.address().to_string().c_str(), (unsigned int)endpoint_.port());
+        svr_->logger()->Error(LOG_CTX, "bind address %s:%hu failed", endpoint.address().to_string().c_str(), endpoint.port());
         return false;
     }
 
@@ -39,8 +45,10 @@ bool Listener::Run() {
         return false;
     }
 
-    svr_->logger()->Info(LOG_CTX, "Listening on %s:%u ...", endpoint_.address().to_string().c_str(), (unsigned int)endpoint_.port());
+    svr_->logger()->Info(LOG_CTX, "Listening on %s:%hu ...", endpoint.address().to_string().c_str(), endpoint.port());
     DoAccept();
+
+    is_running_ = true;
     return true;
 }
 

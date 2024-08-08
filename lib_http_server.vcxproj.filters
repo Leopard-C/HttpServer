@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include="BUILD_Windows.md" />
+    <None Include="src\jsoncpp\json_valueiterator.inl" />
+    <None Include="server-assistant\server-assistant.bat" />
+    <None Include="server-assistant\server-assistant.py" />
+    <None Include="server-assistant\server-assistant.sh" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\jsoncpp\json\allocator.h" />
+    <ClInclude Include="include\jsoncpp\json\assertions.h" />
+    <ClInclude Include="include\jsoncpp\json\config.h" />
+    <ClInclude Include="include\jsoncpp\json\forwards.h" />
+    <ClInclude Include="include\jsoncpp\json\json.h" />
+    <ClInclude Include="include\jsoncpp\json\json_features.h" />
+    <ClInclude Include="include\jsoncpp\json\reader.h" />
+    <ClInclude Include="include\jsoncpp\json\value.h" />
+    <ClInclude Include="include\jsoncpp\json\version.h" />
+    <ClInclude Include="include\jsoncpp\json\writer.h" />
+    <ClInclude Include="include\server\helper\_narg.h" />
+    <ClInclude Include="include\server\helper\dto.h" />
+    <ClInclude Include="include\server\helper\helper.h" />
+    <ClInclude Include="include\server\helper\param_check.h" />
+    <ClInclude Include="include\server\helper\param_get.h" />
+    <ClInclude Include="include\server\status\base.h" />
+    <ClInclude Include="include\server\util\convert\convert_case.h" />
+    <ClInclude Include="include\server\util\convert\convert_number.h" />
+    <ClInclude Include="include\server\util\hash\md5.h" />
+    <ClInclude Include="include\server\util\string\isprint.h" />
+    <ClInclude Include="include\server\util\string\memmem.h" />
+    <ClInclude Include="include\server\util\string\trim.h" />
+    <ClInclude Include="include\server\util\format_time.h" />
+    <ClInclude Include="include\server\util\gmt_time.h" />
+    <ClInclude Include="include\server\util\io.h" />
+    <ClInclude Include="include\server\util\mime.h" />
+    <ClInclude Include="include\server\util\path.h" />
+    <ClInclude Include="include\server\util\thread.h" />
+    <ClInclude Include="include\server\util\url_code.h" />
+    <ClInclude Include="include\server\content_type.h" />
+    <ClInclude Include="include\server\form_param.h" />
+    <ClInclude Include="include\server\http_cookie.h" />
+    <ClInclude Include="include\server\http_method.h" />
+    <ClInclude Include="include\server\http_server.h" />
+    <ClInclude Include="include\server\http_server_config.h" />
+    <ClInclude Include="include\server\logger.h" />
+    <ClInclude Include="include\server\request.h" />
+    <ClInclude Include="include\server\request_raw.h" />
+    <ClInclude Include="include\server\response.h" />
+    <ClInclude Include="include\server\router.h" />
+    <ClInclude Include="include\server\string_view.h" />
+    <ClInclude Include="src\jsoncpp\json_tool.h" />
+    <ClInclude Include="src\server\listener.h" />
+    <ClInclude Include="src\server\multipart_parser.h" />
+    <ClInclude Include="src\server\session.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\jsoncpp\json_reader.cpp" />
+    <ClCompile Include="src\jsoncpp\json_value.cpp" />
+    <ClCompile Include="src\jsoncpp\json_writer.cpp" />
+    <ClCompile Include="src\server\helper\helper.cpp" />
+    <ClCompile Include="src\server\helper\param_check.cpp" />
+    <ClCompile Include="src\server\helper\param_get.cpp" />
+    <ClCompile Include="src\server\status\base.cpp" />
+    <ClCompile Include="src\server\util\convert\convert_case.cpp" />
+    <ClCompile Include="src\server\util\convert\convert_number.cpp" />
+    <ClCompile Include="src\server\util\hash\md5.cpp" />
+    <ClCompile Include="src\server\util\string\isprint.cpp" />
+    <ClCompile Include="src\server\util\string\memmem.cpp" />
+    <ClCompile Include="src\server\util\string\trim.cpp" />
+    <ClCompile Include="src\server\util\format_time.cpp" />
+    <ClCompile Include="src\server\util\gmt_time.cpp" />
+    <ClCompile Include="src\server\util\io.cpp" />
+    <ClCompile Include="src\server\util\mime.cpp" />
+    <ClCompile Include="src\server\util\path.cpp" />
+    <ClCompile Include="src\server\util\thread.cpp" />
+    <ClCompile Include="src\server\util\url_code.cpp" />
+    <ClCompile Include="src\server\content_type.cpp" />
+    <ClCompile Include="src\server\http_cookie.cpp" />
+    <ClCompile Include="src\server\http_method.cpp" />
+    <ClCompile Include="src\server\http_server.cpp" />
+    <ClCompile Include="src\server\http_server_config.cpp" />
+    <ClCompile Include="src\server\listener.cpp" />
+    <ClCompile Include="src\server\logger.cpp" />
+    <ClCompile Include="src\server\multipart_parser.cpp" />
+    <ClCompile Include="src\server\request.cpp" />
+    <ClCompile Include="src\server\response.cpp" />
+    <ClCompile Include="src\server\router.cpp" />
+    <ClCompile Include="src\server\session.cpp" />
+    <ClCompile Include="src\server\string_view.cpp" />
+  </ItemGroup>
+</Project>

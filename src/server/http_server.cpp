@@ -1,7 +1,9 @@
+#ifndef NOMINMAX
+#  define NOMINMAX
+#endif
 #include "server/http_server.h"
 #include "server/logger.h"
 #include "server/request.h"
-#include "server/request_raw.h"
 #include "server/router.h"
 #include "server/util/format_time.h"
 #include "server/util/path.h"
@@ -13,42 +15,50 @@
 namespace ic {
 namespace server {
 
-/**
- * @brief time_t表示的时间零点，可以用来表示一个无效的时间点.
- */
-static const std::chrono::system_clock::time_point s_time0 = std::chrono::system_clock::from_time_t(0);
+constexpr uint32_t NUM_THREADS_LIMIT = 1000;
+
+template<typename T>
+static T s_clamp(T val, T lower, T upper) {
+    return std::max(lower, std::min(val, upper));
+}
 
 /*******************************************************************
 **
-**                          ThreadInfo
+**                        SnapshotResult
 ** 
 *******************************************************************/
 
-ThreadInfo::ThreadInfo() :
-    active(false), count(0), request_id(-1), route(nullptr), thread_id(util::thread_id()),
-    start(s_time0), finish(s_time0)
-{
-}
-
-Json::Value ThreadInfo::ToJson(tp now/* = std::chrono::system_clock::now()*/) const {
-    Json::Value node;
-    node["self"] = (this->thread_id == util::thread_id());  /* 是否是当前请求 */
-    node["thread_id"] = thread_id;
-    node["path"] = route ? route->path : std::string();
-    node["count"] = count;
-    node["active"] = active;
-    node["start"] = util::format_time_us(start);
-    node["finish"] = util::format_time_us(finish);
-    node["start_tp"] = uint64_t(start.time_since_epoch().count()) / 1000;  /* 微秒时间戳 */
-    node["finish_tp"] = uint64_t(finish.time_since_epoch().count()) / 1000;
-    std::chrono::nanoseconds duration{0};
-    if (start != s_time0) {
-        duration = (finish == s_time0 ? now : finish) - start;
+/**
+ * @brief 转为JSON对象.
+ */
+Json::Value SnapshotResult::ToJson() const {
+    Json::Value root;
+    root["create_time"] = util::format_time_us(create_time);
+    root["curr_num_sessions"] = curr_num_sessions;
+    root["curr_num_worker_threads"] = curr_num_worker_threads;
+    root["total_num_sessions"] = total_num_sessions;
+    root["total_num_requests"] = total_num_requests;
+    auto& v_handling_requests = root["handling_requests"];
+    v_handling_requests.resize(0);
+    for (const auto& request : handling_request) {
+        Json::Value v_handling_request;
+        v_handling_request["thread_id"] = request.thread_id;
+        v_handling_request["id"] = request.id;
+        v_handling_request["method"] = to_string(request.method);
+        v_handling_request["content_type"] = request.content_type.ToString();
+        v_handling_request["arrive_timepoint"] = util::format_time_us(request.arrive_timepoint);
+        v_handling_request["path"] = request.path;
+        v_handling_request["route"] = request.route->ToJson();
+        v_handling_request["client_ip"] = request.client_ip;
+        v_handling_request["client_real_ip"] = request.client_real_ip;
+        /* 是否是当前请求 */
+        v_handling_request["is_self"] = (util::thread_id() == request.thread_id);
+        /* 已经耗时(秒) */
+        v_handling_request["elapsed_seconds"] = std::chrono::duration_cast<std::chrono::microseconds>(create_time - request.arrive_timepoint).count() / 1000000.0;
+        v_handling_requests.append(v_handling_request);
     }
-    node["duration"] = util::format_duration(duration);
-    return node;
+    return root;
 }
-
 
 /*******************************************************************
 **
@@ -57,160 +67,18 @@ Json::Value ThreadInfo::ToJson(tp now/* = std::chrono::system_clock::now()*/) co
 *******************************************************************/
 
 HttpServer::HttpServer(const HttpServerConfig& config, std::shared_ptr<ILogger> logger/* = nullptr*/) :
-    config_(config), logger_(logger), listener_(),
-    ioc_(std::make_shared<net::io_context>(config.num_threads())),
-    router_(std::make_shared<Router>(this))
+    config_(config), logger_(logger), is_running_(false), should_stop_(false),
+    curr_num_sessions_{ 0 }, curr_num_worker_threads_{ 0 }, total_num_requests_{0}
 {
     if (!logger_) {
         logger_ = std::make_shared<ConsoleLogger>(LogLevel::kInfo, LogLevel::kWarn);
     }
+    ioc_ = std::make_shared<net::io_context>(config.max_num_threads());
+    router_ = std::make_shared<Router>(this);
 }
 
 HttpServer::~HttpServer() {
-    for (auto iter = thread_infos_.begin(); iter != thread_infos_.end(); ++iter) {
-        delete iter->second;
-        iter->second = nullptr;
-    }
-}
-
-std::map<size_t, ThreadInfo> HttpServer::thread_infos() {
-    std::map<size_t, ThreadInfo> thread_infos;
-    {
-        std::lock_guard<std::mutex> lck(mutex_for_thread_infos_);
-        for (auto iter = thread_infos_.begin(); iter != thread_infos_.end(); ++iter) {
-            thread_infos.emplace(iter->first, *(iter->second));
-        }
-    }
-    return thread_infos;
-}
-
-Json::Value HttpServer::DumpThreadInfos() {
-    auto now = std::chrono::system_clock::now();
-    auto s = thread_infos();
-    Json::Value data;
-    for (auto iter = s.begin(); iter != s.end(); ++iter) {
-        data.append(iter->second.ToJson(now));
-    }
-    return data;
-}
-
-bool HttpServer::Listen() {
-    beast::error_code ec;
-    const auto address = net::ip::make_address(config_.ip(), ec);
-    if (ec) {
-        logger_->Error(LOG_CTX, "Make_address failed: %s", ec.message().c_str());
-        logger_->Error(LOG_CTX, "Listen on %s:%u failed", config_.ip().c_str(), config_.port());
-        return false;
-    }
-    listener_ = std::make_shared<Listener>(this, tcp::endpoint{ address, (unsigned short)config_.port() });
-    return listener_->Run();
-}
-
-/**
- * @brief 启动服务器（阻塞当前线程）.
- */
-void HttpServer::Start() {
-    unsigned int num_threads = config_.num_threads();
-    unsigned int max_num_threads = std::thread::hardware_concurrency() * 20;
-    if (num_threads < 1 || num_threads > max_num_threads) {
-        logger_->Error(LOG_CTX, "HttpServerConfig.num_threads(%u) shoule be in range: [1, %u]", num_threads, max_num_threads);
-        return;
-    }
-
-    logger_->Info(LOG_CTX, "HttpServer started!");
-
-    /* 启动所有线程 */
-    worker_threads_.clear();
-    worker_threads_.reserve(num_threads - 1);
-    for (unsigned int i = 0; i < num_threads - 1; ++i) {
-        worker_threads_.emplace_back([this]{
-            RunIoContext();
-        });
-    }
-    RunIoContext();
-
-    /* 等待所有线程退出 */
-    for (unsigned int i = 0; i < num_threads - 1; ++i) {
-        logger_->Info(LOG_CTX, "Waiting for thread [%u/%u] ...", i+2, num_threads);
-        worker_threads_[i].join();
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    logger_->Info(LOG_CTX, "HttpServer stopped!");
-}
-
-void HttpServer::RunIoContext() {
-    size_t tid = util::thread_id();
-    {
-        std::lock_guard<std::mutex> lck(mutex_for_thread_infos_);
-        thread_infos_.emplace(tid, new ThreadInfo());
-    }
-    logger_->Info(LOG_CTX, "ioc run, thread id: %" PRIu64, (uint64_t)tid);
-    ioc_->run();
-    logger_->Info(LOG_CTX, "ioc stop, thread id: %" PRIu64, (uint64_t)tid);
-}
-
-/**
- * @brief 停止服务器（非阻塞）.
- */
-void HttpServer::Stop() {
-    logger_->Info(LOG_CTX, "Waiting for all threads to exit ...");
-    logger_->Info(LOG_CTX, "Waiting for thread [%u/%u] ...", 1, config_.num_threads());
-    //logger_->Info(LOG_CTX, "thread infos:\n%s", DumpThreadInfos().toStyledString().c_str());
-    logger_->Info(LOG_CTX, "ioc is stopping ...");
-    std::thread t([this]{
-        if (!ioc_->stopped()) {
-            ioc_->stop();
-        }
-    });
-    t.detach();
-}
-
-/**
- * @brief 判断服务器是否已停止.
- */
-bool HttpServer::Stopped() const {
-    return ioc_->stopped();
-}
-
-/**
- * @brief 根据线程ID获取线程信息.
- */
-ThreadInfo* HttpServer::GetThreadInfo(size_t tid) {
-    std::lock_guard<std::mutex> lck(mutex_for_thread_infos_);
-    auto iter = thread_infos_.find(tid);
-    if (iter != thread_infos_.end()) {
-        return iter->second;
-    }
-    return nullptr;
-}
-
-/**
- * @brief 开始处理请求.
- */
-void HttpServer::StartRequest(Request& req) {
-    static thread_local ThreadInfo* ti = GetThreadInfo(util::thread_id());
-    if (ti) {
-        ti->active = true;
-        ti->request_id = req.id();
-        ti->route = req.route();
-        ti->start = req.arrive_timepoint();
-        ti->finish = s_time0;
-        ti->count++;
-        req.thread_info_ = ti;
-    }
-}
-
-/**
- * @brief 请求处理完成.
- */
-void HttpServer::FinishRequest(Request& req) {
-    static thread_local ThreadInfo* ti = GetThreadInfo(util::thread_id());
-    if (ti) {
-        ti->active = false;
-        ti->finish = std::chrono::system_clock::now();
-        req.time_consumed_total_ = std::chrono::duration_cast<std::chrono::nanoseconds>(ti->finish - ti->start);
-    }
+    Stop();
 }
 
 /**
@@ -225,6 +93,261 @@ const std::string& HttpServer::GetBinDir() {
  */
 const std::string& HttpServer::GetBinDirUtf8() {
     return util::path::get_bin_dir_utf8();
+}
+
+/**
+ * @brief 启动服务器.
+ */
+bool HttpServer::Start() {
+    if (!StartAsync()) {
+        return false;
+    }
+    while (is_running_) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    return true;
+}
+
+/**
+ * @brief 启动服务器(异步).
+ */
+bool HttpServer::StartAsync() {
+    if (config_.endpoints().empty()) {
+        logger_->Error(LOG_CTX, "Invalid http server configuration. The endpoints is empty");
+        return false;
+    }
+    if (config_.min_num_threads() < 1 || config_.min_num_threads() > config_.max_num_threads()) {
+        logger_->Error(LOG_CTX, "Invalid http server configuration. The min_num_threads(%u) or max_num_threads(%u) is invalid", config_.min_num_threads(), config_.max_num_threads());
+        return false;
+    }
+    if (config_.max_num_threads() > NUM_THREADS_LIMIT) {
+        logger_->Error(LOG_CTX, "Invalid http server configuration. The max_num_threads(%u) is over %u", config_.max_num_threads(), NUM_THREADS_LIMIT);
+        return false;
+    }
+
+    {
+        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        if (is_running_) {
+            return true;
+        }
+
+        /* 启动监听器 */
+        auto& endpoints = config_.endpoints();
+        for (size_t i = 0; i < endpoints.size(); ++i) {
+            auto listener = std::make_shared<Listener>(this);
+            if (!listener->Run(endpoints[i].ip, endpoints[i].port, endpoints[i].reuse_address)) {
+                logger_->Error(LOG_CTX, "Listener start failed");
+                listeners_.clear();
+                return false;
+            }
+            listeners_.push_back(listener);
+        }
+        for (size_t i = 0; i < endpoints.size(); ++i) {
+            /* 如果配置的端口为0，会任意选择一个可用端口，需要获取到该端口 */
+            if (endpoints[i].port == 0) {
+                endpoints[i].port = listeners_[i]->acceptor().local_endpoint().port();
+            }
+        }
+
+        is_running_ = true;
+        should_stop_ = false;
+    }
+
+    /* 启动最低数量的工作线程 */
+    NewWorkerThreads(config_.min_num_threads());
+
+    /* 启动管理者线程 */
+    std::thread t([this] {
+        this->ThreadFunc_Manager();
+    });
+    t.detach();
+
+    logger_->Info(LOG_CTX, "HttpServer started!");
+    return true;
+}
+
+/**
+ * @brief 停止服务器.
+ */
+void HttpServer::Stop() {
+    StopAsync();
+    WaitForStop();
+}
+
+/**
+ * @brief 停止服务器(异步).
+ */
+void HttpServer::StopAsync() {
+    std::lock_guard<std::mutex> lck(mutex_server_state_);
+    if (is_running_) {
+        should_stop_ = true;
+        logger_->Info(LOG_CTX, "Waiting for all worker threads to exit ...");
+        ioc_->stop();
+    }
+}
+
+/**
+ * @brief 等待服务器停止.
+ */
+void HttpServer::WaitForStop() {
+    {
+        /* 禁止在工作线程中调用该函数，否则服务器永远无法退出 */
+        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        if (worker_thread_ids_.find(util::thread_id()) != worker_thread_ids_.end()) {
+            logger_->Warn(LOG_CTX,
+                "DO NOT CALL HttpServer::Stop() or HttpServer::WaitForStop() in worker thread(id=%" PRIu64 "). "
+                "Use HttpServer::StopAsync() instead.",
+                (uint64_t)util::thread_id()
+            );
+            return;
+        }
+    }
+    while (!Stopped()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+}
+
+/**
+ * @brief 判断服务器是否已停止.
+ */
+bool HttpServer::Stopped() const {
+    return !is_running_;
+}
+
+/**
+ * @brief 创建快照.
+ */
+SnapshotResult HttpServer::CreateSnapshot() {
+    SnapshotResult snapshot;
+    snapshot.create_time = std::chrono::system_clock::now();
+    snapshot.curr_num_sessions = curr_num_sessions_;
+    snapshot.curr_num_worker_threads = curr_num_worker_threads_;
+    snapshot.total_num_sessions = total_num_sessions_;
+    snapshot.total_num_requests = total_num_requests_;
+    {
+        std::lock_guard<std::mutex> lck(mutex_requests_);
+        SnapshotResult::RequestInfo req_info;
+        snapshot.handling_request.reserve(handling_requests_.size());
+        for (Request* req : handling_requests_) {
+            req_info.thread_id = req->thread_id();
+            req_info.id = req->id();
+            req_info.method = req->method();
+            req_info.content_type = req->content_type();
+            req_info.route = req->route();
+            req_info.arrive_timepoint = req->arrive_timepoint();
+            req_info.path = req->path();
+            req_info.client_ip = req->client_ip();
+            req_info.client_real_ip = req->client_real_ip();
+            snapshot.handling_request.push_back(req_info);
+        }
+    }
+    std::sort(snapshot.handling_request.begin(), snapshot.handling_request.end(), [](SnapshotResult::RequestInfo& a, SnapshotResult::RequestInfo& b) {
+        return a.arrive_timepoint < b.arrive_timepoint;
+    });
+    return snapshot;
+}
+
+/**
+ * @brief 创建新的工作线程.
+ * @note 调用该函数前，已经对`mutex_server_state_`进行加锁.
+ */
+void HttpServer::NewWorkerThreads(uint32_t n) {
+    for (uint32_t i = 0; i < n; ++i) {
+        ++curr_num_worker_threads_;
+        std::thread t([this] {
+            this->ThreadFunc_Worker();
+        });
+        t.detach();
+    }
+}
+
+/**
+ * @brief 工作线程.
+ */
+void HttpServer::ThreadFunc_Worker() {
+    const size_t tid = util::thread_id();
+    logger_->Debug(LOG_CTX, "Worker thread start. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
+    {
+        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        worker_thread_ids_.emplace(tid);
+    }
+
+    /* 上次活跃时间 */
+    auto last_active_time = std::chrono::steady_clock::now();
+    /* 是否需要退出当前线程 */
+    bool exit = false;
+
+    while (true) {
+        size_t n = ioc_->run_for(std::chrono::milliseconds(1000));
+
+        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        if (should_stop_) {
+            exit = true;
+        }
+        else if (n > 0) {
+            last_active_time = std::chrono::steady_clock::now();
+        }
+        else if (curr_num_worker_threads_ > config_.min_num_threads() && curr_num_worker_threads_ > curr_num_sessions_) {
+            /* 超过一定时间未活跃，结束当前线程 */
+            int64_t dur = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_active_time).count();
+            if (dur > 5000) {
+                exit = true;
+            }
+        }
+
+        if (exit) {
+            --curr_num_worker_threads_;
+            worker_thread_ids_.erase(tid);
+            logger_->Debug(LOG_CTX, "Worker thread exit. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
+            break;
+        }
+    } // end while
+}
+
+/**
+ * @brief 管理者线程.
+ */
+void HttpServer::ThreadFunc_Manager() {
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        if (should_stop_) {
+            if (curr_num_worker_threads_ == 0) {
+                break;
+            }
+        }
+        else if (curr_num_sessions_ > curr_num_worker_threads_ && curr_num_worker_threads_ < config_.max_num_threads()) {  /* 触发扩容 */
+            /* 扩容为1.5倍, 单次最多32个线程, 且扩容后总线程数量不能超过最大限制 */
+            uint32_t inc_num_threads = s_clamp(curr_num_worker_threads_ / 2U, 1U, std::min(32U, config_.max_num_threads() - curr_num_worker_threads_));
+            NewWorkerThreads(inc_num_threads);
+            if (curr_num_worker_threads_ == config_.max_num_threads()) {
+                logger_->Debug(LOG_CTX, "Number of worker threads has reached the peak");
+            }
+        }
+    } // end while
+    is_running_ = false;
+    logger_->Info(LOG_CTX, "HttpServer stopped!");
+}
+
+void HttpServer::OnNewSession() {
+    ++curr_num_sessions_;
+    ++total_num_sessions_;
+}
+
+void HttpServer::OnDestroySession() {
+    --curr_num_sessions_;
+}
+
+void HttpServer::OnStartHandlingRequest(Request* req) {
+    ++total_num_requests_;
+    std::lock_guard<std::mutex> lck(mutex_requests_);
+    handling_requests_.emplace(req);
+}
+
+void HttpServer::OnFinishHandlingRequest(Request* req) {
+    std::lock_guard<std::mutex> lck(mutex_requests_);
+    handling_requests_.erase(req);
 }
 
 } // namespace server

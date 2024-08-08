@@ -67,6 +67,7 @@ public:
      * @route  ~ /api/User/space/([a-zA-Z_][a-zA-Z0-9_]*)
      * @method GET, POST
      * @config Authorization(1)
+     * @priority 99
      */
     static void UserSpace(Request& req, Response& res);
 };
@@ -92,11 +93,12 @@ public:
 void Login(Request& req, Response& res);
 ```
 
-每个控制器方法前面使用 `doxygen` 风格的注释，在原有的`@brief`, `@details`等标记的基础上，扩充了如下3个标记：
+每个控制器方法前面使用 `doxygen` 风格的注释，在原有的`@brief`, `@details`等标记的基础上，扩充了如下4个标记：
 
 + `@route`: 路由地址。
 + `@method`: 请求方法，支持 `GET`,`POST`,`OPTIONS`,`HEAD` 等多种HTTP请求。
 + `@config`: 自定义配置，格式为 `配置项名称(值)`。
++ `@priority`: 正则路由匹配优先级，整数。
 
 以上3个标记<font color="red">均可以出现多次</font>。
 
@@ -117,6 +119,10 @@ void Login(Request& req, Response& res);
 ### 3.3 `@config`
 
 自定义配置，格式 `配置项名称(值)`，如示例种的 `@config Authorization(0)` 用于配置该路由是否需要token认证。（登录方法无需认证，其他方法一般需要认证）
+
+### 3.4 `@priority`
+
+设置正则路由匹配优先级，数字越大，优先级越高。
 
 
 ## 4. 运行脚本
@@ -150,7 +156,7 @@ bool register_routes(std::shared_ptr<ic::server::Router> router) {
 
     // controller/user/user_controller.h
     ret &= router->AddStaticRoute("/api/User/Login", HttpMethod::kPOST, controller::UserController::Login, "登录.", {{"Authorization", "0"}, {"AdminOnly", "0"}});
-    ret &= router->AddRegexRoute("/api/User/space/([a-zA-Z_][a-zA-Z0-9_]*)", HttpMethod::kGET | HttpMethod::kPOST, controller::UserController::UserSpace, "获取用户主页信息.", {{"Authorization", "1"}});
+    ret &= router->AddRegexRoute("/api/User/space/([a-zA-Z_][a-zA-Z0-9_]*)", HttpMethod::kGET | HttpMethod::kPOST, controller::UserController::UserSpace, "获取用户主页信息.", {{"Authorization", "1"}}, 99);
 
     return ret;
 }
