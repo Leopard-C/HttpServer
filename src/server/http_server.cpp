@@ -68,7 +68,7 @@ Json::Value SnapshotResult::ToJson() const {
 
 HttpServer::HttpServer(const HttpServerConfig& config, std::shared_ptr<ILogger> logger/* = nullptr*/) :
     config_(config), logger_(logger), is_running_(false), should_stop_(false),
-    curr_num_sessions_{ 0 }, curr_num_worker_threads_{ 0 }, total_num_requests_{0}
+    curr_num_sessions_{0}, curr_num_worker_threads_{0}, total_num_sessions_{0}, total_num_requests_{0}
 {
     if (!logger_) {
         logger_ = std::make_shared<ConsoleLogger>(LogLevel::kInfo, LogLevel::kWarn);
@@ -153,6 +153,8 @@ bool HttpServer::StartAsync() {
         should_stop_ = false;
     }
 
+    logger_->Info(LOG_CTX, "HttpServer started!");
+
     /* 启动最低数量的工作线程 */
     NewWorkerThreads(config_.min_num_threads());
 
@@ -162,7 +164,6 @@ bool HttpServer::StartAsync() {
     });
     t.detach();
 
-    logger_->Info(LOG_CTX, "HttpServer started!");
     return true;
 }
 
@@ -180,8 +181,8 @@ void HttpServer::Stop() {
 void HttpServer::StopAsync() {
     std::lock_guard<std::mutex> lck(mutex_server_state_);
     if (is_running_) {
+        logger_->Info(LOG_CTX, "Waiting for %u worker threads to exit ...", (uint32_t)curr_num_worker_threads_);
         should_stop_ = true;
-        logger_->Info(LOG_CTX, "Waiting for all worker threads to exit ...");
         ioc_->stop();
     }
 }
@@ -252,6 +253,7 @@ SnapshotResult HttpServer::CreateSnapshot() {
  * @note 调用该函数前，已经对`mutex_server_state_`进行加锁.
  */
 void HttpServer::NewWorkerThreads(uint32_t n) {
+    logger_->Debug(LOG_CTX, "Starting %u worker threads. (sessions:%u, threads:%u)", n, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_ + n);
     for (uint32_t i = 0; i < n; ++i) {
         ++curr_num_worker_threads_;
         std::thread t([this] {
@@ -266,7 +268,7 @@ void HttpServer::NewWorkerThreads(uint32_t n) {
  */
 void HttpServer::ThreadFunc_Worker() {
     const size_t tid = util::thread_id();
-    logger_->Debug(LOG_CTX, "Worker thread start. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
+    logger_->Debug(LOG_CTX, "Worker thread start. (id=%" PRIu64 ")", (uint64_t)tid);
     {
         std::lock_guard<std::mutex> lck(mutex_server_state_);
         worker_thread_ids_.emplace(tid);
@@ -296,9 +298,9 @@ void HttpServer::ThreadFunc_Worker() {
         }
 
         if (exit) {
+            logger_->Debug(LOG_CTX, "Worker thread exit. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
             --curr_num_worker_threads_;
             worker_thread_ids_.erase(tid);
-            logger_->Debug(LOG_CTX, "Worker thread exit. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
             break;
         }
     } // end while
@@ -314,20 +316,22 @@ void HttpServer::ThreadFunc_Manager() {
         std::lock_guard<std::mutex> lck(mutex_server_state_);
         if (should_stop_) {
             if (curr_num_worker_threads_ == 0) {
+                logger_->Info(LOG_CTX, "HttpServer stopped!");
+                is_running_ = false;
                 break;
             }
         }
-        else if (curr_num_sessions_ > curr_num_worker_threads_ && curr_num_worker_threads_ < config_.max_num_threads()) {  /* 触发扩容 */
+        else if ((curr_num_sessions_ > curr_num_worker_threads_ || curr_num_handling_requests_ == curr_num_worker_threads_) &&
+                 curr_num_worker_threads_ < config_.max_num_threads())
+        {
             /* 扩容为1.5倍, 单次最多32个线程, 且扩容后总线程数量不能超过最大限制 */
             uint32_t inc_num_threads = s_clamp(curr_num_worker_threads_ / 2U, 1U, std::min(32U, config_.max_num_threads() - curr_num_worker_threads_));
             NewWorkerThreads(inc_num_threads);
             if (curr_num_worker_threads_ == config_.max_num_threads()) {
-                logger_->Debug(LOG_CTX, "Number of worker threads has reached the peak");
+                logger_->Debug(LOG_CTX, "Number of worker threads has reached the peak(%u)", config_.max_num_threads());
             }
         }
     } // end while
-    is_running_ = false;
-    logger_->Info(LOG_CTX, "HttpServer stopped!");
 }
 
 void HttpServer::OnNewSession() {
@@ -340,14 +344,16 @@ void HttpServer::OnDestroySession() {
 }
 
 void HttpServer::OnStartHandlingRequest(Request* req) {
-    ++total_num_requests_;
     std::lock_guard<std::mutex> lck(mutex_requests_);
     handling_requests_.emplace(req);
+    ++curr_num_handling_requests_;
+    ++total_num_requests_;
 }
 
 void HttpServer::OnFinishHandlingRequest(Request* req) {
     std::lock_guard<std::mutex> lck(mutex_requests_);
     handling_requests_.erase(req);
+    --curr_num_handling_requests_;
 }
 
 } // namespace server

@@ -38,24 +38,21 @@ sudo cp -r stage/lib /usr/local/boost/boost_1.73.0/x86_64
 > 
 > 详情请参考官方仓库 [xmake-io/xmake](https://github.com/xmake-io/xmake) 或文档: [xmake.io](https://xmake.io/#/zh-cn/guide/installation)
 
-首先配置`boost`库的相关目录。
+首先修改该项目的配置文件`xmake.lua`，找到如下内容，进行修改
 
-```shell
-# 方式(1): 指定boost根目录
-xmake f --mode=debug --boost_root_dir=/usr/local/boost/1.73.0
-
-# 方式(2): 单独指定boost的include和lib目录
-xmake f --mode=debug --boost_include_dir=/usr/local/boost/1.73.0/include --boost_lib_dir=/usr/local/boost/1.73.0/lib
+```lua
+-- `boost`头文件和库文件目录配置
+boost_inc_dir = "/usr/local/boost/boost_1.73.0/x86_64/include"
+boost_lib_dir = "/usr/local/boost/boost_1.73.0/x86_64/lib"
 ```
-
-+ `--mode=debug|release` 配置debug或release编译模式。
-+ `--boost_include_dir=/xxx/boost/include` 配置boost库的头文件目录。
-+ `--boost_lib_dir=/xxx/boost/lib` 配置boost库的库文件目录。
-+ `--boost_root_dir=/xxx/boost` 配置boost库的根目录(等价于上面2条配置，目录下必须包含include和lib子目录)。
 
 然后执行构建命令：
 
 ```shell
+# 设置debug或release模式
+# xmake f -m debug
+# xmake f -m release
+
 # 静态库
 xmake b http_server
 

@@ -203,6 +203,8 @@ private:
     std::atomic_uint32_t curr_num_sessions_;
     /** 当前工作线程数量 */
     std::atomic_uint32_t curr_num_worker_threads_;
+    /** 当前正在处理的请求数量 */
+    std::atomic_uint32_t curr_num_handling_requests_;
 
     /** 总计创建的会话数量 */
     std::atomic_uint64_t total_num_sessions_;
