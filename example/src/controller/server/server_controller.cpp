@@ -12,7 +12,7 @@
  */
 void ServerController::Shutdown(Request& req, Response& res) {
     API_INIT();
-    req.svr()->Stop();
+    req.svr()->StopAsync();
     RETURN_OK();
 }
 

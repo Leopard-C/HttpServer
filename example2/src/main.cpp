@@ -51,7 +51,7 @@ int main() {
     });
     // 2.5 关闭服务器
     router->AddStaticRoute("/server/stop", HttpMethod::kGET, [](Request& req, Json::Value& res){
-        req.svr()->Stop();
+        req.svr()->StopAsync();
         res["code"] = 0;
         res["msg"] = "OK";
     });

@@ -189,7 +189,19 @@ void HttpServer::StopAsync() {
 /**
  * @brief 等待服务器停止.
  */
-void HttpServer::WaitForStop() const {
+void HttpServer::WaitForStop() {
+    {
+        /* 禁止在工作线程中调用该函数，否则服务器永远无法退出 */
+        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        if (worker_thread_ids_.find(util::thread_id()) != worker_thread_ids_.end()) {
+            logger_->Warn(LOG_CTX,
+                "DO NOT CALL HttpServer::Stop() or HttpServer::WaitForStop() in worker thread(id=%" PRIu64 "). "
+                "Use HttpServer::StopAsync() instead.",
+                (uint64_t)util::thread_id()
+            );
+            return;
+        }
+    }
     while (!Stopped()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
@@ -237,6 +249,7 @@ SnapshotResult HttpServer::CreateSnapshot() {
 
 /**
  * @brief 创建新的工作线程.
+ * @note 调用该函数前，已经对`mutex_server_state_`进行加锁.
  */
 void HttpServer::NewWorkerThreads(uint32_t n) {
     for (uint32_t i = 0; i < n; ++i) {
@@ -254,6 +267,10 @@ void HttpServer::NewWorkerThreads(uint32_t n) {
 void HttpServer::ThreadFunc_Worker() {
     const size_t tid = util::thread_id();
     logger_->Debug(LOG_CTX, "Worker thread start. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
+    {
+        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        worker_thread_ids_.emplace(tid);
+    }
 
     /* 上次活跃时间 */
     auto last_active_time = std::chrono::steady_clock::now();
@@ -280,6 +297,7 @@ void HttpServer::ThreadFunc_Worker() {
 
         if (exit) {
             --curr_num_worker_threads_;
+            worker_thread_ids_.erase(tid);
             logger_->Debug(LOG_CTX, "Worker thread exit. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
             break;
         }

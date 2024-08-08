@@ -149,7 +149,7 @@ public:
     /**
      * @brief 等待服务器停止.
      */
-    void WaitForStop() const;
+    void WaitForStop();
 
     /**
      * @brief 判断服务器是否已停止.
@@ -195,6 +195,9 @@ private:
     std::mutex mutex_server_state_;
     bool is_running_;
     bool should_stop_;
+
+    /* 当前所有工作线程的线程ID集合 */
+    std::set<size_t> worker_thread_ids_;
 
     /** 当前会话数量 */
     std::atomic_uint32_t curr_num_sessions_;

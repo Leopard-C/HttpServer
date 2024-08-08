@@ -32,7 +32,8 @@
 + 请求拦截器
 + 响应拦截器
 + 路由管理(静态路由，正则路由)
-+ 工作线程数量设置(动态线程数量)
++ 工作线程数量设置(设置一个范围，根据实时请求数量自动调整线程数量)
++ 多地址监听
 + `Keep-Alive`超时时间设置
 + `body`内容大小限制
 + (大)文件响应
@@ -61,7 +62,7 @@
 using namespace ic::server;
 
 int main() {
-    // 1. 初始化HTTP服务器
+    // 1. HTTP服务器配置
     HttpServerConfig config;
     config.add_endpoint("0.0.0.0", 8099, true);  // 监听地址，支持多个地址
     config.set_min_num_threads(2);            // 最少2个工作线程
@@ -70,16 +71,23 @@ int main() {
     config.set_log_access_verbose(false);     // 不打印详细日志（调试时可开启）
     config.set_tcp_stream_timeout_ms(15000);  // 超时时间15s
     config.set_body_limit(11 * 1024 * 1024);  // 请求内容大小限制11MB
+    // 或者从配置文件读取，参考 config/server.json 文件
+    // HttpServerConfig config;
+    // if (!config.ReadFromFile("config/server.json")) {
+    //     return false;
+    // }
+
+    // 2. 创建HTTP服务器
     HttpServer svr(config);
 
-    // 2. 注册路由(可以使用普通函数、类的静态函数、lambda函数)
+    // 3. 注册路由(可以使用普通函数、类的静态函数、lambda函数)
     auto router = svr.router();
-    // 2.1 GET请求
+    // 3.1 GET请求
     router->AddStaticRoute("/echo", HttpMethod::kGET, [](Request& req, Response& res){
         std::string text = req.GetUrlParam("text");
         res.SetStringBody(text, "text/plain");
     });
-    // 2.2 POST和OPTIONS请求
+    // 3.2 POST和OPTIONS请求
     router->AddStaticRoute("/user/register", HttpMethod::kPOST | HttpMethod::kOPTIONS, [](Request& req, Response& res){
         if (req.method() == HttpMethod::kOPTIONS) {
             res.SetHeader("Access-Control-Allow-Origin", "*");
@@ -91,24 +99,26 @@ int main() {
         // ...
         res.SetStringBody("OK", "text/plain");
     });
-    // 2.3 正则路由，响应文件流
+    // 3.3 正则路由，响应文件流
     router->AddRegexRoute("/img/(.*)", HttpMethod::kGET, [](Request& req, Response& res){
         std::string uri = req.GetRouteRegexMatch(0);
         std::string filename = HttpServer::GetBinDirUtf8() + "../data/web/img/" + uri;
         res.SetFileBody(filename);
     });
-    // 2.4 响应application/json
+    // 3.4 响应application/json
     router->AddStaticRoute("/server/stop", HttpMethod::kGET, [](Request& req, Json::Value& res){
-        req.svr()->Stop();
+        req.svr()->StopAsync();
         res["code"] = 0;
         res["msg"] = "OK";
         res["data"]["time"] = time(NULL);
     });
 
-    // 3. 启动服务器
-    if (svr.Listen()) {
-        svr.Start();
-    }
+    // 4. 启动服务器
+    svr.Start();  // 阻塞
+    // 异步启动
+    // svr.StartAsync();
+    // ...
+    // svr.WaitForStop();
 
     return 0;
 }
