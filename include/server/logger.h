@@ -40,11 +40,11 @@ struct LogContext {
     LogContext(const char* file_name, const char* func_name, int line_num)
         : file_name(file_name), func_name(func_name), line_num(line_num) {}
     /** 当前源文件名称 */
-    const char* file_name = nullptr;
+    const char* file_name;
     /** 当前函数名称 */
-    const char* func_name = nullptr;
+    const char* func_name;
     /** 行号 */
-    int line_num = 0;
+    int line_num;
 };
 
 /**

@@ -28,6 +28,18 @@ std::string Route::GetMethodsString() const {
     return str;
 }
 
+Json::Value Route::ToJson() const {
+    Json::Value root;
+    root["methods"] = GetMethodsString();
+    root["hit_count"] = (uint64_t)hit_count;
+    root["path"] = path;
+    root["description"] = description;
+    for (const auto& config : configuration) {
+        root["configuration"][config.first] = config.second;
+    }
+    return root;
+}
+
 void Route::Invoke(Request& req, Response& res) const {
     if (response_callback_) {
         response_callback_(req, res);
@@ -55,76 +67,63 @@ Router::Router(HttpServer* svr) : svr_(svr) {
 }
 
 Router::~Router() {
-    for (auto iter = routes_.begin(); iter != routes_.end(); ++iter) {
-        delete iter->second;
-        iter->second = nullptr;
-    }
 }
 
 /**
- * @brief 添加静态路由.
+ * @brief 添加静态路由，如果已存在则覆盖.
  */
-bool Router::AddStaticRoute(StaticRoute* route) {
+bool Router::AddStaticRoute(StaticRoutePtr route) {
+    WriteLock lck(mutex_);
     if (!CheckRoute(route)) {
         return false;
     }
+    DeleteRoute_WithoutLock(route->path);
     svr_->logger()->Debug(LOG_CTX, "Add static route: %4s %s", route->GetMethodsString().c_str(), route->path.c_str());
-    routes_.emplace(route->path, route);
     static_routes_.emplace(route->path, route);
+    routes_.emplace(route->path, route);
     return true;
 }
 
 bool Router::AddStaticRoute(const std::string& path, int methods,
     std::function<void(Request&, Response&)> callback,
     const std::string& description/* = ""*/,
-    const std::map<std::string, std::string>& configuration/* = {}*/)
+    const std::unordered_map<std::string, std::string>& configuration/* = {}*/)
 {
-    StaticRoute* route = new StaticRoute(path, methods, callback, description, configuration);
-    if (!AddStaticRoute(route)) {
-        delete route;
-        return false;
-    }
-    return true;
+    auto route = std::make_shared<StaticRoute>(path, methods, callback, description, configuration);
+    return AddStaticRoute(route);
 }
 
 bool Router::AddStaticRoute(const std::string& path, int methods,
     std::function<void(Request&, Json::Value&)> callback,
     const std::string& description/* = ""*/,
-    const std::map<std::string, std::string>& configuration/* = {}*/)
+    const std::unordered_map<std::string, std::string>& configuration/* = {}*/)
 {
-    StaticRoute* route = new StaticRoute(path, methods, callback, description, configuration);
-    if (!AddStaticRoute(route)) {
-        delete route;
-        return false;
-    }
-    return true;
+    auto route = std::make_shared<StaticRoute>(path, methods, callback, description, configuration);
+    return AddStaticRoute(route);
 }
 
 /**
- * @brief 添加正则路由.
+ * @brief 添加正则路由，如果已存在则覆盖.
  */
-bool Router::AddRegexRoute(RegexRoute* route) {
+bool Router::AddRegexRoute(RegexRoutePtr route) {
+    WriteLock lck(mutex_);
     if (!CheckRoute(route)) {
         return false;
     }
+    DeleteRoute_WithoutLock(route->path);
     svr_->logger()->Debug(LOG_CTX, "Add  regex route: %4s %s", route->GetMethodsString().c_str(), route->path.c_str());
+    auto iter = std::find_if(regex_routes_.begin(), regex_routes_.end(), [route](RegexRoutePtr rhs) { return rhs->priority < route->priority; });
+    regex_routes_.insert(iter, route);
     routes_.emplace(route->path, route);
-    regex_routes_.emplace_back(route);
     return true;
 }
 
-bool Router::AddRegexRoute(const std::string& path, int methods,
-    std::function<void(Request&, Response&)> callback,
-    const std::string& description/* = ""*/,
-    const std::map<std::string, std::string>& configuration/* = {}*/)
+bool Router::AddRegexRoute(const std::string& path, int methods, std::function<void(Request&, Response&)> callback,
+    const std::string& description/* = ""*/, const std::unordered_map<std::string, std::string>& configuration/* = {}*/, int priority/* = 0*/)
 {
     try {
-        RegexRoute* route = new RegexRoute(path, methods, callback, description, configuration);
-        if (!AddRegexRoute(route)) {
-            delete route;
-            return false;
-        }
-        return true;
+        auto route = std::make_shared<RegexRoute>(path, methods, callback, description, configuration, priority);
+        return AddRegexRoute(route);
     }
     catch (const REGEX_NAMESPACE::regex_error& ex) {
         svr_->logger()->Error(LOG_CTX, "Invalid regex pattern: %s, can not add to router. %s", path.c_str(), ex.what());
@@ -132,18 +131,12 @@ bool Router::AddRegexRoute(const std::string& path, int methods,
     }
 }
 
-bool Router::AddRegexRoute(const std::string& path, int methods,
-    std::function<void(Request&, Json::Value&)> callback,
-    const std::string& description/* = ""*/,
-    const std::map<std::string, std::string>& configuration/* = {}*/)
+bool Router::AddRegexRoute(const std::string& path, int methods, std::function<void(Request&, Json::Value&)> callback,
+    const std::string& description/* = ""*/, const std::unordered_map<std::string, std::string>& configuration/* = {}*/, int priority/* = 0*/)
 {
     try {
-        RegexRoute* route = new RegexRoute(path, methods, callback, description, configuration);
-        if (!AddRegexRoute(route)) {
-            delete route;
-            return false;
-        }
-        return true;
+        auto route = std::make_shared<RegexRoute>(path, methods, callback, description, configuration, priority);
+        return AddRegexRoute(route);
     }
     catch (const REGEX_NAMESPACE::regex_error& ex) {
         svr_->logger()->Error(LOG_CTX, "Invalid regex pattern: %s, can not add to router. %s", path.c_str(), ex.what());
@@ -151,55 +144,60 @@ bool Router::AddRegexRoute(const std::string& path, int methods,
     }
 }
 
-void Router::set_cb_invalid_path(Route::ResponseCallback cb) {
-    if (cb) {
-        cb_invalid_path_ = cb;
-    }
-}
-
-void Router::set_cb_invalid_method(Route::ResponseCallback cb) {
-    if (cb) {
-        cb_invalid_method_ = cb;
-    }
-}
 
 /**
  * @brief 检查路由是否合法.
  */
-bool Router::CheckRoute(Route* route) const {
+bool Router::CheckRoute(RoutePtr route) const {
     if (route->path.empty()) {
         svr_->logger()->Error(LOG_CTX, "Empty path, can not add to router");
         return false;
     }
-    if (!(route->methods & 0x1ff)) {
+    if (!(route->methods & (int)HttpMethod::kALL)) {
         svr_->logger()->Error(LOG_CTX, "Invalid http methods, can not add to router");
-        return false;
-    }
-    auto iter = routes_.find(route->path);
-    if (iter != routes_.end()) {
-        svr_->logger()->Error(LOG_CTX, "Duplicate path: %s, can not add to router", route->path.c_str());
         return false;
     }
     return true;
 }
 
 /**
- * @brief 获取路由.
+ * @brief 删除路由.
  */
-const Route* Router::GetRoute(const std::string& path) const {
-    auto find_iter = routes_.find(path);
-    if (find_iter != routes_.end()) {
-        return find_iter->second;
-    }
-    return nullptr;
+void Router::DeleteRoute(const std::string& path) {
+    WriteLock lck(mutex_);
+    DeleteRoute_WithoutLock(path);
 }
 
 /**
- * @brief 请求路径命中的路由，未命中则返回nullptr.
+ * @brief 删除路由(无锁).
  */
-bool Router::HitRoute(Request& req, Response& res) const {
-    /* 检查是否有匹配的路由 */
-    Route* route = nullptr;
+void Router::DeleteRoute_WithoutLock(const std::string& path) {
+    if (routes_.find(path) == routes_.end()) {
+        return;
+    }
+    auto iter = static_routes_.find(path);
+    if (iter != static_routes_.end()) {
+        /* 删除静态路由 */
+        static_routes_.erase(iter);
+    }
+    else {
+        /* 删除正则路由 */
+        for (auto iter = regex_routes_.begin(); iter != regex_routes_.end(); ++iter) {
+            if ((*iter)->path == path) {
+                regex_routes_.erase(iter);
+                break;
+            }
+        }
+    }
+    svr_->logger()->Debug(LOG_CTX, "Route deleted. path: %s", path.c_str());
+}
+
+/**
+ * @brief 检查请求是否命中已注册的路由.
+ */
+bool Router::HitRoute(Request& req, Response& res) {
+    ReadLock lck(mutex_);
+    RoutePtr route;
     auto iter = static_routes_.find(req.path());
     if (iter != static_routes_.end()) {
         route = iter->second;
@@ -207,7 +205,7 @@ bool Router::HitRoute(Request& req, Response& res) const {
     else {
         try {
             REGEX_NAMESPACE::smatch match;
-            for (auto r : regex_routes_) {
+            for (auto& r : regex_routes_) {
                 if (!REGEX_NAMESPACE::regex_match(req.path(), match, r->regex)) {
                     continue;
                 }
@@ -244,8 +242,48 @@ bool Router::HitRoute(Request& req, Response& res) const {
     route->hit_count.fetch_add(1);
 
     req.route_ = route;
-    req.thread_info_->route = route;
     return true;
+}
+
+/**
+ * @brief 获取路由.
+ */
+RouteConstPtr Router::GetRoute(const std::string& path) {
+    ReadLock lck(mutex_);
+    auto find_iter = routes_.find(path);
+    if (find_iter != routes_.end()) {
+        return find_iter->second;
+    }
+    return nullptr;
+}
+
+std::unordered_map<std::string, RouteConstPtr> Router::routes() {
+    ReadLock lck(mutex_);
+    return std::unordered_map<std::string, RouteConstPtr>(routes_.begin(), routes_.end());
+}
+
+std::unordered_map<std::string, StaticRouteConstPtr> Router::static_routes() {
+    ReadLock lck(mutex_);
+    return std::unordered_map<std::string, StaticRouteConstPtr>(static_routes_.begin(), static_routes_.end());
+}
+
+std::vector<RegexRouteConstPtr> Router::regex_routes() {
+    ReadLock lck(mutex_);
+    return std::vector<RegexRouteConstPtr>(regex_routes_.begin(), regex_routes_.end());
+}
+
+void Router::set_cb_invalid_path(Route::ResponseCallback cb) {
+    WriteLock lck(mutex_);
+    if (cb) {
+        cb_invalid_path_ = cb;
+    }
+}
+
+void Router::set_cb_invalid_method(Route::ResponseCallback cb) {
+    WriteLock lck(mutex_);
+    if (cb) {
+        cb_invalid_method_ = cb;
+    }
 }
 
 } // namespace server

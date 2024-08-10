@@ -38,6 +38,15 @@ from CppHeaderParser import CppHeader, CppClass
 
 class Helper:
     @staticmethod
+    def IsInteger(string: str):
+        if len(string) == 0:
+            return False
+        if string[0] == '-' or string[0] == '+':
+            return string[1:].isdigit()
+        else:
+            return string.isdigit()
+
+    @staticmethod
     def FormatPath(dir: str):
         dir = dir.strip()
         dir = dir.replace('\\', '/')
@@ -117,6 +126,7 @@ class Route:
         self.pathes: List[str] = []
         self.function = ''
         self.http_methods: List[str] = []
+        self.priority = 0
         self.config = {}
 
     def __ConfigToCppMap(self):
@@ -134,8 +144,11 @@ class Route:
     def __GetHttpMethodsStr(self):
         return ','.join(self.http_methods).rjust(4)
 
-    def ToCppParamerterList(self, route_path: str):
-        return '"%s", %s, %s, "%s", %s' % (route_path, self.__ToCppHttpMethods(), self.function, self.description, self.__ConfigToCppMap())
+    def ToCppFunctionCall(self, route_path: str):
+        if self.is_regex:
+            return 'AddRegexRoute("%s", %s, %s, "%s", %s, %s)' % (route_path, self.__ToCppHttpMethods(), self.function, self.description, self.__ConfigToCppMap(), self.priority)
+        else:
+            return 'AddStaticRoute("%s", %s, %s, "%s", %s)' % (route_path, self.__ToCppHttpMethods(), self.function, self.description, self.__ConfigToCppMap())
 
     def Print(self):
         prefix = '@regex ' if self.is_regex else '@static'
@@ -195,6 +208,10 @@ class Route:
             for config_str in doxygen_attrs['@config']:
                 if not self.__ParseDoxygen_Config(config_str):
                     return False
+        if '@priority' in doxygen_attrs:
+            priority = doxygen_attrs['@priority'][0]
+            if not self.__ParseDoxygen_Priority(priority):
+                return False
         if '@brief' in doxygen_attrs:
             self.description = doxygen_attrs['@brief'][0]
         elif '@description' in doxygen_attrs:
@@ -244,6 +261,14 @@ class Route:
         name = config_str[0:left_pos].strip()
         value = config_str[left_pos+1:right_pos].strip()
         self.config[name] = value
+        return True
+
+    def __ParseDoxygen_Priority(self, priority: str):
+        ''' 解析 @priority '''
+        if not Helper.IsInteger(priority):
+            print('Invalid @priority: [%s]' % priority)
+            return False
+        self.priority = priority
         return True
 
 class RouteCollector:
@@ -327,12 +352,8 @@ class RouteCollector:
                 body_lines.append('')
                 body_lines.append('    // %s'  % (route.header_file_relpath))
                 last_include_header_file_relpath = route.header_file_relpath
-            if route.is_regex:
-                for r in route.pathes:
-                    body_lines.append('    ret &= router->AddRegexRoute(%s);' % (route.ToCppParamerterList(r)))
-            else:
-                for r in route.pathes:
-                    body_lines.append('    ret &= router->AddStaticRoute(%s);' % (route.ToCppParamerterList(r)))
+            for r in route.pathes:
+                body_lines.append('    ret &= router->%s;' % (route.ToCppFunctionCall(r)))
         body_lines.append('')
         body_lines.append('    return ret;')
         body_lines.append('} // end register_routes')

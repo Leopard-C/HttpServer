@@ -25,7 +25,7 @@ bool Application::Init() {
 }
 
 void Application::Run() {
-    if (server_ && server_->Listen()) {
+    if (server_) {
         server_->Start();
     }
 }
@@ -53,7 +53,11 @@ bool Application::InitHttpServer() {
         return false;
     }
     /* 日志，可以继承ILogger自定义日志输出类 */
+#ifdef NDEBUG
+    std::shared_ptr<ILogger> logger = std::make_shared<ConsoleLogger>(LogLevel::kInfo, LogLevel::kWarn);
+#else
     std::shared_ptr<ILogger> logger = std::make_shared<ConsoleLogger>(LogLevel::kDebug, LogLevel::kWarn);
+#endif
     server_ = new HttpServer(config, logger);
     server_->set_cb_before_parse_body(BeforeParseBody);
     server_->set_cb_before_handle_request(BeforeHandleRequest);

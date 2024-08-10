@@ -3,6 +3,7 @@
 #include "server/http_server.h"
 #include "server/logger.h"
 #include "server/util/string/isprint.h"
+#include "server/util/thread.h"
 #include "server/util/url_code.h"
 #include "multipart_parser.h"
 #include <boost/asio/dispatch.hpp>
@@ -38,9 +39,9 @@ static HttpMethod from_beast_http_method(boost::beast::http::verb method) {
 }
 
 /**
- * @brief 分隔KeyValue格式的字符串
+ * @brief 分隔KeyValue格式的字符串.
  */
-static void split_key_value(const char* str, size_t len,
+static void s_split_key_value(const char* str, size_t len,
     const char* outer_delimiter, size_t outer_delimiter_len,
     const char* inner_delimiter, size_t inner_delimiter_len,
     bool trim_key, bool trim_value,
@@ -73,11 +74,10 @@ static void split_key_value(const char* str, size_t len,
 }
 
 Request::Request(HttpServer* svr, RequestRaw* raw, const std::string& client_ip)
-    : svr_(svr), raw_(raw), arrive_timepoint_(std::chrono::system_clock::now())
+    : svr_(svr), raw_(raw), arrive_timepoint_(std::chrono::system_clock::now()),
+      client_ip_(client_ip), client_real_ip_(client_ip),
+      thread_id_(util::thread_id()), id_(svr_->current_request_id())
 {
-    id_ = svr_->current_request_id();
-    client_ip_ = client_ip;
-    client_real_ip_ = client_ip;
     ParseBasic();
 }
 
@@ -204,7 +204,7 @@ void Request::LogAccessVerbose() {
 /**
  * @brief 解析请求中的基本内容.
  * 
- * @details 客户端IP、请求路径、URL参数.
+ * @details 客户端IP、请求路径、URL参数等.
  */
 void Request::ParseBasic() {
     // 1. client real ip
@@ -263,7 +263,7 @@ void Request::ParseClientRealIp() {
  * @brief 解析URL中的参数.
  */
 void Request::ParseUrlParams(const char* str, size_t len) {
-    split_key_value(str, len, "&", 1, "=", 1, false, false, &url_params_);
+    s_split_key_value(str, len, "&", 1, "=", 1, false, false, &url_params_);
 }
 
 /**
@@ -271,7 +271,7 @@ void Request::ParseUrlParams(const char* str, size_t len) {
  */
 void Request::ParseCookie() {
     auto cookies = raw_->operator[](http::field::cookie);
-    split_key_value(cookies.data(), cookies.length(), ";", 1, "=", 1, true, true, &cookies_);
+    s_split_key_value(cookies.data(), cookies.length(), ";", 1, "=", 1, true, true, &cookies_);
 }
 
 /**********************************************************************************
@@ -284,8 +284,9 @@ void Request::ParseCookie() {
 **********************************************************************************/
 #pragma region PARSE_BODY
 bool Request::ParseBody() {
+    constexpr int methods_allow_body = (HttpMethod::kPOST | HttpMethod::kPUT | HttpMethod::kDELETE | HttpMethod::kPATCH);
     const std::string& body = raw_->body();
-    if (body.empty() || (method_ != HttpMethod::kPOST && method_ != HttpMethod::kPUT && method_ != HttpMethod::kPATCH && method_ != HttpMethod::kDELETE)) {
+    if (body.empty() || !(method_ & methods_allow_body)) {
         return true;
     }
     if (content_type_.IsApplicationXWwwFormUrlEncoded()) {
@@ -298,7 +299,7 @@ bool Request::ParseBody() {
         return ParseBody_ApplicationJson(body);
     }
     else {
-        svr_->logger()->Error(LOG_CTX, "Unhandled Content-Type: %s", content_type_.type().c_str());
+        svr_->logger()->Debug(LOG_CTX, "Unhandled Content-Type: %s", content_type_.type().c_str());
         return true;
     }
 }
@@ -307,7 +308,7 @@ bool Request::ParseBody() {
  * @brief 解析application/x-www-form-urlencoded
  */
 bool Request::ParseBody_XWwwFormUrlEncoded(const std::string& body) {
-    split_key_value(body.data(), body.length(), "&", 1, "=", 1, false, false, &body_params_);
+    s_split_key_value(body.data(), body.length(), "&", 1, "=", 1, false, false, &body_params_);
     return true;
 }
 

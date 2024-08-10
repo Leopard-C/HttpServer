@@ -18,12 +18,32 @@ public:
     static void Shutdown(Request& req, Response& res);
 
     /**
-     * @brief 获取所有线程信息.
+     * @brief 获取监听地址.
      * 
-     * @route  /api/Server/DumpThreadInfos
+     * @route  /api/Server/GetEndpoints
      * @method POST
      * @config Authorization(1)
      * @config AdminOnly(1)
      */
-    static void DumpThreadInfos(Request& req, Response& res);
+    static void GetEndpoints(Request& req, Response& res);
+
+    /**
+     * @brief 睡眠几秒钟，模拟耗时请求.
+     * 
+     * @route  /api/Server/Sleep
+     * @method POST
+     * @config Authorization(1)
+     * @config AdminOnly(1)
+     */
+    static void Sleep(Request& req, Response& res);
+
+    /**
+     * @brief 获取服务器快照.
+     * 
+     * @route  /api/Server/Snapshot
+     * @method POST
+     * @config Authorization(1)
+     * @config AdminOnly(1)
+     */
+    static void Snapshot(Request& req, Response& res);
 };

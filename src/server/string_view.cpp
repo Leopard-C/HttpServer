@@ -1,7 +1,8 @@
+#ifndef NOMINMAX
+#  define NOMINMAX
+#endif
 #include "server/string_view.h"
 #include "server/util/string/memmem.h"
-
-#define _IC_MIN(a,b) ((a) < (b) ? (a) : (b))
 
 namespace ic {
 namespace server {
@@ -48,7 +49,7 @@ int StringView::Compare(size_t start, const char* str, size_t n) const {
     if (start >= size_) {
         return 0 - str[0];
     }
-    size_t end = _IC_MIN(n, size_ - start);
+    size_t end = std::min(n, size_ - start);
     int result = 0;
     for (size_t i = 0; i < end; ++i) {
         if ((result = begin_[start + i] - str[i]) != 0) {
@@ -65,7 +66,7 @@ int StringView::CompareNoCase(size_t start, const char* str, size_t n) const {
     if (start >= size_) {
         return 0 - tolower(str[0]);
     }
-    size_t end = _IC_MIN(n, size_ - start);
+    size_t end = std::min(n, size_ - start);
     int result = 0;
     for (size_t i = 0; i < end; ++i) {
         if ((result = tolower(begin_[start + i]) - tolower(str[i])) != 0) {
@@ -79,7 +80,7 @@ int StringView::CompareNoCase(size_t start, const char* str, size_t n) const {
  * @brief 字符串查找.
  */
 size_t StringView::Find(size_t start, size_t end, const char* needle, size_t needle_len) const {
-    end = _IC_MIN(end, size_);
+    end = std::min(end, size_);
     if (start < end) {
         const char* result = (const char*)util::memmem(begin_ + start, end - start, needle, needle_len);
         if (result) {
@@ -90,7 +91,7 @@ size_t StringView::Find(size_t start, size_t end, const char* needle, size_t nee
 }
 
 size_t StringView::FindFirstNotOf(size_t start, size_t end, const char* chars, size_t chars_len) const {
-    end = _IC_MIN(end, size_);
+    end = std::min(end, size_);
     if (start < end) {
         size_t j;
         for (size_t i = start; i < end; ++i) {
@@ -108,7 +109,7 @@ size_t StringView::FindFirstNotOf(size_t start, size_t end, const char* chars, s
 }
 
 size_t StringView::FindLastNotOf(size_t start, size_t end, const char* chars, size_t chars_len) const {
-    end = _IC_MIN(end, size_);
+    end = std::min(end, size_);
     if (start < end) {
         size_t j;
         for (int i = static_cast<int>(end) - 1, istart = static_cast<int>(start); i >= istart; --i) {
@@ -129,8 +130,8 @@ size_t StringView::FindLastNotOf(size_t start, size_t end, const char* chars, si
  * @brief 字符串截取.
  */
 StringView StringView::SubStr(size_t start, size_t length/* = std::string::npos*/) const {
-    start = _IC_MIN(start, size_);
-    length = _IC_MIN(length, size_ - start);
+    start = std::min(start, size_);
+    length = std::min(length, size_ - start);
     return StringView(begin_ + start, length);
 }
 
@@ -139,7 +140,7 @@ StringView StringView::SubStr(size_t start, size_t length/* = std::string::npos*
  */
 StringView& StringView::TrimLeft(const char* spaces/* = " "*/) {
     size_t pos = FindFirstNotOf(spaces);
-    pos = _IC_MIN(pos, size_);
+    pos = std::min(pos, size_);
     begin_ += pos;
     size_ -= pos;
     return *this;

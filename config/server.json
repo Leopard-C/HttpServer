@@ -1,11 +1,21 @@
 {
-    "ip": "0.0.0.0",
-    "port": 8099,
-    "num_threads": 4,
+    "min_num_threads": 2,
+    "max_num_threads": 16,
     "version": "1.0.0",
-    "reuse_address": true,
     "tcp_stream_timeout_ms": 15000,
     "body_limit": 11534334,
     "log_access": true,
-    "log_access_verbose": false
+    "log_access_verbose": false,
+    "endpoints": [
+        {
+            "ip": "0.0.0.0",
+            "port": 8098,
+            "reuse_address": true
+        },
+        {
+            "ip": "0.0.0.0",
+            "port": 8099,
+            "reuse_address": true
+        }
+    ]
 }

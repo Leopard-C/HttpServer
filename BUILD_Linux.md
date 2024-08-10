@@ -28,31 +28,42 @@ sudo cp -r stage/lib /usr/local/boost/boost_1.73.0/x86_64
 
 ## 2 编译`HttpServer`静态库及示例程序
 
-可以通过`make`或`xmake`两种方式进行编译。
+> 本项目在`Linux`平台通过`xmake`工具进行构建。
+> 
+> 安装`xmake`方式:
+> 
+> ```shell
+> wget https://xmake.io/shget.text -O - | bash
+> ```
+> 
+> 详情请参考官方仓库 [xmake-io/xmake](https://github.com/xmake-io/xmake) 或文档: [xmake.io](https://xmake.io/#/zh-cn/guide/installation)
 
-### 2.1 `make`
-
-```shell
-make -j
-```
-
-### 2.2 `xmake`【推荐】
-
-修改`xmake.lua`中`boost`库的配置。
+首先修改该项目的配置文件`xmake.lua`，找到如下内容，进行修改
 
 ```lua
--- xmake.lua
--- boost库依赖配置
-add_includedirs("/usr/local/boost/boost_1.73.0/$(arch)/include")
-add_linkdirs("/usr/local/boost/boost_1.73.0/$(arch)/lib")
+-- `boost`头文件和库文件目录配置
+boost_inc_dir = "/usr/local/boost/boost_1.73.0/x86_64/include"
+boost_lib_dir = "/usr/local/boost/boost_1.73.0/x86_64/lib"
 ```
 
-然后执行如下命令：
+然后执行构建命令：
 
 ```shell
-xmake f --mode=debug     # 可选debug、reelase、releasedbg
+# 设置debug或release模式
+# xmake f -m debug
+# xmake f -m release
+
+# 静态库
+xmake b http_server
+
+# 示例程序1
+xmake b example
+
+# 示例程序2
+xmake b example2
+
+# 或一次性构建所有工程
 xmake
-# xmake project -k makefile   # 生成makefile文件
 ```
 
 运行示例程序：
