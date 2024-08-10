@@ -193,23 +193,23 @@ private:
     std::vector<std::shared_ptr<Listener>> listeners_;
 
     std::mutex mutex_server_state_;
-    bool is_running_;
-    bool should_stop_;
+    bool is_running_{false};
+    bool should_stop_{false};
 
     /* 当前所有工作线程的线程ID集合 */
     std::set<size_t> worker_thread_ids_;
 
     /** 当前会话数量 */
-    std::atomic_uint32_t curr_num_sessions_;
+    std::atomic_uint32_t curr_num_sessions_{0};
     /** 当前工作线程数量 */
-    std::atomic_uint32_t curr_num_worker_threads_;
+    std::atomic_uint32_t curr_num_worker_threads_{0};
     /** 当前正在处理的请求数量 */
-    std::atomic_uint32_t curr_num_handling_requests_;
+    std::atomic_uint32_t curr_num_handling_requests_{0};
 
     /** 总计创建的会话数量 */
-    std::atomic_uint64_t total_num_sessions_;
+    std::atomic_uint64_t total_num_sessions_{0};
     /** 总计处理的请求数量 */
-    std::atomic_uint64_t total_num_requests_;
+    std::atomic_uint64_t total_num_requests_{0};
 
     std::mutex mutex_requests_;
     std::set<Request*> handling_requests_;

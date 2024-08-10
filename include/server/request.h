@@ -247,8 +247,8 @@ private:
     void ParseUrlParams(const char* str, size_t len);
 
 private:
-    HttpServer* svr_{nullptr};
-    RequestRaw* raw_{nullptr};
+    HttpServer* svr_;
+    RequestRaw* raw_;
 
     /**
      * @brief 客户端地址.

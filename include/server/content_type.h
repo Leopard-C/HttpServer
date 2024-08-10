@@ -58,7 +58,7 @@ private:
     };
 
 private:
-    BuiltInContentType built_in_type_;
+    BuiltInContentType built_in_type_ = BuiltInContentType::kUnknown;
     std::string type_;
     std::string charset_;
     std::string boundary_;

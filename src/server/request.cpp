@@ -39,7 +39,7 @@ static HttpMethod from_beast_http_method(boost::beast::http::verb method) {
 }
 
 /**
- * @brief 分隔KeyValue格式的字符串
+ * @brief 分隔KeyValue格式的字符串.
  */
 static void s_split_key_value(const char* str, size_t len,
     const char* outer_delimiter, size_t outer_delimiter_len,

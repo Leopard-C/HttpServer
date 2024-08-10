@@ -40,7 +40,7 @@ public:
      * @details   "version": "1.0.0",
      * @details   "tcp_stream_timeout_ms": 15000,
      * @details   "body_limit": 11534334,
-     * @details   "log_access": true
+     * @details   "log_access": true,
      * @details   "log_access_verbose": false,
      * @details   "endpoints": [
      * @details     {
@@ -48,7 +48,7 @@ public:
      * @details       "port": 8099,
      * @details       "reuse_address": true
      * @details     }
-     * @details   ] 
+     * @details   ]
      * @details }
      */
     bool ReadFromFile(const std::string& filename);
@@ -104,7 +104,7 @@ private:
     /**
      * @brief 是否记录详细的用户请求信息.
      *
-     * @details 建议调试时才设为true，正式环境设为false
+     * @details 建议调试时才设为true，正式环境设为false.
      */
     bool log_access_verbose_{false};
 

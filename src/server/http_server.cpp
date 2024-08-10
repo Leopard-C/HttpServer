@@ -67,8 +67,7 @@ Json::Value SnapshotResult::ToJson() const {
 *******************************************************************/
 
 HttpServer::HttpServer(const HttpServerConfig& config, std::shared_ptr<ILogger> logger/* = nullptr*/) :
-    config_(config), logger_(logger), is_running_(false), should_stop_(false),
-    curr_num_sessions_{0}, curr_num_worker_threads_{0}, total_num_sessions_{0}, total_num_requests_{0}
+    config_(config), logger_(logger)
 {
     if (!logger_) {
         logger_ = std::make_shared<ConsoleLogger>(LogLevel::kInfo, LogLevel::kWarn);

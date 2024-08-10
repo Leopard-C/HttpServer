@@ -86,7 +86,7 @@ private:
     void SetContentType(const std::string& content_type);
 
 private:
-    HttpServer* svr_{nullptr};
+    HttpServer* svr_;
     bool keep_alive_{true};
     bool is_file_body_{false};
     unsigned int status_code_{200U};
