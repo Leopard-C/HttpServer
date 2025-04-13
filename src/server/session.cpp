@@ -70,9 +70,6 @@ void Session::OnReadError(beast::error_code ec) {
     if (ec == beast::error::timeout) {
         svr_->logger()->Debug(LOG_CTX, "OnRead error, %s", ec.message().c_str());
     }
-    else if (ec == http::error::end_of_stream) {
-        DoClose();
-    }
     else if (ec == http::error::body_limit) {
         svr_->logger()->Error(LOG_CTX, "Body limit");
         res_->SetStringBody(413, "body limit exceeded", "text/plain");
@@ -80,7 +77,10 @@ void Session::OnReadError(beast::error_code ec) {
         SendResponse();
     }
     else {
-        svr_->logger()->Error(LOG_CTX, "OnRead error, %s", ec.message().c_str());
+        if (ec != http::error::end_of_stream) {
+            svr_->logger()->Error(LOG_CTX, "OnRead error, %s", ec.message().c_str());
+        }
+        DoClose();
     }
 }
 

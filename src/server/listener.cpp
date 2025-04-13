@@ -66,9 +66,10 @@ void Listener::OnAccept(beast::error_code ec, tcp::socket socket) {
     }
     if (ec) {
         svr_->logger()->Error(LOG_CTX, "OnAccept error, %s", ec.message().c_str());
-        return;
     }
-    std::make_shared<Session>(std::move(socket), svr_)->Run();
+    else {
+        std::make_shared<Session>(std::move(socket), svr_)->Run();
+    }
     DoAccept();
 }
 

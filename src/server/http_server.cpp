@@ -257,6 +257,9 @@ void HttpServer::NewWorkerThreads(uint32_t n) {
         ++curr_num_worker_threads_;
         std::thread t([this] {
             this->ThreadFunc_Worker();
+            if (this->cb_before_worker_thread_exit_) {
+                this->cb_before_worker_thread_exit_();
+            }
         });
         t.detach();
     }
