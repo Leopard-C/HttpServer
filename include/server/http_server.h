@@ -119,6 +119,11 @@ public:
      */
     void set_cb_before_send_response(std::function<bool(Request&, Response&)> cb) { cb_before_send_response_ = cb; }
 
+    /**
+     * @brief 设置回调函数：工作线程退出前执行.
+     */
+    void set_cb_before_worker_thread_exit(std::function<void()> cb) { cb_before_worker_thread_exit_ = cb; }
+
     const HttpServerConfig& config() const { return config_; }
     int64_t current_request_id() { return current_request_id_.fetch_add(1); }
     void set_current_request_id(int64_t id) { current_request_id_.store(id); }
@@ -217,6 +222,7 @@ private:
     std::function<bool(Request&, Response&)> cb_before_parse_body_;
     std::function<bool(Request&, Response&)> cb_before_handle_request_;
     std::function<bool(Request&, Response&)> cb_before_send_response_;
+    std::function<void()> cb_before_worker_thread_exit_;
 };
 
 } // namespace server
