@@ -35,6 +35,9 @@ public:
     bool keep_alive() const { return keep_alive_; }
 
     bool is_file_body() const { return is_file_body_; }
+    unsigned int status_code() const { return status_code_; }
+    const std::string & string_body() const { return string_body_; }
+    const std::string & filepath() const { return filepath_; }
 
     /**
      * @brief 设置响应头.

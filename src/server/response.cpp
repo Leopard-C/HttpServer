@@ -27,6 +27,7 @@ void Response::RemoveHeader(const std::string& name) {
 }
 
 void Response::SetContentType(const std::string& content_type) {
+    RemoveHeader("Content-Type");
     SetHeader("Content-Type", content_type);
 }
 
@@ -66,11 +67,11 @@ void Response::SetJsonBody(unsigned int status_code, const Json::Value& root) {
     return SetStringBody(status_code, fw.write(root), "application/json; charset=utf-8");
 }
 
-void Response::SetFileBody(const std::string& filepath, const std::string& content_type/* = "text/plain"*/) {
+void Response::SetFileBody(const std::string& filepath, const std::string& content_type/* = ""*/) {
     SetFileBody(200U, filepath, content_type);
 }
 
-void Response::SetFileBody(unsigned int status_code, const std::string& filepath, const std::string& content_type/* = "text/plain"*/) {
+void Response::SetFileBody(unsigned int status_code, const std::string& filepath, const std::string& content_type/* = ""*/) {
     /* MIME类型 */
     if (content_type.empty()) {
         std::string ext = util::path::get_ext(filepath);

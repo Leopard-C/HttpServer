@@ -91,6 +91,10 @@ Request::~Request() {
 /**
  * @brief 获取请求body.
  */
+std::string& Request::body() {
+    return raw_->body();
+}
+
 const std::string& Request::body() const {
     return raw_->body();
 }

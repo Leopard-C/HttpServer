@@ -45,6 +45,7 @@ public:
      * 
      * @note 需要包含头文件 <server/request_raw.h>
      */
+    RequestRaw* raw() { return raw_; }
     const RequestRaw* raw() const { return raw_; }
 
     /**
@@ -87,6 +88,7 @@ public:
     /**
      * @brief 获取请求body.
      */
+    std::string& body();
     const std::string& body() const;
 
     /**
