@@ -189,7 +189,7 @@ void Session::SendFileBodyResponse() {
     file_res_->result(res_->status_code_);
     file_res_->body() = std::move(file);
     for (const auto& p : res_->headers_) {
-        file_res_->set(p.first, p.second);
+        file_res_->insert(p.first, p.second);
     }
     file_res_->prepare_payload();
 
@@ -221,7 +221,7 @@ void Session::SendStringBodyResponse() {
     string_res_->body().swap(res_->string_body_);
     string_res_->prepare_payload();
     for (const auto& p : res_->headers_) {
-        string_res_->set(p.first, p.second);
+        string_res_->insert(p.first, p.second);
     }
 
     /* 打印请求日志 */
