@@ -11,7 +11,7 @@ namespace ic {
 namespace server {
 
 Session::Session(tcp::socket&& socket, HttpServer* svr)
-    : svr_(svr), stream_(std::move(socket)), remote_endpoint_(stream_.socket().remote_endpoint())
+    : svr_(svr), stream_(std::move(socket)), remote_endpoint_(stream_.socket().remote_endpoint()), sse_timer_(stream_.get_executor())
 {
     svr_->logger()->Debug(LOG_CTX, "New session from %s:%hu", remote_endpoint_.address().to_string().c_str(), remote_endpoint_.port());
     svr_->OnNewSession();
@@ -93,6 +93,12 @@ void Session::OnWrite(bool close, beast::error_code ec, size_t/* bytes_transferr
             file_res_->body().close();
         }
         file_res_.reset();
+    }
+    if (res_->sse_provider_) {
+        res_->sse_provider_->Shutdown();
+        res_->sse_provider_->Unsubscribe();
+        beast::error_code ec;
+        sse_timer_.cancel(ec);
     }
     if (ec) {
         return OnWriteError(ec);
@@ -276,21 +282,61 @@ void Session::SendSseBodyResponse() {
         event_res.set("Content-Type", "text/event-stream");
         write_bytes += http::write(stream_, event_res, ec);
         if (ec) {
-            Session::OnWrite(true, ec, write_bytes);
-            return;
+            return OnWrite(true, ec, write_bytes);
         }
     }
 
-    /* 持续发送响应内容 */
-    std::string event;
-    auto sse_provider = res_->sse_provider_;
-    while (!ec && sse_provider->is_alive() && !svr_->should_stop()) {
-        if (sse_provider->WaitAndPop(10, &event)) {
-            write_bytes += net::write(stream_, boost::asio::const_buffer(event.data(), event.size()), ec);
+    res_->sse_provider_->Subscribe([self = weak_from_this()] {
+        if (auto shared_self = self.lock()) {
+            shared_self->DoSendNextSseEvent();
         }
+    });
+
+    /* 持续发送响应内容 */
+    DoSendSseEvents();
+}
+
+void Session::DoSendSseEvents() {
+    DoSendNextSseEvent();
+    sse_timer_.expires_after(std::chrono::milliseconds(10));
+    sse_timer_.async_wait([self = shared_from_this()](beast::error_code ec) {
+        if (!ec) {
+            return self->DoSendSseEvents();
+        }
+        if (ec != net::error::operation_aborted) {
+            return self->OnWrite(true, ec, 0);
+        }
+    });
+}
+
+void Session::DoSendNextSseEvent() {
+    if (svr_->should_stop() || !res_->sse_provider_->is_alive()) {
+        return OnWrite(true, beast::error_code(), 0);
     }
-    sse_provider->Shutdown();
-    Session::OnWrite(true, ec, write_bytes);
+    if (is_sse_sending_) {
+        return;
+    }
+    net::post(
+        stream_.get_executor(),
+        [self = shared_from_this()]() {
+            bool expected = false;
+            if (!self->is_sse_sending_.compare_exchange_strong(expected, true)) {
+                return;
+            }
+            const uint64_t max_bytes = 1024ULL * 1024 * 256;  // 256KB
+            if (!self->res_->sse_provider_->TryPopSome(max_bytes, &self->sending_sse_event_)) {
+                self->is_sse_sending_ = false;
+                return;
+            }
+            net::async_write(self->stream_, net::buffer(self->sending_sse_event_), [self](beast::error_code ec, std::size_t) {
+                self->is_sse_sending_ = false;
+                if (ec) {
+                    return self->OnWrite(true, ec, 0);
+                }
+                self->DoSendNextSseEvent();
+            });
+        }
+    );
 }
 
 } // namespace server

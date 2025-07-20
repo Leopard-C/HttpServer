@@ -1,7 +1,7 @@
 #ifndef IC_SERVER_SSE_SSE_PROVIDER_H_
 #define IC_SERVER_SSE_SSE_PROVIDER_H_
-#include <condition_variable>
 #include <chrono>
+#include <functional>
 #include <mutex>
 #include <queue>
 #include <string>
@@ -45,17 +45,42 @@ public:
     void Clear();
 
     /**
-     * @brief 等待直到获取到事件.
-     * @param[in] max_wait_time_ms 最长等待时间(毫秒)
-     * @param[out] event 获取到的队列头部的事件
-     * @return 是否成功获取
-     */
-    bool WaitAndPop(int64_t max_wait_ms, std::string* event);
-
-    /**
      * @brief 断开连接.
      */
     void Shutdown();
+
+    /**
+     * @brief 订阅事件通知.
+     * @param callback 回调函数
+     */
+    void Subscribe(std::function<void()> callback);
+
+    /**
+     * @brief 取消订阅事件通知.
+     */
+    void Unsubscribe();
+
+    /**
+     * @brief 尝试获取队列头部的事件.
+     * @param[out] event 获取到的事件
+     * @return 是否获取到事件
+     */
+    bool TryPop(std::string* event);
+
+    /**
+     * @brief 尝试获取队列头部的多个事件并进行合并.
+     * @param[in] max_bytes 合并后的事件大小最大字节数
+     * @param[out] event 获取到的多个事件合并结果
+     * @return 是否获取到事件
+     */
+    bool TryPopSome(uint64_t max_bytes, std::string* events);
+
+private:
+    /**
+     * @brief 尝试获取心跳包事件.
+     * @param[out] event 获取到的事件
+     */
+    bool TryGetHeartbeatEvent(std::string* event);
 
 public:
     /**
@@ -85,9 +110,10 @@ public:
 
 private:
     mutable std::mutex mutex_;
-    std::condition_variable cv_;
     std::queue<std::string> queue_;
     bool is_alive_{true};
+
+    std::function<void()> subscribed_callback_;
 
     std::string heartbeat_event_;
     int64_t heartbeat_interval_{-1};

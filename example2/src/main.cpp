@@ -53,6 +53,7 @@ int main() {
     // 2.5 SSE(Server-Sent Event)
     router->AddStaticRoute("/sse", HttpMethod::kGET, [](Request& req, Response& res){
         auto sse_provider = std::make_shared<SseProvider>();
+        sse_provider->set_heartbeat_interval(500);
         std::thread t([sse_provider] {
             int id = 0;
             while (sse_provider->is_alive() && id++ < 10) {

@@ -32,8 +32,13 @@ void SseProvider::set_heartbeat_interval(int64_t interval_ms) {
  * @param event 事件
  */
 void SseProvider::Push(const SseEvent& event) {
-    std::lock_guard<std::mutex> lck(mutex_);
-    queue_.emplace(event.Serialize());
+    {
+        std::lock_guard<std::mutex> lck(mutex_);
+        queue_.emplace(event.Serialize());
+    }
+    if (subscribed_callback_) {
+        subscribed_callback_();
+    }
 }
 
 /**
@@ -45,11 +50,27 @@ void SseProvider::Clear() {
 }
 
 /**
- * @brief 断开连接(停止提供内容).
+ * @brief 断开连接.
  */
 void SseProvider::Shutdown() {
     std::lock_guard<std::mutex> lck(mutex_);
     is_alive_ = false;
+}
+
+/**
+ * @brief 订阅事件通知.
+ */
+void SseProvider::Subscribe(std::function<void()> callback) {
+    std::lock_guard<std::mutex> lck(mutex_);
+    subscribed_callback_ = callback;
+}
+
+/**
+ * @brief 取消订阅事件通知.
+ */
+void SseProvider::Unsubscribe() {
+    std::lock_guard<std::mutex> lck(mutex_);
+    subscribed_callback_ = nullptr;
 }
 
 /**
@@ -93,25 +114,59 @@ size_t SseProvider::size() const {
 }
 
 /**
- * @brief 等待直到获取到事件.
- * @param[in] max_wait_time_ms 最长等待时间(毫秒)
- * @param[out] event 获取到的队列头部的事件
- * @return 是否成功获取
+ * @brief 尝试获取队列头部的事件.
+ * @param[out] event 获取到的事件
+ * @return 是否获取到事件
  */
-bool SseProvider::WaitAndPop(int64_t max_wait_time_ms, std::string* event) {
-    std::unique_lock<std::mutex> lck(mutex_);
-    cv_.wait_for(lck, std::chrono::milliseconds(max_wait_time_ms), [&] { return !queue_.empty() || !is_alive_; });
+bool SseProvider::TryPop(std::string* event) {
+    std::lock_guard<std::mutex> lck(mutex_);
     if (!is_alive_) {
         return false;
     }
-    auto now = std::chrono::steady_clock::now();
-    if (!queue_.empty()) {
-        event->swap(queue_.front());
-        queue_.pop();
-        last_timepoint_pop_event_ = now;
-        return true;
+    if (queue_.empty()) {
+        return TryGetHeartbeatEvent(event);
     }
-    if (heartbeat_interval_ > -1 && (now - last_timepoint_pop_event_).count() >= heartbeat_interval_ * 1000000) {
+    event->swap(queue_.front());
+    queue_.pop();
+    last_timepoint_pop_event_ = std::chrono::steady_clock::now();
+    return true;
+}
+
+/**
+ * @brief 尝试获取队列头部的多个事件并进行合并.
+ * @param[in] max_bytes 合并后的事件大小最大字节数
+ * @param[out] event 获取到的多个事件合并结果
+ * @return 是否获取到事件
+ */
+bool SseProvider::TryPopSome(uint64_t max_bytes, std::string* events) {
+    std::lock_guard<std::mutex> lck(mutex_);
+    if (!is_alive_) {
+        return false;
+    }
+    if (queue_.empty()) {
+        return TryGetHeartbeatEvent(events);
+    }
+    events->swap(queue_.front());
+    queue_.pop();
+    while (!queue_.empty() && events->size() + queue_.front().size() <= max_bytes) {
+        *events += queue_.front();
+        queue_.pop();
+    }
+    last_timepoint_pop_event_ = std::chrono::steady_clock::now();
+    return true;
+}
+
+/**
+ * @brief 尝试获取心跳包事件.
+ * @param[out] event 获取到的事件
+ */
+bool SseProvider::TryGetHeartbeatEvent(std::string* event) {
+    if (heartbeat_interval_ < 0) {
+        return false;
+    }
+    auto now = std::chrono::steady_clock::now();
+    auto diff_ns = (now - last_timepoint_pop_event_).count();
+    if (diff_ns >= heartbeat_interval_ * 1000000) {
         *event = heartbeat_event_;
         last_timepoint_pop_event_ = now;
         return true;
