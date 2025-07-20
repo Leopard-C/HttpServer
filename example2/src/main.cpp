@@ -2,6 +2,7 @@
 #include <server/router.h>
 #include <server/request.h>
 #include <server/response.h>
+#include <server/sse/sse_provider.h>
 
 using namespace ic::server;
 
@@ -49,7 +50,29 @@ int main() {
         res["msg"] = "OK";
         res["data"]["time"] = time(NULL);
     });
-    // 2.5 关闭服务器
+    // 2.5 SSE(Server-Sent Event)
+    router->AddStaticRoute("/sse", HttpMethod::kGET, [](Request& req, Response& res){
+        auto sse_provider = std::make_shared<SseProvider>();
+        std::thread t([sse_provider] {
+            int id = 0;
+            while (sse_provider->is_alive() && id++ < 10) {
+                SseEvent event;
+                if (id == 1) {
+                    event.set_retry(5000);
+                }
+                event.set_name("hello");
+                event.set_id(id);
+                event.AddComment("This is a comment line");
+                event.AddData("Hello world! " + std::to_string(id));
+                sse_provider->Push(event);
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
+            sse_provider->Shutdown();
+        });
+        t.detach();
+        res.SetSseBody(sse_provider);
+    });
+    // 2.6 关闭服务器
     router->AddStaticRoute("/server/stop", HttpMethod::kGET, [](Request& req, Json::Value& res){
         req.svr()->StopAsync();
         res["code"] = 0;

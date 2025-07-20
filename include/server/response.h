@@ -17,6 +17,7 @@ namespace server {
 class Session;
 class HttpServer;
 class HttpCookie;
+class SseProvider;
 
 /**
  * @brief HTTP响应.
@@ -78,6 +79,11 @@ public:
     void SetJsonBody(unsigned int status_code, const Json::Value& root);
 
     /**
+     * @brief 响应服务器发送事件(SSE, Server-Sent Event).
+     */
+    void SetSseBody(std::shared_ptr<SseProvider> sse_provider);
+
+    /**
      * @brief 响应文件内容(文件路径UTF8编码).
      */
     void SetFileBody(const std::string& filepath, const std::string& content_type = "");
@@ -93,6 +99,7 @@ private:
     bool keep_alive_{true};
     bool is_file_body_{false};
     unsigned int status_code_{200U};
+    std::shared_ptr<SseProvider> sse_provider_;
     std::string string_body_;
     std::string filepath_;  // Response file body. The path must be utf-8 encoded.
     std::multimap<std::string, std::string> headers_;

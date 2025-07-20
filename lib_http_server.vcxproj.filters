@@ -54,6 +54,9 @@
     <ClInclude Include="src\server\listener.h" />
     <ClInclude Include="src\server\multipart_parser.h" />
     <ClInclude Include="src\server\session.h" />
+    <ClInclude Include="include\server\sse\sse_message.h" />
+    <ClInclude Include="include\server\sse\sse_event.h" />
+    <ClInclude Include="include\server\sse\sse_provider.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\jsoncpp\json_reader.cpp" />
@@ -89,5 +92,8 @@
     <ClCompile Include="src\server\router.cpp" />
     <ClCompile Include="src\server\session.cpp" />
     <ClCompile Include="src\server\string_view.cpp" />
+    <ClCompile Include="src\server\sse\sse_message.cpp" />
+    <ClCompile Include="src\server\sse\sse_event.cpp" />
+    <ClCompile Include="src\server\sse\sse_provider.cpp" />
   </ItemGroup>
 </Project>

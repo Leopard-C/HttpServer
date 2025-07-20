@@ -40,6 +40,7 @@ void Response::RemoveAllCookies() {
 }
 
 void Response::SetStringBody(unsigned int status_code) {
+    sse_provider_ = nullptr;
     is_file_body_ = false;
     status_code_ = status_code;
     string_body_.clear();
@@ -50,6 +51,7 @@ void Response::SetStringBody(const std::string& body, const std::string& content
 }
 
 void Response::SetStringBody(unsigned int status_code, const std::string& body, const std::string& content_type) {
+    sse_provider_ = nullptr;
     is_file_body_ = false;
     status_code_ = status_code;
     string_body_ = body;
@@ -67,6 +69,14 @@ void Response::SetJsonBody(unsigned int status_code, const Json::Value& root) {
     return SetStringBody(status_code, fw.write(root), "application/json; charset=utf-8");
 }
 
+/**
+ * @brief 响应服务器发送事件(SSE, Server-Sent Event).
+ */
+void Response::SetSseBody(std::shared_ptr<SseProvider> sse_provider) {
+    sse_provider_ = sse_provider;
+    is_file_body_ = false;
+}
+
 void Response::SetFileBody(const std::string& filepath, const std::string& content_type/* = ""*/) {
     SetFileBody(200U, filepath, content_type);
 }
@@ -81,6 +91,7 @@ void Response::SetFileBody(unsigned int status_code, const std::string& filepath
         SetContentType(content_type);
     }
     filepath_ = filepath;
+    sse_provider_ = nullptr;
     is_file_body_ = true;
 }
 

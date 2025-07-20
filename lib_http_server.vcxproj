@@ -220,6 +220,9 @@
     <ClInclude Include="include\server\request_raw.h" />
     <ClInclude Include="include\server\response.h" />
     <ClInclude Include="include\server\router.h" />
+    <ClInclude Include="include\server\sse\sse_event.h" />
+    <ClInclude Include="include\server\sse\sse_message.h" />
+    <ClInclude Include="include\server\sse\sse_provider.h" />
     <ClInclude Include="include\server\status\base.h" />
     <ClInclude Include="include\server\string_view.h" />
     <ClInclude Include="include\server\util\convert\convert_case.h" />
@@ -259,6 +262,9 @@
     <ClCompile Include="src\server\response.cpp" />
     <ClCompile Include="src\server\router.cpp" />
     <ClCompile Include="src\server\session.cpp" />
+    <ClCompile Include="src\server\sse\sse_event.cpp" />
+    <ClCompile Include="src\server\sse\sse_message.cpp" />
+    <ClCompile Include="src\server\sse\sse_provider.cpp" />
     <ClCompile Include="src\server\status\base.cpp" />
     <ClCompile Include="src\server\string_view.cpp" />
     <ClCompile Include="src\server\util\convert\convert_case.cpp" />

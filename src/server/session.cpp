@@ -3,9 +3,9 @@
 #include "server/logger.h"
 #include "server/request_raw.h"
 #include "server/router.h"
+#include "server/sse/sse_provider.h"
 #include "server/util/format_time.h"
 #include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
 
 namespace ic {
 namespace server {
@@ -169,7 +169,13 @@ void Session::HandleRequest() {
 void Session::SendResponse() {
     /* 响应拦截器 */
     svr_->cb_before_send_response_ && svr_->cb_before_send_response_(*req_, *res_);
-    return res_->is_file_body_ ? SendFileBodyResponse() : SendStringBodyResponse();
+    if (res_->is_file_body_) {
+        return SendFileBodyResponse();
+    }
+    if (res_->sse_provider_) {
+        return SendSseBodyResponse();
+    }
+    return SendStringBodyResponse();
 }
 
 /**
@@ -215,6 +221,15 @@ void Session::SendFileBodyResponse() {
  * @brief 返回文本内容.
  */
 void Session::SendStringBodyResponse() {
+    /* 打印请求日志 */
+    if (svr_->config().log_access()) {
+        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s -- %u %" PRIu64 " %s",
+            to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
+            req_->client_real_ip_.c_str(), res_->status_code_, (uint64_t)res_->string_body_.size(),
+            util::format_duration(req_->time_consumed_total_).c_str()
+        );
+    }
+
     string_res_ = std::make_shared<http::response<http::string_body>>();
     string_res_->keep_alive(res_->keep_alive_);
     string_res_->result(res_->status_code_);
@@ -224,21 +239,58 @@ void Session::SendStringBodyResponse() {
         string_res_->insert(p.first, p.second);
     }
 
-    /* 打印请求日志 */
-    if (svr_->config().log_access()) {
-        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s -- %u %" PRIu64 " %s",
-            to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
-            req_->client_real_ip_.c_str(), res_->status_code_, (uint64_t)string_res_->body().size(),
-            util::format_duration(req_->time_consumed_total_).c_str()
-        );
-    }
-
     /* 发送响应内容 */
     http::async_write(
         stream_,
         *string_res_,
         beast::bind_front_handler(&Session::OnWrite, shared_from_this(), string_res_->need_eof())
     );
+}
+
+/**
+ * @brief 返回SSE(Server-Sent Event)响应.
+ */
+void Session::SendSseBodyResponse() {
+    /* 打印请求日志 */
+    if (svr_->config().log_access()) {
+        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s -- %u 0 %s",
+            to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
+            req_->client_real_ip_.c_str(), res_->status_code_, util::format_duration(req_->time_consumed_total_).c_str()
+        );
+    }
+
+    stream_.expires_never();
+
+    beast::error_code ec;
+    size_t write_bytes = 0;
+
+    /* 发送响应头 */
+    {
+        http::response<http::string_body> event_res;
+        event_res.keep_alive(true);
+        event_res.result(http::status::ok);
+        for (const auto& p : res_->headers_) {
+            event_res.insert(p.first, p.second);
+        }
+        event_res.set("Cache-Control", "no-cache");
+        event_res.set("Content-Type", "text/event-stream");
+        write_bytes += http::write(stream_, event_res, ec);
+        if (ec) {
+            Session::OnWrite(true, ec, write_bytes);
+            return;
+        }
+    }
+
+    /* 持续发送响应内容 */
+    std::string event;
+    auto sse_provider = res_->sse_provider_;
+    while (!ec && sse_provider->is_alive() && !svr_->should_stop()) {
+        if (sse_provider->WaitAndPop(10, &event)) {
+            write_bytes += net::write(stream_, boost::asio::const_buffer(event.data(), event.size()), ec);
+        }
+    }
+    sse_provider->Shutdown();
+    Session::OnWrite(true, ec, write_bytes);
 }
 
 } // namespace server

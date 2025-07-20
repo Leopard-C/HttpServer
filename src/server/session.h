@@ -36,6 +36,7 @@ private:
     void SendResponse();
     void SendFileBodyResponse();
     void SendStringBodyResponse();
+    void SendSseBodyResponse();
 
 private:
     HttpServer* svr_{nullptr};

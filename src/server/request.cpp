@@ -251,10 +251,10 @@ void Request::ParseClientRealIp() {
     net::ip::address forwarded_ip;
     auto pos = forwarded.find(',');
     if (pos == boost::string_view::npos) {
-        forwarded_ip = net::ip::address::from_string(to_string(forwarded), ec);
+        forwarded_ip = net::ip::make_address(to_string(forwarded), ec);
     }
     else {
-        forwarded_ip = net::ip::address::from_string(to_string(forwarded.substr(0, pos)), ec);
+        forwarded_ip = net::ip::make_address(to_string(forwarded.substr(0, pos)), ec);
     }
     if (ec) {
         svr_->logger()->Warn(LOG_CTX, "Invalid forwarded ip address: %s", to_string(forwarded).c_str());
