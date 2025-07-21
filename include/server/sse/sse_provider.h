@@ -70,17 +70,10 @@ public:
     /**
      * @brief 尝试获取队列头部的多个事件并进行合并.
      * @param[in] max_bytes 合并后的事件大小最大字节数
-     * @param[out] event 获取到的多个事件合并结果
+     * @param[out] events 获取到的多个事件合并结果
      * @return 是否获取到事件
      */
     bool TryPopSome(uint64_t max_bytes, std::string* events);
-
-private:
-    /**
-     * @brief 尝试获取心跳包事件.
-     * @param[out] event 获取到的事件
-     */
-    bool TryGetHeartbeatEvent(std::string* event);
 
 public:
     /**
@@ -99,7 +92,7 @@ public:
     bool is_alive() const;
 
     /**
-     * @brief 检查消息队列是否为空.
+     * @brief 检查事件队列是否为空.
      */
     bool empty() const;
 
@@ -107,6 +100,14 @@ public:
      * @brief 获取消息队列长度.
      */
     size_t size() const;
+
+private:
+    /**
+     * @brief 尝试获取心跳包事件.
+     * @param[out] event 获取到的事件
+     * @note 加锁后调用
+     */
+    bool TryGetHeartbeatEvent(std::string* event);
 
 private:
     mutable std::mutex mutex_;

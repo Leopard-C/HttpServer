@@ -96,7 +96,6 @@ void Session::OnWrite(bool close, beast::error_code ec, size_t/* bytes_transferr
     }
     if (res_->sse_provider_) {
         res_->sse_provider_->Shutdown();
-        res_->sse_provider_->Unsubscribe();
         beast::error_code ec;
         sse_timer_.cancel(ec);
     }
@@ -286,6 +285,7 @@ void Session::SendSseBodyResponse() {
         }
     }
 
+    /* 订阅新事件通知 */
     res_->sse_provider_->Subscribe([self = weak_from_this()] {
         if (auto shared_self = self.lock()) {
             shared_self->DoSendNextSseEvent();
@@ -300,12 +300,14 @@ void Session::DoSendSseEvents() {
     DoSendNextSseEvent();
     sse_timer_.expires_after(std::chrono::milliseconds(10));
     sse_timer_.async_wait([self = shared_from_this()](beast::error_code ec) {
-        if (!ec) {
-            return self->DoSendSseEvents();
+        if (ec) {
+            if (ec != net::error::operation_aborted) {
+                /* 在 OnWrite 中会调用 sse_timer_.cancel(), 防止重复进入 OnWrite */
+                self->OnWrite(true, ec, 0);
+            }
+            return;
         }
-        if (ec != net::error::operation_aborted) {
-            return self->OnWrite(true, ec, 0);
-        }
+        self->DoSendSseEvents();
     });
 }
 
@@ -324,7 +326,7 @@ void Session::DoSendNextSseEvent() {
                 return;
             }
             const uint64_t max_bytes = 1024ULL * 1024 * 256;  // 256KB
-            if (!self->res_->sse_provider_->TryPopSome(max_bytes, &self->sending_sse_event_)) {
+            if (self->svr_->should_stop() || !self->res_->sse_provider_->TryPopSome(max_bytes, &self->sending_sse_event_)) {
                 self->is_sse_sending_ = false;
                 return;
             }

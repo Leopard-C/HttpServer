@@ -93,6 +93,7 @@ public:
 
 private:
     void SetContentType(const std::string& content_type);
+    void ResetSseProvider(std::shared_ptr<SseProvider> sse_provider);
 
 private:
     HttpServer* svr_;

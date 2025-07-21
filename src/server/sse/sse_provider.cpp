@@ -32,12 +32,14 @@ void SseProvider::set_heartbeat_interval(int64_t interval_ms) {
  * @param event 事件
  */
 void SseProvider::Push(const SseEvent& event) {
+    std::function<void()> callback;
     {
         std::lock_guard<std::mutex> lck(mutex_);
         queue_.emplace(event.Serialize());
+        callback = subscribed_callback_;
     }
-    if (subscribed_callback_) {
-        subscribed_callback_();
+    if (callback) {
+        callback();
     }
 }
 
@@ -55,6 +57,7 @@ void SseProvider::Clear() {
 void SseProvider::Shutdown() {
     std::lock_guard<std::mutex> lck(mutex_);
     is_alive_ = false;
+    subscribed_callback_ = nullptr;
 }
 
 /**
@@ -98,7 +101,7 @@ bool SseProvider::is_alive() const {
 }
 
 /**
- * @brief 检查消息队列是否为空.
+ * @brief 检查事件队列是否为空.
  */
 bool SseProvider::empty() const {
     std::lock_guard<std::mutex> lck(mutex_);
@@ -135,7 +138,7 @@ bool SseProvider::TryPop(std::string* event) {
 /**
  * @brief 尝试获取队列头部的多个事件并进行合并.
  * @param[in] max_bytes 合并后的事件大小最大字节数
- * @param[out] event 获取到的多个事件合并结果
+ * @param[out] events 获取到的多个事件合并结果
  * @return 是否获取到事件
  */
 bool SseProvider::TryPopSome(uint64_t max_bytes, std::string* events) {
@@ -159,6 +162,7 @@ bool SseProvider::TryPopSome(uint64_t max_bytes, std::string* events) {
 /**
  * @brief 尝试获取心跳包事件.
  * @param[out] event 获取到的事件
+ * @note 加锁后调用
  */
 bool SseProvider::TryGetHeartbeatEvent(std::string* event) {
     if (heartbeat_interval_ < 0) {
@@ -166,12 +170,12 @@ bool SseProvider::TryGetHeartbeatEvent(std::string* event) {
     }
     auto now = std::chrono::steady_clock::now();
     auto diff_ns = (now - last_timepoint_pop_event_).count();
-    if (diff_ns >= heartbeat_interval_ * 1000000) {
-        *event = heartbeat_event_;
-        last_timepoint_pop_event_ = now;
-        return true;
+    if (diff_ns < heartbeat_interval_ * 1000000) {
+        return false;
     }
-    return false;
+    *event = heartbeat_event_;
+    last_timepoint_pop_event_ = now;
+    return true;
 }
 
 } // namespace server
