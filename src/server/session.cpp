@@ -4,6 +4,7 @@
 #include "server/request_raw.h"
 #include "server/router.h"
 #include "server/sse/sse_provider.h"
+#include "server/sse/sse_session_handler.h"
 #include "server/util/format_time.h"
 #include <boost/asio/dispatch.hpp>
 
@@ -11,7 +12,7 @@ namespace ic {
 namespace server {
 
 Session::Session(tcp::socket&& socket, HttpServer* svr)
-    : svr_(svr), stream_(std::move(socket)), remote_endpoint_(stream_.socket().remote_endpoint()), sse_timer_(stream_.get_executor())
+    : svr_(svr), stream_(std::move(socket)), remote_endpoint_(stream_.socket().remote_endpoint())
 {
     svr_->logger()->Debug(LOG_CTX, "New session from %s:%hu", remote_endpoint_.address().to_string().c_str(), remote_endpoint_.port());
     svr_->OnNewSession();
@@ -95,9 +96,7 @@ void Session::OnWrite(bool close, beast::error_code ec, size_t/* bytes_transferr
         file_res_.reset();
     }
     if (res_->sse_provider_) {
-        res_->sse_provider_->Shutdown();
-        beast::error_code ec;
-        sse_timer_.cancel(ec);
+        res_->sse_provider_->Shutdown(true);
     }
     if (ec) {
         return OnWriteError(ec);
@@ -173,7 +172,9 @@ void Session::HandleRequest() {
  */
 void Session::SendResponse() {
     /* 响应拦截器 */
-    svr_->cb_before_send_response_ && svr_->cb_before_send_response_(*req_, *res_);
+    if (svr_->cb_before_send_response_) {
+        svr_->cb_before_send_response_(*req_, *res_);
+    }
     if (res_->is_file_body_) {
         return SendFileBodyResponse();
     }
@@ -266,79 +267,28 @@ void Session::SendSseBodyResponse() {
 
     stream_.expires_never();
 
-    beast::error_code ec;
-    size_t write_bytes = 0;
-
     /* 发送响应头 */
-    {
-        http::response<http::string_body> event_res;
-        event_res.keep_alive(true);
-        event_res.result(http::status::ok);
-        for (const auto& p : res_->headers_) {
-            event_res.insert(p.first, p.second);
-        }
-        event_res.set("Cache-Control", "no-cache");
-        event_res.set("Content-Type", "text/event-stream");
-        write_bytes += http::write(stream_, event_res, ec);
+    string_res_ = std::make_shared<http::response<http::string_body>>();
+    string_res_->keep_alive(true);
+    string_res_->result(http::status::ok);
+    for (const auto& p : res_->headers_) {
+        string_res_->insert(p.first, p.second);
+    }
+    string_res_->set("Cache-Control", "no-cache");
+    string_res_->set("Content-Type", "text/event-stream");
+    http::async_write(stream_, *string_res_, [self = shared_from_this()](beast::error_code ec, std::size_t bytes_header_transfered) {
         if (ec) {
-            return OnWrite(true, ec, write_bytes);
+            return self->OnWrite(true, ec, bytes_header_transfered);
         }
-    }
+        self->string_res_.reset();
 
-    /* 订阅新事件通知 */
-    res_->sse_provider_->Subscribe([self = weak_from_this()] {
-        if (auto shared_self = self.lock()) {
-            shared_self->DoSendNextSseEvent();
-        }
+        /* 持续发送响应内容 */
+        auto sse_session_handler = std::make_shared<SseSessionHandler>(&self->stream_, self->svr_, self->res_->sse_provider_);
+        sse_session_handler->Handle([self, sse_session_handler, bytes_header_transfered](beast::error_code ec, uint64_t bytes_body_transfered) {
+            (void)sse_session_handler;
+            self->OnWrite(true, ec, bytes_header_transfered + bytes_body_transfered);
+        });
     });
-
-    /* 持续发送响应内容 */
-    DoSendSseEvents();
-}
-
-void Session::DoSendSseEvents() {
-    DoSendNextSseEvent();
-    sse_timer_.expires_after(std::chrono::milliseconds(10));
-    sse_timer_.async_wait([self = shared_from_this()](beast::error_code ec) {
-        if (ec) {
-            if (ec != net::error::operation_aborted) {
-                /* 在 OnWrite 中会调用 sse_timer_.cancel(), 防止重复进入 OnWrite */
-                self->OnWrite(true, ec, 0);
-            }
-            return;
-        }
-        self->DoSendSseEvents();
-    });
-}
-
-void Session::DoSendNextSseEvent() {
-    if (svr_->should_stop() || !res_->sse_provider_->is_alive()) {
-        return OnWrite(true, beast::error_code(), 0);
-    }
-    if (is_sse_sending_) {
-        return;
-    }
-    net::post(
-        stream_.get_executor(),
-        [self = shared_from_this()]() {
-            bool expected = false;
-            if (!self->is_sse_sending_.compare_exchange_strong(expected, true)) {
-                return;
-            }
-            const uint64_t max_bytes = 1024ULL * 1024 * 256;  // 256KB
-            if (self->svr_->should_stop() || !self->res_->sse_provider_->TryPopSome(max_bytes, &self->sending_sse_event_)) {
-                self->is_sse_sending_ = false;
-                return;
-            }
-            net::async_write(self->stream_, net::buffer(self->sending_sse_event_), [self](beast::error_code ec, std::size_t) {
-                self->is_sse_sending_ = false;
-                if (ec) {
-                    return self->OnWrite(true, ec, 0);
-                }
-                self->DoSendNextSseEvent();
-            });
-        }
-    );
 }
 
 } // namespace server

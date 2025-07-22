@@ -117,7 +117,7 @@ public:
     /**
      * @brief 设置响应拦截器：返回响应内容之前调用.
      */
-    void set_cb_before_send_response(std::function<bool(Request&, Response&)> cb) { cb_before_send_response_ = cb; }
+    void set_cb_before_send_response(std::function<void(Request&, Response&)> cb) { cb_before_send_response_ = cb; }
 
     /**
      * @brief 设置回调函数：工作线程退出前执行.
@@ -221,7 +221,7 @@ private:
 
     std::function<bool(Request&, Response&)> cb_before_parse_body_;
     std::function<bool(Request&, Response&)> cb_before_handle_request_;
-    std::function<bool(Request&, Response&)> cb_before_send_response_;
+    std::function<void(Request&, Response&)> cb_before_send_response_;
     std::function<void()> cb_before_worker_thread_exit_;
 };
 

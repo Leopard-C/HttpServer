@@ -12,11 +12,19 @@ namespace server {
 
 /**
  * @brief SSE(Server-Sent Event)内容提供者.
+ * @details 主要功能是一个线程安全的事件队列.
  */
 class SseProvider {
 public:
     SseProvider();
     SseProvider(const SseProvider& rhs) = delete;
+    SseProvider& operator=(const SseProvider& rhs) = delete;
+    ~SseProvider();
+
+    /**
+     * @brief 设置事件队列最大长度.
+     */
+    void set_max_queue_length(size_t max_length);
 
     /**
      * @brief 设置心跳包事件(可选).
@@ -36,8 +44,9 @@ public:
     /**
      * @brief 添加事件到队列中.
      * @param event 事件
+     * @return 是否添加成功(如果事件积压达到上限，或者已调用过Shutdown，将返回false)
      */
-    void Push(const SseEvent& event);
+    bool Push(const SseEvent& event);
 
     /**
      * @brief 清空事件队列.
@@ -46,8 +55,9 @@ public:
 
     /**
      * @brief 断开连接.
+     * @param immediate 是否立即断开(清空事件队列)
      */
-    void Shutdown();
+    void Shutdown(bool immediate = false);
 
     /**
      * @brief 订阅事件通知.
@@ -76,6 +86,11 @@ public:
     bool TryPopSome(uint64_t max_bytes, std::string* events);
 
 public:
+    /**
+     * @brief 事件队列最大长度.
+     */
+    size_t max_queue_length() const;
+
     /**
      * @brief 获取心跳包事件.
      */
@@ -111,8 +126,10 @@ private:
 
 private:
     mutable std::mutex mutex_;
-    std::queue<std::string> queue_;
     bool is_alive_{true};
+
+    std::queue<std::string> queue_;
+    size_t max_queue_length_{256};
 
     std::function<void()> subscribed_callback_;
 

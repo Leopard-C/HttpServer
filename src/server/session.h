@@ -37,8 +37,6 @@ private:
     void SendFileBodyResponse();
     void SendStringBodyResponse();
     void SendSseBodyResponse();
-    void DoSendSseEvents();
-    void DoSendNextSseEvent();
 
 private:
     HttpServer* svr_{nullptr};
@@ -52,10 +50,6 @@ private:
     beast::flat_buffer buffer_;
     beast::tcp_stream stream_;
     tcp::endpoint remote_endpoint_;
-
-    net::steady_timer sse_timer_;
-    std::atomic_bool is_sse_sending_{false};
-    std::string sending_sse_event_;
 };
 
 } // namespace server

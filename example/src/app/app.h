@@ -42,7 +42,7 @@ private:
     /**
      * @brief 响应拦截器：返回响应内容之前调用.
      */
-    static bool BeforeSendResponse(ic::server::Request& req, ic::server::Response& res);
+    static void BeforeSendResponse(ic::server::Request& req, ic::server::Response& res);
 
 private:
     ic::server::HttpServer* server_{nullptr};

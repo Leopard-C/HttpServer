@@ -50,11 +50,23 @@ void Response::SetStringBody(const std::string& body, const std::string& content
     SetStringBody(200U, body, content_type);
 }
 
+void Response::SetStringBody(std::string&& body, const std::string& content_type) {
+    SetStringBody(200U, body, content_type);
+}
+
 void Response::SetStringBody(unsigned int status_code, const std::string& body, const std::string& content_type) {
     ResetSseProvider(nullptr);
     is_file_body_ = false;
     status_code_ = status_code;
     string_body_ = body;
+    SetContentType(content_type);
+}
+
+void Response::SetStringBody(unsigned int status_code, std::string&& body, const std::string& content_type) {
+    ResetSseProvider(nullptr);
+    is_file_body_ = false;
+    status_code_ = status_code;
+    string_body_ = std::move(body);
     SetContentType(content_type);
 }
 

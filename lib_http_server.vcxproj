@@ -105,7 +105,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;src;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,7 +127,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;src;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -150,7 +150,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;src;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,7 +172,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4819;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>include;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;src;D:\CPP_INCLUDE\boost_1.73.0\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -221,7 +221,6 @@
     <ClInclude Include="include\server\response.h" />
     <ClInclude Include="include\server\router.h" />
     <ClInclude Include="include\server\sse\sse_event.h" />
-    <ClInclude Include="include\server\sse\sse_message.h" />
     <ClInclude Include="include\server\sse\sse_provider.h" />
     <ClInclude Include="include\server\status\base.h" />
     <ClInclude Include="include\server\string_view.h" />
@@ -242,6 +241,7 @@
     <ClInclude Include="src\server\listener.h" />
     <ClInclude Include="src\server\multipart_parser.h" />
     <ClInclude Include="src\server\session.h" />
+    <ClInclude Include="src\server\sse\sse_session_handler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\jsoncpp\json_reader.cpp" />
@@ -263,8 +263,8 @@
     <ClCompile Include="src\server\router.cpp" />
     <ClCompile Include="src\server\session.cpp" />
     <ClCompile Include="src\server\sse\sse_event.cpp" />
-    <ClCompile Include="src\server\sse\sse_message.cpp" />
     <ClCompile Include="src\server\sse\sse_provider.cpp" />
+    <ClCompile Include="src\server\sse\sse_session_handler.cpp" />
     <ClCompile Include="src\server\status\base.cpp" />
     <ClCompile Include="src\server\string_view.cpp" />
     <ClCompile Include="src\server\util\convert\convert_case.cpp" />

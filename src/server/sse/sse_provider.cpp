@@ -5,6 +5,16 @@ namespace server {
 
 SseProvider::SseProvider() : heartbeat_event_(": \n\n"), heartbeat_interval_(-1) {}
 
+SseProvider::~SseProvider() {}
+
+/**
+ * @brief 设置事件队列最大长度.
+ */
+void SseProvider::set_max_queue_length(size_t max_length) {
+    std::lock_guard<std::mutex> lck(mutex_);
+    max_queue_length_ = max_length;
+}
+
 /**
  * @brief 设置心跳包事件(可选).
  * @param heartbeat_event 心跳包内容
@@ -30,17 +40,22 @@ void SseProvider::set_heartbeat_interval(int64_t interval_ms) {
 /**
  * @brief 添加事件到队列中.
  * @param event 事件
+ * @return 是否添加成功(如果事件积压达到上限，或者已调用过Shutdown，将返回false)
  */
-void SseProvider::Push(const SseEvent& event) {
+bool SseProvider::Push(const SseEvent& event) {
     std::function<void()> callback;
     {
         std::lock_guard<std::mutex> lck(mutex_);
+        if (!is_alive_ || queue_.size() >= max_queue_length_) {
+            return false;
+        }
         queue_.emplace(event.Serialize());
         callback = subscribed_callback_;
     }
     if (callback) {
         callback();
     }
+    return true;
 }
 
 /**
@@ -53,11 +68,21 @@ void SseProvider::Clear() {
 
 /**
  * @brief 断开连接.
+ * @param immediate 是否立即断开(清空事件队列)
  */
-void SseProvider::Shutdown() {
-    std::lock_guard<std::mutex> lck(mutex_);
-    is_alive_ = false;
-    subscribed_callback_ = nullptr;
+void SseProvider::Shutdown(bool immediate/* = false*/) {
+    std::function<void()> callback;
+    {
+        std::lock_guard<std::mutex> lck(mutex_);
+        is_alive_ = false;
+        callback.swap(subscribed_callback_);
+        if (immediate) {
+            std::queue<std::string>().swap(queue_);
+        }
+    }
+    if (callback) {
+        callback();
+    }
 }
 
 /**
@@ -74,6 +99,14 @@ void SseProvider::Subscribe(std::function<void()> callback) {
 void SseProvider::Unsubscribe() {
     std::lock_guard<std::mutex> lck(mutex_);
     subscribed_callback_ = nullptr;
+}
+
+/**
+ * @brief 事件队列长度最大值.
+ */
+size_t SseProvider::max_queue_length() const {
+    std::lock_guard<std::mutex> lck(mutex_);
+    return max_queue_length_;
 }
 
 /**
@@ -123,16 +156,18 @@ size_t SseProvider::size() const {
  */
 bool SseProvider::TryPop(std::string* event) {
     std::lock_guard<std::mutex> lck(mutex_);
-    if (!is_alive_) {
-        return false;
+    if (!queue_.empty()) {
+        event->swap(queue_.front());
+        queue_.pop();
+        last_timepoint_pop_event_ = std::chrono::steady_clock::now();
+        return true;
     }
-    if (queue_.empty()) {
+    else if (is_alive_) {
         return TryGetHeartbeatEvent(event);
     }
-    event->swap(queue_.front());
-    queue_.pop();
-    last_timepoint_pop_event_ = std::chrono::steady_clock::now();
-    return true;
+    else {
+        return false;
+    }
 }
 
 /**
@@ -143,20 +178,22 @@ bool SseProvider::TryPop(std::string* event) {
  */
 bool SseProvider::TryPopSome(uint64_t max_bytes, std::string* events) {
     std::lock_guard<std::mutex> lck(mutex_);
-    if (!is_alive_) {
-        return false;
+    if (!queue_.empty()) {
+        events->swap(queue_.front());
+        queue_.pop();
+        while (!queue_.empty() && events->size() + queue_.front().size() <= max_bytes) {
+            *events += queue_.front();
+            queue_.pop();
+        }
+        last_timepoint_pop_event_ = std::chrono::steady_clock::now();
+        return true;
     }
-    if (queue_.empty()) {
+    else if (is_alive_) {
         return TryGetHeartbeatEvent(events);
     }
-    events->swap(queue_.front());
-    queue_.pop();
-    while (!queue_.empty() && events->size() + queue_.front().size() <= max_bytes) {
-        *events += queue_.front();
-        queue_.pop();
+    else {
+        return false;
     }
-    last_timepoint_pop_event_ = std::chrono::steady_clock::now();
-    return true;
 }
 
 /**

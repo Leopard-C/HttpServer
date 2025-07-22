@@ -70,7 +70,9 @@ public:
      */
     void SetStringBody(unsigned int status_code);
     void SetStringBody(const std::string& body, const std::string& content_type);
+    void SetStringBody(std::string&& body, const std::string& content_type);
     void SetStringBody(unsigned int status_code, const std::string& body, const std::string& content_type);
+    void SetStringBody(unsigned int status_code, std::string&& body, const std::string& content_type);
 
     /**
      * @brief 响应JSON格式的文本内容.

@@ -126,8 +126,7 @@ bool Application::BeforeHandleRequest(ic::server::Request& req, ic::server::Resp
 /**
  * @brief 响应拦截器：返回响应内容之前调用.
  */
-bool Application::BeforeSendResponse(ic::server::Request& req, ic::server::Response& res) {
+void Application::BeforeSendResponse(ic::server::Request& req, ic::server::Response& res) {
     /* 响应头中添加服务器信息 */
     res.SetHeader("Server", "ic Http Server");
-    return true;
 }
