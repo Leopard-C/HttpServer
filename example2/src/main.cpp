@@ -3,10 +3,13 @@
 #include <server/request.h>
 #include <server/response.h>
 #include <server/sse/sse_provider.h>
+#include <server/util/convert/convert_number.h>
 
 using namespace ic::server;
 
 int main() {
+    std::atomic_uint32_t sse_thread_count_ = 0;
+
     // 1. 初始化HTTP服务器
     HttpServerConfig config;
     config.add_endpoint("0.0.0.0", 8099, true);
@@ -50,30 +53,46 @@ int main() {
         res["msg"] = "OK";
         res["data"]["time"] = time(NULL);
     });
-    // 2.5 SSE(Server-Sent Event)
-    router->AddStaticRoute("/sse", HttpMethod::kGET, [](Request& req, Response& res){
-        auto sse_provider = std::make_shared<SseProvider>();
+    // 2.5 模拟耗时请求 (/server/sleep?seconds=5)
+    router->AddStaticRoute("/server/sleep", HttpMethod::kGET, [](Request& req, Json::Value& res){
+        uint64_t seconds = 5;
+        util::conv::convert_number(req.GetUrlParam("seconds"), &seconds);
+        std::this_thread::sleep_for(std::chrono::seconds(seconds));
+        res["code"] = 0;
+        res["msg"] = "OK";
+    });
+    // 2.6 SSE(Server-Sent Event)
+    router->AddStaticRoute("/sse", HttpMethod::kGET, [&sse_thread_count_](Request& req, Response& res){
+        auto sse_provider = SseProvider::Create();
+        sse_provider->set_max_queue_length(128);
         sse_provider->set_heartbeat_interval(500);
-        std::thread t([sse_provider] {
-            int id = 0;
-            while (sse_provider->is_alive() && id++ < 10) {
+        std::thread t([sse_provider, &sse_thread_count_] {
+            sse_thread_count_.fetch_add(1);
+            int id = 11;
+            while (sse_provider->is_alive() && id-- > 0) {
                 SseEvent event;
-                if (id == 1) {
+                if (id == 10) {
                     event.set_retry(5000);
                 }
-                event.set_name("hello");
-                event.set_id(id);
-                event.AddComment("This is a comment line");
-                event.AddData("Hello world! " + std::to_string(id));
+                if (id == 0) {
+                    event.set_type("bye");
+                }
+                else {
+                    event.set_type("hello");
+                    event.set_id(id);
+                    event.AddComment("This is a line of comment");
+                    event.AddData("Hello world! " + std::to_string(id));
+                }
                 sse_provider->Push(event);
                 std::this_thread::sleep_for(std::chrono::seconds(1));
             }
             sse_provider->Shutdown();
+            sse_thread_count_.fetch_sub(1);
         });
         t.detach();
         res.SetSseBody(sse_provider);
     });
-    // 2.6 关闭服务器
+    // 2.7 关闭服务器
     router->AddStaticRoute("/server/stop", HttpMethod::kGET, [](Request& req, Json::Value& res){
         req.svr()->StopAsync();
         res["code"] = 0;
@@ -83,5 +102,8 @@ int main() {
     // 3. 启动服务器
     svr.Start();
 
+    while (sse_thread_count_ > 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
     return 0;
 }

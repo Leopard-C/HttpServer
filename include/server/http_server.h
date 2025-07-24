@@ -198,8 +198,8 @@ private:
     std::vector<std::shared_ptr<Listener>> listeners_;
 
     std::mutex mutex_server_state_;
-    bool is_running_{false};
-    bool should_stop_{false};
+    std::atomic_bool is_running_{false};
+    std::atomic_bool should_stop_{false};
 
     /* 当前所有工作线程的线程ID集合 */
     std::set<size_t> worker_thread_ids_;

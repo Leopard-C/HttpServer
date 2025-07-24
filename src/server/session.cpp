@@ -3,8 +3,7 @@
 #include "server/logger.h"
 #include "server/request_raw.h"
 #include "server/router.h"
-#include "server/sse/sse_provider.h"
-#include "server/sse/sse_session_handler.h"
+#include "server/sse/sse_sender.h"
 #include "server/util/format_time.h"
 #include <boost/asio/dispatch.hpp>
 
@@ -41,7 +40,7 @@ void Session::DoRead() {
     else {
         stream_.expires_never();
     }
-    http::async_read(stream_, buffer_, *parser_, beast::bind_front_handler(&Session::OnRead, shared_from_this()));
+    http::async_read(stream_, read_buffer_, *parser_, beast::bind_front_handler(&Session::OnRead, shared_from_this()));
 }
 
 void Session::OnRead(beast::error_code ec, size_t/* bytes_transferred*/) {
@@ -283,9 +282,8 @@ void Session::SendSseBodyResponse() {
         self->string_res_.reset();
 
         /* 持续发送响应内容 */
-        auto sse_session_handler = std::make_shared<SseSessionHandler>(&self->stream_, self->svr_, self->res_->sse_provider_);
-        sse_session_handler->Handle([self, sse_session_handler, bytes_header_transfered](beast::error_code ec, uint64_t bytes_body_transfered) {
-            (void)sse_session_handler;
+        auto sse_sender = std::make_shared<SseSender>(&self->stream_, self->svr_, self->res_->sse_provider_);
+        sse_sender->Run([self, bytes_header_transfered](beast::error_code ec, uint64_t bytes_body_transfered) {
             self->OnWrite(true, ec, bytes_header_transfered + bytes_body_transfered);
         });
     });

@@ -7,7 +7,7 @@ namespace ic {
 namespace server {
 
 Listener::Listener(HttpServer* svr)
-    : svr_(svr), is_running_(false), acceptor_(net::make_strand(*(svr_->ioc_)))
+    : svr_(svr), acceptor_(net::make_strand(*(svr_->ioc_)))
 {
 }
 
@@ -23,33 +23,40 @@ bool Listener::Run(const std::string& ip, unsigned short port, bool reuse_addres
 
     acceptor_.open(endpoint.protocol(), ec);
     if (ec) {
-        svr_->logger()->Error(LOG_CTX, "acceptor open protocol failed, %s", ec.message().c_str());
+        svr_->logger()->Error(LOG_CTX, "Acceptor open protocol failed, %s", ec.message().c_str());
         return false;
     }
 
     acceptor_.set_option(net::socket_base::reuse_address(reuse_address), ec);
     if (ec) {
-        svr_->logger()->Error(LOG_CTX, "reuse address failed, %s", ec.message().c_str());
+        svr_->logger()->Error(LOG_CTX, "Reuse address failed, %s", ec.message().c_str());
         return false;
     }
 
     acceptor_.bind(endpoint, ec);
     if (ec) {
-        svr_->logger()->Error(LOG_CTX, "bind address %s:%hu failed", endpoint.address().to_string().c_str(), endpoint.port());
+        svr_->logger()->Error(LOG_CTX, "Bind address %s:%hu failed", endpoint.address().to_string().c_str(), endpoint.port());
         return false;
     }
 
     acceptor_.listen(net::socket_base::max_listen_connections, ec);
     if (ec) {
-        svr_->logger()->Error(LOG_CTX, "listen failed, max_listen_connections:%d", (int)net::socket_base::max_listen_connections);
+        svr_->logger()->Error(LOG_CTX, "Listen failed, max_listen_connections:%d", (int)net::socket_base::max_listen_connections);
         return false;
     }
 
     svr_->logger()->Info(LOG_CTX, "Listening on %s:%hu ...", endpoint.address().to_string().c_str(), endpoint.port());
     DoAccept();
 
-    is_running_ = true;
     return true;
+}
+
+void Listener::Stop() {
+    beast::error_code ec;
+    acceptor_.close(ec);
+    if (ec) {
+        svr_->logger()->Error(LOG_CTX, "Acceptor stop failed, %s", ec.message().c_str());
+    }
 }
 
 void Listener::DoAccept() {
@@ -60,6 +67,9 @@ void Listener::DoAccept() {
 }
 
 void Listener::OnAccept(beast::error_code ec, tcp::socket socket) {
+    if (svr_->should_stop()) {
+        return;
+    }
     if (!acceptor_.is_open()) {
         svr_->logger()->Error(LOG_CTX, "Acceptor is not opened");
         return;

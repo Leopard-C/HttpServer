@@ -21,6 +21,7 @@ class SseEvent {
 public:
     SseEvent() = default;
     SseEvent(const std::string& event_name);
+    SseEvent(SseEvent&& rhs) noexcept;
 
     uint32_t retry() const { return retry_; }
     const std::string& type() const { return type_; }

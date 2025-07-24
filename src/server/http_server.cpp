@@ -182,7 +182,9 @@ void HttpServer::StopAsync() {
     if (is_running_) {
         logger_->Info(LOG_CTX, "Waiting for %u worker threads to exit ...", (uint32_t)curr_num_worker_threads_);
         should_stop_ = true;
-        ioc_->stop();
+        for (auto& listener : listeners_) {
+            listener->Stop();
+        }
     }
 }
 

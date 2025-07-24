@@ -21,8 +21,8 @@ public:
     ~Listener() = default;
 
     bool Run(const std::string& ip, unsigned short port, bool reuse_address);
+    void Stop();
 
-    bool is_running() const { return is_running_; }
     const tcp::acceptor& acceptor() const { return acceptor_; }
 
 private:
@@ -31,7 +31,6 @@ private:
 
 private:
     HttpServer* svr_;
-    bool is_running_;
     tcp::acceptor acceptor_;
 };
 

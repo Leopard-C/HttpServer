@@ -2,6 +2,7 @@
 #define IC_SERVER_SSE_SSE_PROVIDER_H_
 #include <chrono>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
@@ -18,35 +19,25 @@ class SseProvider {
 public:
     SseProvider();
     SseProvider(const SseProvider& rhs) = delete;
+    SseProvider(SseProvider&& rhs) = delete;
     SseProvider& operator=(const SseProvider& rhs) = delete;
-    ~SseProvider();
+    ~SseProvider() = default;
 
     /**
-     * @brief 设置事件队列最大长度.
+     * @brief 创建智能指针对象.
      */
-    void set_max_queue_length(size_t max_length);
-
-    /**
-     * @brief 设置心跳包事件(可选).
-     * @param heartbeat_event 心跳包内容
-     * @param interval_ms 心跳包发送间隔(毫秒)
-     * @note 默认心跳包内容 ": \n\n" 共4个字节
-     */
-    void set_heartbeat_event(const SseEvent& heartbeat_event, int64_t interval_ms);
-
-    /**
-     * @brief 设置心跳包发送间隔(可选).
-     * @param interval_ms 间隔(毫秒), -1表示不发送心跳包
-     * @note 默认间隔-1, 不发送心跳包
-     */
-    void set_heartbeat_interval(int64_t interval_ms);
+    static std::shared_ptr<SseProvider> Create();
 
     /**
      * @brief 添加事件到队列中.
      * @param event 事件
      * @return 是否添加成功(如果事件积压达到上限，或者已调用过Shutdown，将返回false)
+     * @{
      */
     bool Push(const SseEvent& event);
+    bool Push(const std::string& event);
+    bool Push(std::string&& event);
+    /** @} */
 
     /**
      * @brief 清空事件队列.
@@ -84,6 +75,26 @@ public:
      * @return 是否获取到事件
      */
     bool TryPopSome(uint64_t max_bytes, std::string* events);
+
+    /**
+     * @brief 设置事件队列最大长度.
+     */
+    void set_max_queue_length(size_t max_length);
+
+    /**
+     * @brief 设置心跳包事件(可选).
+     * @param heartbeat_event 心跳包内容
+     * @param interval_ms 心跳包发送间隔(毫秒)
+     * @note 默认心跳包内容 ": \n\n" 共4个字节
+     */
+    void set_heartbeat_event(const SseEvent& heartbeat_event, int64_t interval_ms);
+
+    /**
+     * @brief 设置心跳包发送间隔(可选).
+     * @param interval_ms 间隔(毫秒), -1表示不发送心跳包
+     * @note 默认间隔-1, 不发送心跳包
+     */
+    void set_heartbeat_interval(int64_t interval_ms);
 
 public:
     /**

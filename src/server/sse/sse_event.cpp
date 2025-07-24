@@ -6,6 +6,11 @@ namespace server {
 
 SseEvent::SseEvent(const std::string& event_name) :type_(event_name) {}
 
+SseEvent::SseEvent(SseEvent&& rhs) noexcept
+    : retry_(rhs.retry_), type_(std::move(rhs.type_)), id_(std::move(rhs.id_)), body_(std::move(rhs.body_)), body_total_bytes_(rhs.body_total_bytes_)
+{
+}
+
 void SseEvent::set_retry(uint32_t retry_ms) {
     retry_ = retry_ms;
 }

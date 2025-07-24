@@ -47,7 +47,7 @@ private:
     std::shared_ptr<Response> res_;
     std::shared_ptr<http::response<http::string_body>> string_res_;
     std::shared_ptr<http::response<http::file_body>> file_res_;
-    beast::flat_buffer buffer_;
+    beast::flat_buffer read_buffer_;
     beast::tcp_stream stream_;
     tcp::endpoint remote_endpoint_;
 };

@@ -5,36 +5,8 @@ namespace server {
 
 SseProvider::SseProvider() : heartbeat_event_(": \n\n"), heartbeat_interval_(-1) {}
 
-SseProvider::~SseProvider() {}
-
-/**
- * @brief 设置事件队列最大长度.
- */
-void SseProvider::set_max_queue_length(size_t max_length) {
-    std::lock_guard<std::mutex> lck(mutex_);
-    max_queue_length_ = max_length;
-}
-
-/**
- * @brief 设置心跳包事件(可选).
- * @param heartbeat_event 心跳包内容
- * @param interval_ms 心跳包发送间隔(毫秒)
- * @note 默认心跳包内容 ": \n\n" 共4个字节
- */
-void SseProvider::set_heartbeat_event(const SseEvent& heartbeat_event, int64_t interval_ms) {
-    std::lock_guard<std::mutex> lck(mutex_);
-    heartbeat_event_ = heartbeat_event.Serialize();
-    heartbeat_interval_ = interval_ms;
-}
-
-/**
- * @brief 设置心跳包发送间隔(可选).
- * @param interval_ms 间隔(毫秒), -1表示不发送心跳包
- * @note 默认间隔-1, 不发送心跳包
- */
-void SseProvider::set_heartbeat_interval(int64_t interval_ms) {
-    std::lock_guard<std::mutex> lck(mutex_);
-    heartbeat_interval_ = interval_ms;
+std::shared_ptr<SseProvider> SseProvider::Create() {
+    return std::make_shared<SseProvider>();
 }
 
 /**
@@ -99,6 +71,36 @@ void SseProvider::Subscribe(std::function<void()> callback) {
 void SseProvider::Unsubscribe() {
     std::lock_guard<std::mutex> lck(mutex_);
     subscribed_callback_ = nullptr;
+}
+
+/**
+ * @brief 设置事件队列最大长度.
+ */
+void SseProvider::set_max_queue_length(size_t max_length) {
+    std::lock_guard<std::mutex> lck(mutex_);
+    max_queue_length_ = max_length;
+}
+
+/**
+ * @brief 设置心跳包事件(可选).
+ * @param heartbeat_event 心跳包内容
+ * @param interval_ms 心跳包发送间隔(毫秒)
+ * @note 默认心跳包内容 ": \n\n" 共4个字节
+ */
+void SseProvider::set_heartbeat_event(const SseEvent& heartbeat_event, int64_t interval_ms) {
+    std::lock_guard<std::mutex> lck(mutex_);
+    heartbeat_event_ = heartbeat_event.Serialize();
+    heartbeat_interval_ = interval_ms;
+}
+
+/**
+ * @brief 设置心跳包发送间隔(可选).
+ * @param interval_ms 间隔(毫秒), -1表示不发送心跳包
+ * @note 默认间隔-1, 不发送心跳包
+ */
+void SseProvider::set_heartbeat_interval(int64_t interval_ms) {
+    std::lock_guard<std::mutex> lck(mutex_);
+    heartbeat_interval_ = interval_ms;
 }
 
 /**

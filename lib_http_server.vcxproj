@@ -241,7 +241,7 @@
     <ClInclude Include="src\server\listener.h" />
     <ClInclude Include="src\server\multipart_parser.h" />
     <ClInclude Include="src\server\session.h" />
-    <ClInclude Include="src\server\sse\sse_session_handler.h" />
+    <ClInclude Include="src\server\sse\sse_sender.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\jsoncpp\json_reader.cpp" />
@@ -264,7 +264,7 @@
     <ClCompile Include="src\server\session.cpp" />
     <ClCompile Include="src\server\sse\sse_event.cpp" />
     <ClCompile Include="src\server\sse\sse_provider.cpp" />
-    <ClCompile Include="src\server\sse\sse_session_handler.cpp" />
+    <ClCompile Include="src\server\sse\sse_sender.cpp" />
     <ClCompile Include="src\server\status\base.cpp" />
     <ClCompile Include="src\server\string_view.cpp" />
     <ClCompile Include="src\server\util\convert\convert_case.cpp" />
