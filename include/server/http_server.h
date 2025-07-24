@@ -182,32 +182,33 @@ private:
      */
     void ThreadFunc_Manager();
 
-    void OnNewSession();
-    void OnDestroySession();
+    void OnNewSession(Session* session);
+    void OnDestroySession(Session* session);
 
     void OnStartHandlingRequest(Request* req);
     void OnFinishHandlingRequest(Request* req);
 
 private:
     HttpServerConfig config_;
-    std::atomic_int64_t current_request_id_{-1};
-
     std::shared_ptr<ILogger> logger_;
+
     std::shared_ptr<boost::asio::io_context> ioc_;
     std::shared_ptr<Router> router_;
     std::vector<std::shared_ptr<Listener>> listeners_;
 
-    std::mutex mutex_server_state_;
+    std::mutex mutex_;
     std::atomic_bool is_running_{false};
     std::atomic_bool should_stop_{false};
+
+    std::atomic_int64_t current_request_id_{-1};
 
     /* 当前所有工作线程的线程ID集合 */
     std::set<size_t> worker_thread_ids_;
 
-    /** 当前会话数量 */
-    std::atomic_uint32_t curr_num_sessions_{0};
     /** 当前工作线程数量 */
     std::atomic_uint32_t curr_num_worker_threads_{0};
+    /** 当前会话数量 */
+    std::atomic_uint32_t curr_num_sessions_{0};
     /** 当前正在处理的请求数量 */
     std::atomic_uint32_t curr_num_handling_requests_{0};
 
@@ -216,7 +217,7 @@ private:
     /** 总计处理的请求数量 */
     std::atomic_uint64_t total_num_requests_{0};
 
-    std::mutex mutex_requests_;
+    std::set<Session*> active_sessions_;
     std::set<Request*> handling_requests_;
 
     std::function<bool(Request&, Response&)> cb_before_parse_body_;

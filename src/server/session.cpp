@@ -14,16 +14,21 @@ Session::Session(tcp::socket&& socket, HttpServer* svr)
     : svr_(svr), stream_(std::move(socket)), remote_endpoint_(stream_.socket().remote_endpoint())
 {
     svr_->logger()->Debug(LOG_CTX, "New session from %s:%hu", remote_endpoint_.address().to_string().c_str(), remote_endpoint_.port());
-    svr_->OnNewSession();
+    svr_->OnNewSession(this);
 }
 
 Session::~Session() {
     svr_->logger()->Debug(LOG_CTX, "Destroy session %s:%hu", remote_endpoint_.address().to_string().c_str(), remote_endpoint_.port());
-    svr_->OnDestroySession();
+    svr_->OnDestroySession(this);
 }
 
-void Session::Run() {
+void Session::Start() {
     net::dispatch(stream_.get_executor(), beast::bind_front_handler(&Session::DoRead, shared_from_this()));
+}
+
+void Session::Close() {
+    auto self = shared_from_this();
+    net::dispatch(stream_.get_executor(), [self] { self->stream_.cancel(); });
 }
 
 void Session::DoRead() {
@@ -67,7 +72,7 @@ void Session::OnRead(beast::error_code ec, size_t/* bytes_transferred*/) {
 }
 
 void Session::OnReadError(beast::error_code ec) {
-    if (ec == beast::error::timeout) {
+    if (ec == beast::error::timeout || ec == beast::errc::operation_canceled) {
         svr_->logger()->Debug(LOG_CTX, "OnRead error, %s", ec.message().c_str());
     }
     else if (ec == http::error::body_limit) {
@@ -107,7 +112,7 @@ void Session::OnWrite(bool close, beast::error_code ec, size_t/* bytes_transferr
 }
 
 void Session::OnWriteError(beast::error_code ec) {
-    if (ec == beast::error::timeout) {
+    if (ec == beast::error::timeout || ec == beast::errc::operation_canceled) {
         svr_->logger()->Debug(LOG_CTX, "OnWrite error, %s", ec.message().c_str());
     }
     else {

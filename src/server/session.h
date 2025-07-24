@@ -20,15 +20,15 @@ public:
     Session(tcp::socket&& socket, HttpServer* svr);
     ~Session();
 
-    void Run();
+    void Start();
+    void Close();
+
+private:
     void OnRead(beast::error_code ec, size_t bytes_transferred);
     void OnWrite(bool close, beast::error_code ec, size_t bytes_transferred);
     void DoRead();
     void DoClose();
 
-    HttpServer* svr() { return svr_; }
-
-private:
     void OnReadError(beast::error_code ec);
     void OnWriteError(beast::error_code ec);
     bool PreHandleRequest();

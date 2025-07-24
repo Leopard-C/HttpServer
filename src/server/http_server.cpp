@@ -5,6 +5,7 @@
 #include "server/logger.h"
 #include "server/request.h"
 #include "server/router.h"
+#include "server/session.h"
 #include "server/util/format_time.h"
 #include "server/util/path.h"
 #include "server/util/thread.h"
@@ -125,7 +126,7 @@ bool HttpServer::StartAsync() {
     }
 
     {
-        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        std::lock_guard<std::mutex> lck(mutex_);
         if (is_running_) {
             return true;
         }
@@ -178,13 +179,17 @@ void HttpServer::Stop() {
  * @brief 停止服务器(异步).
  */
 void HttpServer::StopAsync() {
-    std::lock_guard<std::mutex> lck(mutex_server_state_);
-    if (is_running_) {
-        logger_->Info(LOG_CTX, "Waiting for %u worker threads to exit ...", (uint32_t)curr_num_worker_threads_);
-        should_stop_ = true;
-        for (auto& listener : listeners_) {
-            listener->Stop();
-        }
+    std::lock_guard<std::mutex> lck(mutex_);
+    if (!is_running_) {
+        return;
+    }
+    logger_->Info(LOG_CTX, "Waiting for %u worker threads to exit ...", (uint32_t)curr_num_worker_threads_);
+    should_stop_ = true;
+    for (auto& listener : listeners_) {
+        listener->Stop();
+    }
+    for (auto& session : active_sessions_) {
+        session->Close();
     }
 }
 
@@ -194,7 +199,7 @@ void HttpServer::StopAsync() {
 void HttpServer::WaitForStop() {
     {
         /* 禁止在工作线程中调用该函数，否则服务器永远无法退出 */
-        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        std::lock_guard<std::mutex> lck(mutex_);
         if (worker_thread_ids_.find(util::thread_id()) != worker_thread_ids_.end()) {
             logger_->Warn(LOG_CTX,
                 "DO NOT CALL HttpServer::Stop() or HttpServer::WaitForStop() in worker thread(id=%" PRIu64 "). "
@@ -227,7 +232,7 @@ SnapshotResult HttpServer::CreateSnapshot() {
     snapshot.total_num_sessions = total_num_sessions_;
     snapshot.total_num_requests = total_num_requests_;
     {
-        std::lock_guard<std::mutex> lck(mutex_requests_);
+        std::lock_guard<std::mutex> lck(mutex_);
         SnapshotResult::RequestInfo req_info;
         snapshot.handling_request.reserve(handling_requests_.size());
         for (Request* req : handling_requests_) {
@@ -274,7 +279,7 @@ void HttpServer::ThreadFunc_Worker() {
     const size_t tid = util::thread_id();
     logger_->Debug(LOG_CTX, "Worker thread start. (id=%" PRIu64 ")", (uint64_t)tid);
     {
-        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        std::lock_guard<std::mutex> lck(mutex_);
         worker_thread_ids_.emplace(tid);
     }
 
@@ -285,18 +290,18 @@ void HttpServer::ThreadFunc_Worker() {
 
     while (true) {
         size_t n = ioc_->run_for(std::chrono::milliseconds(1000));
+        auto now = std::chrono::steady_clock::now();
 
-        std::lock_guard<std::mutex> lck(mutex_server_state_);
-        if (should_stop_) {
+        std::lock_guard<std::mutex> lck(mutex_);
+        if (should_stop_ && n == 0) {
             exit = true;
         }
         else if (n > 0) {
-            last_active_time = std::chrono::steady_clock::now();
+            last_active_time = now;
         }
         else if (curr_num_worker_threads_ > config_.min_num_threads() && curr_num_worker_threads_ > curr_num_sessions_) {
             /* 超过一定时间未活跃，结束当前线程 */
-            int64_t dur = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_active_time).count();
-            if (dur > 5000) {
+            if ((now - last_active_time) > std::chrono::seconds(5)) {
                 exit = true;
             }
         }
@@ -317,9 +322,9 @@ void HttpServer::ThreadFunc_Manager() {
     while (true) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-        std::lock_guard<std::mutex> lck(mutex_server_state_);
+        std::lock_guard<std::mutex> lck(mutex_);
         if (should_stop_) {
-            if (curr_num_worker_threads_ == 0) {
+            if (curr_num_worker_threads_ == 0 && curr_num_sessions_ == 0) {
                 logger_->Info(LOG_CTX, "HttpServer stopped!");
                 is_running_ = false;
                 break;
@@ -338,24 +343,28 @@ void HttpServer::ThreadFunc_Manager() {
     } // end while
 }
 
-void HttpServer::OnNewSession() {
+void HttpServer::OnNewSession(Session* session) {
+    std::lock_guard<std::mutex> lck(mutex_);
+    active_sessions_.emplace(session);
     ++curr_num_sessions_;
     ++total_num_sessions_;
 }
 
-void HttpServer::OnDestroySession() {
+void HttpServer::OnDestroySession(Session* session) {
+    std::lock_guard<std::mutex> lck(mutex_);
+    active_sessions_.erase(session);
     --curr_num_sessions_;
 }
 
 void HttpServer::OnStartHandlingRequest(Request* req) {
-    std::lock_guard<std::mutex> lck(mutex_requests_);
+    std::lock_guard<std::mutex> lck(mutex_);
     handling_requests_.emplace(req);
     ++curr_num_handling_requests_;
     ++total_num_requests_;
 }
 
 void HttpServer::OnFinishHandlingRequest(Request* req) {
-    std::lock_guard<std::mutex> lck(mutex_requests_);
+    std::lock_guard<std::mutex> lck(mutex_);
     handling_requests_.erase(req);
     --curr_num_handling_requests_;
 }
