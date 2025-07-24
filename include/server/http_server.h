@@ -13,7 +13,6 @@
 #include <functional>
 #include <mutex>
 #include <set>
-#include <thread>
 #include <vector>
 #include <jsoncpp/json/value.h>
 #include "content_type.h"

@@ -27,8 +27,7 @@ void Session::Start() {
 }
 
 void Session::Close() {
-    auto self = shared_from_this();
-    net::dispatch(stream_.get_executor(), [self] { self->stream_.cancel(); });
+    stream_.cancel();
 }
 
 void Session::DoRead() {
@@ -53,6 +52,9 @@ void Session::OnRead(beast::error_code ec, size_t/* bytes_transferred*/) {
 
     if (ec) {
         return OnReadError(ec);
+    }
+    if (svr_->should_stop()) {
+        return DoClose();
     }
 
     auto req_raw = (RequestRaw*)(&(parser_->get()));
@@ -105,7 +107,7 @@ void Session::OnWrite(bool close, beast::error_code ec, size_t/* bytes_transferr
     if (ec) {
         return OnWriteError(ec);
     }
-    if (close || close_) {
+    if (close || close_ || svr_->should_stop()) {
         return DoClose();
     }
     DoRead();

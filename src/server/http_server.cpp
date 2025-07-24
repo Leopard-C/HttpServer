@@ -102,9 +102,7 @@ bool HttpServer::Start() {
     if (!StartAsync()) {
         return false;
     }
-    while (is_running_) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
+    WaitForStop();
     return true;
 }
 
@@ -185,10 +183,10 @@ void HttpServer::StopAsync() {
     }
     logger_->Info(LOG_CTX, "Waiting for %u worker threads to exit ...", (uint32_t)curr_num_worker_threads_);
     should_stop_ = true;
-    for (auto& listener : listeners_) {
+    for (auto listener : listeners_) {
         listener->Stop();
     }
-    for (auto& session : active_sessions_) {
+    for (auto session : active_sessions_) {
         session->Close();
     }
 }
@@ -307,9 +305,9 @@ void HttpServer::ThreadFunc_Worker() {
         }
 
         if (exit) {
-            logger_->Debug(LOG_CTX, "Worker thread exit. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
             --curr_num_worker_threads_;
             worker_thread_ids_.erase(tid);
+            logger_->Debug(LOG_CTX, "Worker thread exit. (id=%" PRIu64 ") (sessions:%u, threads:%u)", (uint64_t)tid, (uint32_t)curr_num_sessions_, (uint32_t)curr_num_worker_threads_);
             break;
         }
     } // end while
@@ -324,6 +322,9 @@ void HttpServer::ThreadFunc_Manager() {
 
         std::lock_guard<std::mutex> lck(mutex_);
         if (should_stop_) {
+            for (auto session : active_sessions_) {
+                session->Close();
+            }
             if (curr_num_worker_threads_ == 0 && curr_num_sessions_ == 0) {
                 logger_->Info(LOG_CTX, "HttpServer stopped!");
                 is_running_ = false;
