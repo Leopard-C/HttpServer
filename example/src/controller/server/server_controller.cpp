@@ -1,6 +1,7 @@
 #include "server_controller.h"
 #include <server/http_server.h>
 #include <server/helper/helper.h>
+#include <thread>
 
 /**
  * @brief 关闭服务器.

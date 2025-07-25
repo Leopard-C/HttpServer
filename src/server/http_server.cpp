@@ -5,13 +5,14 @@
 #include "server/logger.h"
 #include "server/request.h"
 #include "server/router.h"
-#include "server/session.h"
 #include "server/util/format_time.h"
 #include "server/util/path.h"
 #include "server/util/thread.h"
 #include "listener.h"
+#include "session.h"
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <thread>
 
 namespace ic {
 namespace server {

@@ -1,3 +1,4 @@
+#include <thread>
 #include <server/http_server.h>
 #include <server/router.h>
 #include <server/request.h>
@@ -8,7 +9,7 @@
 using namespace ic::server;
 
 int main() {
-    std::atomic_uint32_t sse_thread_count_ = 0;
+    std::atomic_uint32_t sse_thread_count_{0};
 
     // 1. 初始化HTTP服务器
     HttpServerConfig config;
@@ -105,5 +106,6 @@ int main() {
     while (sse_thread_count_ > 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     return 0;
 }

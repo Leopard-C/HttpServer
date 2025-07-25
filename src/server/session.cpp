@@ -3,8 +3,8 @@
 #include "server/logger.h"
 #include "server/request_raw.h"
 #include "server/router.h"
-#include "server/sse/sse_sender.h"
 #include "server/util/format_time.h"
+#include "sse/sse_sender.h"
 #include <boost/asio/dispatch.hpp>
 
 namespace ic {
@@ -282,7 +282,8 @@ void Session::SendSseBodyResponse() {
     }
     string_res_->set("Cache-Control", "no-cache");
     string_res_->set("Content-Type", "text/event-stream");
-    http::async_write(stream_, *string_res_, [self = shared_from_this()](beast::error_code ec, std::size_t bytes_header_transfered) {
+    auto self = shared_from_this();
+    http::async_write(stream_, *string_res_, [self](beast::error_code ec, std::size_t bytes_header_transfered) {
         if (ec) {
             return self->OnWrite(true, ec, bytes_header_transfered);
         }

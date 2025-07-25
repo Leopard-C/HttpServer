@@ -24,7 +24,8 @@ void SseSender::Run(std::function<void(beast::error_code ec, uint64_t bytes_tran
     }
 
     /* 订阅新事件通知 */
-    provider->Subscribe([weak_self = GetWeakFromThis()] {
+    auto weak_self = GetWeakFromThis();
+    provider->Subscribe([weak_self] {
         if (auto shared_self = weak_self.lock()) {
             if (shared_self->is_sending_) {
                 return;
@@ -45,8 +46,9 @@ void SseSender::Run(std::function<void(beast::error_code ec, uint64_t bytes_tran
 }
 
 void SseSender::TimerLoop() {
+    auto self = shared_from_this();
     timer_.expires_after(std::chrono::milliseconds(10));
-    timer_.async_wait([self = shared_from_this()](beast::error_code ec) {
+    timer_.async_wait([self](beast::error_code ec) {
         if (ec) {
             return self->OnFinish(ec);
         }
@@ -78,7 +80,8 @@ bool SseSender::DoSendNextSseEvent() {
         return true;
     }
 
-    net::async_write(*stream_, net::buffer(sending_event_), [self = shared_from_this()](beast::error_code ec, std::size_t bytes_transfered) {
+    auto self = shared_from_this();
+    net::async_write(*stream_, net::buffer(sending_event_), [self](beast::error_code ec, std::size_t bytes_transfered) {
         self->bytes_transfered_ += bytes_transfered;
         if (ec) {
             return self->OnFinish(ec);
