@@ -119,6 +119,11 @@ public:
     void set_cb_before_send_response(std::function<void(Request&, Response&)> cb) { cb_before_send_response_ = cb; }
 
     /**
+     * @brief 设置回调函数：工作线程(创建完成后)开始运行前执行.
+     */
+    void set_cb_before_worker_thread_run(std::function<void()> cb) { cb_before_worker_thread_run_ = cb; }
+
+    /**
      * @brief 设置回调函数：工作线程退出前执行.
      */
     void set_cb_before_worker_thread_exit(std::function<void()> cb) { cb_before_worker_thread_exit_ = cb; }
@@ -222,6 +227,7 @@ private:
     std::function<bool(Request&, Response&)> cb_before_parse_body_;
     std::function<bool(Request&, Response&)> cb_before_handle_request_;
     std::function<void(Request&, Response&)> cb_before_send_response_;
+    std::function<void()> cb_before_worker_thread_run_;
     std::function<void()> cb_before_worker_thread_exit_;
 };
 

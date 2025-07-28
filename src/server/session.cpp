@@ -74,7 +74,9 @@ void Session::OnRead(beast::error_code ec, size_t/* bytes_transferred*/) {
 }
 
 void Session::OnReadError(beast::error_code ec) {
-    if (ec == beast::error::timeout || ec == beast::errc::operation_canceled) {
+    if (ec == beast::error::timeout || ec == beast::errc::operation_canceled || ec == net::error::operation_aborted ||
+        ec == net::error::connection_aborted || ec == net::error::connection_reset)
+    {
         svr_->logger()->Debug(LOG_CTX, "OnRead error, %s", ec.message().c_str());
     }
     else if (ec == http::error::body_limit) {
@@ -114,7 +116,9 @@ void Session::OnWrite(bool close, beast::error_code ec, size_t/* bytes_transferr
 }
 
 void Session::OnWriteError(beast::error_code ec) {
-    if (ec == beast::error::timeout || ec == beast::errc::operation_canceled) {
+    if (ec == beast::error::timeout || ec == beast::errc::operation_canceled || ec == net::error::operation_aborted ||
+        ec == net::error::connection_aborted || ec == net::error::connection_reset)
+    {
         svr_->logger()->Debug(LOG_CTX, "OnWrite error, %s", ec.message().c_str());
     }
     else {

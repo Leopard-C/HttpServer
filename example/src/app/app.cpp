@@ -1,4 +1,7 @@
 #include "app.h"
+#ifdef _WIN32
+#  include <Windows.h>
+#endif
 #include <server/helper/helper.h>
 #include "manager/user_manager.h"
 #include "singleton/singleton.h"
@@ -62,6 +65,12 @@ bool Application::InitHttpServer() {
     server_->set_cb_before_parse_body(BeforeParseBody);
     server_->set_cb_before_handle_request(BeforeHandleRequest);
     server_->set_cb_before_send_response(BeforeSendResponse);
+    server_->set_cb_before_worker_thread_run([] {
+#ifdef _WIN32
+        /* 强制让boost库报错信息输出为英文 */
+        SetThreadUILanguage(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US));
+#endif // _WIN32
+    });
 
     // singletons
     auto user_mgr = ic::Singleton<UserManager>::Instance();

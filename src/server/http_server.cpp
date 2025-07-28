@@ -262,6 +262,9 @@ void HttpServer::NewWorkerThreads(uint32_t n) {
     for (uint32_t i = 0; i < n; ++i) {
         ++curr_num_worker_threads_;
         std::thread t([this] {
+            if (this->cb_before_worker_thread_run_) {
+                this->cb_before_worker_thread_run_();
+            }
             this->ThreadFunc_Worker();
             if (this->cb_before_worker_thread_exit_) {
                 this->cb_before_worker_thread_exit_();
