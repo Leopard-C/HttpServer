@@ -60,8 +60,8 @@ void Session::OnRead(beast::error_code ec, size_t/* bytes_transferred*/) {
     auto req_raw = (RequestRaw*)(&(parser_->get()));
     res_->set_keep_alive(req_raw->keep_alive());
 
-    auto client_ip = stream_.socket().remote_endpoint().address();
-    req_ = std::make_shared<Request>(svr_, req_raw, client_ip.to_string());
+    const auto& remote_endpoint = stream_.socket().remote_endpoint();
+    req_ = std::make_shared<Request>(svr_, req_raw, remote_endpoint.address().to_string(), remote_endpoint.port());
 
     svr_->OnStartHandlingRequest(req_.get());
     if (PreHandleRequest()) {
@@ -217,9 +217,9 @@ void Session::SendFileBodyResponse() {
 
     /* 打印请求日志 */
     if (svr_->config().log_access()) {
-        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s -- %u %" PRIu64 " %s",
+        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s:%hu -- %u %" PRIu64 " %s",
             to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
-            req_->client_real_ip_.c_str(), res_->status_code_, file.size(),
+            req_->client_real_ip_.c_str(), req_->port_, res_->status_code_, file.size(),
             util::format_duration(req_->time_consumed_total_).c_str()
         );
     }
@@ -239,9 +239,9 @@ void Session::SendFileBodyResponse() {
 void Session::SendStringBodyResponse() {
     /* 打印请求日志 */
     if (svr_->config().log_access()) {
-        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s -- %u %" PRIu64 " %s",
+        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s:%hu -- %u %" PRIu64 " %s",
             to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
-            req_->client_real_ip_.c_str(), res_->status_code_, (uint64_t)res_->string_body_.size(),
+            req_->client_real_ip_.c_str(), req_->port_, res_->status_code_, (uint64_t)res_->string_body_.size(),
             util::format_duration(req_->time_consumed_total_).c_str()
         );
     }
@@ -269,9 +269,9 @@ void Session::SendStringBodyResponse() {
 void Session::SendSseBodyResponse() {
     /* 打印请求日志 */
     if (svr_->config().log_access()) {
-        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s -- %u 0 %s",
+        svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s:%hu -- %u 0 %s",
             to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
-            req_->client_real_ip_.c_str(), res_->status_code_, util::format_duration(req_->time_consumed_total_).c_str()
+            req_->client_real_ip_.c_str(), req_->port_, res_->status_code_, util::format_duration(req_->time_consumed_total_).c_str()
         );
     }
 

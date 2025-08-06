@@ -35,7 +35,7 @@ public:
     friend class Router;
 
 public:
-    Request(HttpServer* svr, RequestRaw* raw, const std::string& client_ip);
+    Request(HttpServer* svr, RequestRaw* raw, const std::string& client_ip, uint16_t port);
     Request(const Request&) = delete;
     Request& operator=(const Request&) = delete;
     ~Request();
@@ -149,6 +149,13 @@ public:
     const std::string& client_ip() const { return client_ip_; }
 
     /**
+     * @brief 请求来源客户端使用的端口号.
+     * 
+     * @details 如果经过（正向/反向）代理，获取的是与当前服务器直接建立TCP连接的客户端使用的端口号.
+     */
+    uint16_t port() const { return port_; }
+
+    /**
      * @brief 请求来源客户端的真实IP地址.
      * 
      * @details 依赖 X-Forwarded-For 请求头，存在伪造的可能性.
@@ -251,6 +258,13 @@ private:
 private:
     HttpServer* svr_;
     RequestRaw* raw_;
+
+    /**
+     * @brief 客户端使用的端口号.
+     *
+     * @details 如果经过（正向/反向）代理，获取的是与当前服务器直接建立TCP连接的客户端使用的端口号.
+     */
+    uint16_t port_;
 
     /**
      * @brief 客户端地址.

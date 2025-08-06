@@ -73,9 +73,9 @@ static void s_split_key_value(const char* str, size_t len,
     }
 }
 
-Request::Request(HttpServer* svr, RequestRaw* raw, const std::string& client_ip)
+Request::Request(HttpServer* svr, RequestRaw* raw, const std::string& client_ip, uint16_t port)
     : svr_(svr), raw_(raw), arrive_timepoint_(std::chrono::system_clock::now()),
-      client_ip_(client_ip), client_real_ip_(client_ip),
+      port_(port), client_ip_(client_ip), client_real_ip_(client_ip),
       thread_id_(util::thread_id()), id_(svr_->current_request_id())
 {
     ParseBasic();
@@ -180,6 +180,7 @@ void Request::LogAccessVerbose() {
     msg += "\n------------------------------------------------\n";
     msg += "  method: " + std::string(to_string(method_)) + "\n";
     msg += "  path: " + path_ + "\n";
+    msg += "  client port: " + std::to_string(port_) + "\n";
     msg += "  client ip: " + client_ip_ + "\n";
     msg += "  client real ip: " + client_real_ip_ + "\n";
     msg += "  headers:\n";
