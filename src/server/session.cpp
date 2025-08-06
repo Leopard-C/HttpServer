@@ -11,7 +11,7 @@ namespace ic {
 namespace server {
 
 Session::Session(tcp::socket&& socket, HttpServer* svr)
-    : svr_(svr), stream_(std::move(socket)), remote_endpoint_(stream_.socket().remote_endpoint())
+    : svr_(svr), stream_(std::move(socket)), local_endpoint_(stream_.socket().local_endpoint()), remote_endpoint_(stream_.socket().remote_endpoint())
 {
     svr_->logger()->Debug(LOG_CTX, "New session from %s:%hu", remote_endpoint_.address().to_string().c_str(), remote_endpoint_.port());
     svr_->OnNewSession(this);
@@ -60,8 +60,9 @@ void Session::OnRead(beast::error_code ec, size_t/* bytes_transferred*/) {
     auto req_raw = (RequestRaw*)(&(parser_->get()));
     res_->set_keep_alive(req_raw->keep_alive());
 
-    const auto& remote_endpoint = stream_.socket().remote_endpoint();
-    req_ = std::make_shared<Request>(svr_, req_raw, remote_endpoint.address().to_string(), remote_endpoint.port());
+    req_ = std::make_shared<Request>(svr_, req_raw,
+        local_endpoint_.address().to_string(), local_endpoint_.port(),
+        remote_endpoint_.address().to_string(), remote_endpoint_.port());
 
     svr_->OnStartHandlingRequest(req_.get());
     if (PreHandleRequest()) {
@@ -219,7 +220,7 @@ void Session::SendFileBodyResponse() {
     if (svr_->config().log_access()) {
         svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s:%hu -- %u %" PRIu64 " %s",
             to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
-            req_->client_real_ip_.c_str(), req_->port_, res_->status_code_, file.size(),
+            req_->client_real_ip_.c_str(), req_->client_port_, res_->status_code_, file.size(),
             util::format_duration(req_->time_consumed_total_).c_str()
         );
     }
@@ -241,7 +242,7 @@ void Session::SendStringBodyResponse() {
     if (svr_->config().log_access()) {
         svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s:%hu -- %u %" PRIu64 " %s",
             to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
-            req_->client_real_ip_.c_str(), req_->port_, res_->status_code_, (uint64_t)res_->string_body_.size(),
+            req_->client_real_ip_.c_str(), req_->client_port_, res_->status_code_, (uint64_t)res_->string_body_.size(),
             util::format_duration(req_->time_consumed_total_).c_str()
         );
     }
@@ -271,7 +272,7 @@ void Session::SendSseBodyResponse() {
     if (svr_->config().log_access()) {
         svr_->logger()->Info(LOG_CTX, "ACCESS \"%s %.*s\" -- %s:%hu -- %u 0 %s",
             to_string(req_->method_), (int)req_->raw_->target().length(), req_->raw_->target().data(),
-            req_->client_real_ip_.c_str(), req_->port_, res_->status_code_, util::format_duration(req_->time_consumed_total_).c_str()
+            req_->client_real_ip_.c_str(), req_->client_port_, res_->status_code_, util::format_duration(req_->time_consumed_total_).c_str()
         );
     }
 

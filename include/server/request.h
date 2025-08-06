@@ -35,7 +35,7 @@ public:
     friend class Router;
 
 public:
-    Request(HttpServer* svr, RequestRaw* raw, const std::string& client_ip, uint16_t port);
+    Request(HttpServer* svr, RequestRaw* raw, const std::string& local_ip, uint16_t local_port, const std::string& client_ip, uint16_t client_port);
     Request(const Request&) = delete;
     Request& operator=(const Request&) = delete;
     ~Request();
@@ -142,6 +142,16 @@ public:
     std::string GetUserAgent() const;
 
     /**
+     * @brief 本机(服务端)IP地址.
+     */
+    const std::string& local_ip() const { return local_ip_; }
+
+    /**
+     * @brief 本机(服务端)端口号.
+     */
+    uint16_t local_port() const { return local_port_; }
+
+    /**
      * @brief 请求来源客户端IP地址.
      * 
      * @details 如果经过（正向/反向）代理，获取的是与当前服务器直接建立TCP连接的客户端IP.
@@ -153,7 +163,7 @@ public:
      * 
      * @details 如果经过（正向/反向）代理，获取的是与当前服务器直接建立TCP连接的客户端使用的端口号.
      */
-    uint16_t port() const { return port_; }
+    uint16_t client_port() const { return client_port_; }
 
     /**
      * @brief 请求来源客户端的真实IP地址.
@@ -259,12 +269,11 @@ private:
     HttpServer* svr_;
     RequestRaw* raw_;
 
-    /**
-     * @brief 客户端使用的端口号.
-     *
-     * @details 如果经过（正向/反向）代理，获取的是与当前服务器直接建立TCP连接的客户端使用的端口号.
-     */
-    uint16_t port_;
+    /** 本机(服务端)IP地址 */
+    std::string local_ip_;
+
+    /** 本机(服务端)端口 */
+    uint16_t local_port_;
 
     /**
      * @brief 客户端地址.
@@ -272,6 +281,13 @@ private:
      * @details 如果经过(反向)代理，可能获取的是(反向)代理服务器的地址.
      */
     std::string client_ip_;
+
+    /**
+     * @brief 客户端使用的端口号.
+     *
+     * @details 如果经过（正向/反向）代理，获取的是与当前服务器直接建立TCP连接的客户端使用的端口号.
+     */
+    uint16_t client_port_;
 
     /** 客户端真实地址 */
     std::string client_real_ip_;
