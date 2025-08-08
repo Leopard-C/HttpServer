@@ -45,6 +45,9 @@ bool Listener::Run(const std::string& ip, unsigned short port, bool reuse_addres
         return false;
     }
 
+    if (endpoint.port() == 0) {
+        endpoint = acceptor_.local_endpoint(ec);
+    }
     svr_->logger()->Info(LOG_CTX, "Listening on %s:%hu ...", endpoint.address().to_string().c_str(), endpoint.port());
     DoAccept();
 
