@@ -29,6 +29,8 @@ private:
     void DoAccept();
     void OnAccept(beast::error_code ec, tcp::socket socket);
 
+    void OnAcceptError(beast::error_code ec);
+
 private:
     HttpServer* svr_;
     tcp::acceptor acceptor_;

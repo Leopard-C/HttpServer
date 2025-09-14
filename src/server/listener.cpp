@@ -78,12 +78,23 @@ void Listener::OnAccept(beast::error_code ec, tcp::socket socket) {
         return;
     }
     if (ec) {
-        svr_->logger()->Error(LOG_CTX, "OnAccept error, %s", ec.message().c_str());
+        OnAcceptError(ec);
     }
     else {
         std::make_shared<Session>(std::move(socket), svr_)->Start();
     }
     DoAccept();
+}
+
+void Listener::OnAcceptError(beast::error_code ec) {
+    if (ec == beast::errc::operation_canceled || ec == net::error::operation_aborted ||
+        ec == net::error::connection_aborted || ec == net::error::connection_reset)
+    {
+        svr_->logger()->Debug(LOG_CTX, "OnAccept error, %s", ec.message().c_str());
+    }
+    else {
+        svr_->logger()->Error(LOG_CTX, "OnAccept error, %s", ec.message().c_str());
+    }
 }
 
 } // namesapce server
