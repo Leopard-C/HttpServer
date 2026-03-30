@@ -221,7 +221,10 @@ void Request::ParseBasic() {
 
     // 3. request path & url params
     auto tgt = raw_->target();
-    if (!tgt.empty()) {
+    if (tgt.empty()) {
+        path_ = "/";
+    }
+    else {
         size_t pos = tgt.find('?');
         if (pos == boost::string_view::npos) {
             if (!util::url_decode(tgt.data(), tgt.length(), &path_)) {
