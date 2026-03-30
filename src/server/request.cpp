@@ -221,14 +221,22 @@ void Request::ParseBasic() {
 
     // 3. request path & url params
     auto tgt = raw_->target();
-    size_t pos = tgt.find('?');
-    if (pos == boost::string_view::npos) {
-        path_ = to_string(tgt);
-    }
-    else {
-        path_ = to_string(tgt.substr(0, pos));
-        auto url_params = tgt.substr(pos + 1);
-        ParseUrlParams(url_params.data(), url_params.size());
+    if (!tgt.empty()) {
+        size_t pos = tgt.find('?');
+        if (pos == boost::string_view::npos) {
+            if (!util::url_decode(tgt.data(), tgt.length(), &path_)) {
+                path_ = to_string(tgt);
+            }
+        }
+        else {
+            if (!util::url_decode(tgt.data(), pos, &path_)) {
+                path_ = to_string(tgt.substr(0, pos));
+            }
+            if (pos < tgt.length() - 1) {
+                auto url_params = tgt.substr(pos + 1);
+                ParseUrlParams(url_params.data(), url_params.size());
+            }
+        }
     }
 
     // 4. content type
