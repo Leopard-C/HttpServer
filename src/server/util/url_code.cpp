@@ -39,7 +39,7 @@ std::string url_encode(const char* str, size_t len) {
             result += str[i];
         }
         else if (str[i] == ' ') {
-            result += '+';
+            result += "%20";
         }
         else {
             result += '%';
@@ -55,18 +55,16 @@ std::string url_encode(const char* str, size_t len) {
  * 
  * @param[in]  str 输入字符串
  * @param[in]  len 输入字符串长度
+ * @param[in]  ignore_plus_sign 是否忽略加号
  * @param[out] result 解码结果
  * @retval true  成功
  * @retval false 失败
  */
-bool url_decode(const char* str, size_t len, std::string* ori) {
+bool url_decode(const char* str, size_t len, bool ignore_plus_sign, std::string* ori) {
     ori->clear();
     ori->reserve(len);
     for (size_t i = 0; i < len; ++i) {
-        if (str[i] == '+') {
-            *ori += ' ';
-        }
-        else if (str[i] == '%') {
+        if (str[i] == '%') {
             if (i + 2 >= len) {
                 return false;
             }
@@ -78,6 +76,9 @@ bool url_decode(const char* str, size_t len, std::string* ori) {
                 return false;
             }
             *ori += (high*16 + low);
+        }
+        else if (str[i] == '+' && !ignore_plus_sign) {
+            *ori += ' ';
         }
         else {
             *ori += str[i];

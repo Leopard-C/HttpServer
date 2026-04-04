@@ -65,8 +65,8 @@ static void s_split_key_value(const char* str, size_t len,
         if (trim_value) {
             value.Trim();
         }
-        if (util::url_decode(key.data(), key.length(), &key_decoded) &&
-            util::url_decode(value.data(), value.length(), &value_decoded))
+        if (util::url_query_string_decode(key.data(), key.length(), &key_decoded) &&
+            util::url_query_string_decode(value.data(), value.length(), &value_decoded))
         {
             result->emplace(key_decoded, value_decoded);
         }
@@ -227,12 +227,12 @@ void Request::ParseBasic() {
     else {
         size_t pos = tgt.find('?');
         if (pos == boost::string_view::npos) {
-            if (!util::url_decode(tgt.data(), tgt.length(), &path_)) {
+            if (!util::url_path_decode(tgt.data(), tgt.length(), &path_)) {
                 path_ = to_string(tgt);
             }
         }
         else {
-            if (!util::url_decode(tgt.data(), pos, &path_)) {
+            if (!util::url_path_decode(tgt.data(), pos, &path_)) {
                 path_ = to_string(tgt.substr(0, pos));
             }
             if (pos < tgt.length() - 1) {

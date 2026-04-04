@@ -28,11 +28,40 @@ std::string url_encode(const char* str, size_t len);
  * 
  * @param[in]  str 输入字符串
  * @param[in]  len 输入字符串长度
+ * @param[in]  ignore_plus_sign 是否忽略加号
  * @param[out] result 解码结果
  * @retval true  成功
  * @retval false 失败
  */
-bool url_decode(const char* str, size_t len, std::string* result);
+bool url_decode(const char* str, size_t len, bool ignore_plus_sign, std::string* ori);
+
+/**
+ * @brief URL路径部分解码.
+ * @note 加号不会解码为空格
+ * 
+ * @param[in]  str 输入字符串
+ * @param[in]  len 输入字符串长度
+ * @param[out] result 解码结果
+ * @retval true  成功
+ * @retval false 失败
+ */
+inline bool url_path_decode(const char* str, size_t len, std::string* result) {
+    return url_decode(str, len, true, result);
+}
+
+/**
+ * @brief URL查询参数部分解码.
+ * @note 加号会解码为空格
+ * 
+ * @param[in]  str 输入字符串
+ * @param[in]  len 输入字符串长度
+ * @param[out] result 解码结果
+ * @retval true  成功
+ * @retval false 失败
+ */
+inline bool url_query_string_decode(const char* str, size_t len, std::string* result) {
+    return url_decode(str, len, false, result);
+}
 
 } // namespace util
 } // namespace server
